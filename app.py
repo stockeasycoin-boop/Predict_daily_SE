@@ -165,7 +165,7 @@ def _google_login():
             )
             st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
             if st.button("🔐  Sign in with Google", use_container_width=True, type="primary"):
-                st.login("google")
+                st.login()
             st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
             if st.button("🔑  Sign in with password instead", use_container_width=True):
                 st.session_state["_use_password_fallback"] = True
