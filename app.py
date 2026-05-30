@@ -156,7 +156,7 @@ def _google_login():
             )
             st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
             if st.button("🔐  Sign in with Google", use_container_width=True, type="primary"):
-                st.login()
+                st.login("google")
             st.markdown(
                 "<p style='text-align:center;color:#B0BEC5;font-size:0.8rem;margin-top:1rem'>"
                 "Private application — authorized accounts only</p>",
