@@ -132,19 +132,28 @@ def _password_login():
             if username == AUTH_USERNAME and _hash_pw(password) == AUTH_PASSWORD_SHA256:
                 st.session_state["authenticated"] = True
                 st.session_state["auth_user"] = username
+                st.session_state.pop("_use_password_fallback", None)
                 st.rerun()
             else:
                 st.error("Invalid username or password.")
-        st.caption("💡 Tip: configure Google sign-in via .streamlit/secrets.toml for a nicer login.")
+        if st.session_state.get("_use_password_fallback"):
+            if st.button("← Back to Google sign-in", use_container_width=True):
+                st.session_state.pop("_use_password_fallback", None)
+                st.rerun()
     st.stop()
 
 
 def _google_login():
-    """Google OIDC sign-in via native st.login / st.user, with email whitelist."""
+    """Google OIDC sign-in via native st.login / st.user, with email whitelist + password fallback."""
     user = getattr(st, "user", None)
     logged_in = bool(user and getattr(user, "is_logged_in", False))
 
     if not logged_in:
+        # If user clicked "use password instead", drop to password form
+        if st.session_state.get("_use_password_fallback"):
+            _password_login()
+            return
+
         _, mid, _ = st.columns([1, 1.4, 1])
         with mid:
             st.markdown("<div style='height:8vh'></div>", unsafe_allow_html=True)
@@ -157,6 +166,10 @@ def _google_login():
             st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
             if st.button("🔐  Sign in with Google", use_container_width=True, type="primary"):
                 st.login("google")
+            st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+            if st.button("🔑  Sign in with password instead", use_container_width=True):
+                st.session_state["_use_password_fallback"] = True
+                st.rerun()
             st.markdown(
                 "<p style='text-align:center;color:#B0BEC5;font-size:0.8rem;margin-top:1rem'>"
                 "Private application — authorized accounts only</p>",
