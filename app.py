@@ -1153,8 +1153,25 @@ with tab3:
         cv_close = float(meta.get("cv_close",    meta.get("cv_accuracy", 0)))
         c1, c2, c3, c4 = st.columns(4)
         if "cv_open" in meta or "cv_close" in meta:
+            _o_sk = meta.get("open_skill")
+            _c_sk = meta.get("close_skill")
+            _help = None
+            if _o_sk is not None and _c_sk is not None:
+                _help = (
+                    "Skill = accuracy above the majority-class baseline (always guessing "
+                    "the more common outcome).\n\n"
+                    f"OPEN: {cv_open*100:.1f}% vs baseline {meta.get('open_baseline_acc',0)*100:.1f}% "
+                    f"(gap-up base rate {meta.get('open_base_rate',0)*100:.1f}%) -> "
+                    f"skill {_o_sk*100:+.1f}%\n\n"
+                    f"CLOSE: {cv_close*100:.1f}% vs baseline {meta.get('close_baseline_acc',0)*100:.1f}% "
+                    f"(bull base rate {meta.get('close_base_rate',0)*100:.1f}%) -> "
+                    f"skill {_c_sk*100:+.1f}%"
+                )
+            _delta = (f"skill {_o_sk*100:+.1f}% / {_c_sk*100:+.1f}%"
+                      if (_o_sk is not None and _c_sk is not None) else None)
             c1.metric("CV open / close",
-                     f"{cv_open*100:.1f}% / {cv_close*100:.1f}%")
+                     f"{cv_open*100:.1f}% / {cv_close*100:.1f}%",
+                     delta=_delta, delta_color="off", help=_help)
         else:
             c1.metric("CV accuracy", f"{cv_open*100:.1f}%")
         c2.metric("Training rows", f"{meta.get('n_samples', 0):,}")

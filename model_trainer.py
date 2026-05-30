@@ -235,8 +235,10 @@ def train_model(feature_df: pd.DataFrame,
         X_all_o_sc, y_all_o
     )
     if verbose:
+        _open_base = max(y_all_o.mean(), 1 - y_all_o.mean())
         print(f"  XGB Open CV: {cv_open_mean:.3f} ± {cv_open_std:.3f}  "
-              f"(gap-up rate: {y_all_o.mean():.1%})")
+              f"(gap-up rate: {y_all_o.mean():.1%}, baseline: {_open_base:.1%}, "
+              f"skill: {cv_open_mean - _open_base:+.1%})")
 
     # Open regression (gap % magnitude)
     X_reg_o, y_reg_o = prep(df, "open_ret_pct", reg=True)
@@ -286,8 +288,10 @@ def train_model(feature_df: pd.DataFrame,
         X_all_c_sc, y_all_c
     )
     if verbose:
+        _close_base = max(y_all_c.mean(), 1 - y_all_c.mean())
         print(f"  XGB Close CV: {cv_close_mean:.3f} ± {cv_close_std:.3f}  "
-              f"(bull rate: {y_all_c.mean():.1%})")
+              f"(bull rate: {y_all_c.mean():.1%}, baseline: {_close_base:.1%}, "
+              f"skill: {cv_close_mean - _close_base:+.1%})")
 
     # Close regression (intraday return %) — CHAINED on predicted open gap
     X_reg_c, y_reg_c = prep_chained(df, "close_ret_pct", ["open_ret_pct"])
@@ -340,6 +344,14 @@ def train_model(feature_df: pd.DataFrame,
         "cv_open_std":     round(cv_open_std,   4),
         "cv_close":        round(cv_close_mean, 4),
         "cv_close_std":    round(cv_close_std,  4),
+        # Majority-class baseline = accuracy of always predicting the more common
+        # class. Skill = how much the model beats that naive baseline.
+        "open_base_rate":     round(float(y_all_o.mean()), 4),
+        "close_base_rate":    round(float(y_all_c.mean()), 4),
+        "open_baseline_acc":  round(float(max(y_all_o.mean(), 1 - y_all_o.mean())), 4),
+        "close_baseline_acc": round(float(max(y_all_c.mean(), 1 - y_all_c.mean())), 4),
+        "open_skill":         round(float(cv_open_mean  - max(y_all_o.mean(), 1 - y_all_o.mean())), 4),
+        "close_skill":        round(float(cv_close_mean - max(y_all_c.mean(), 1 - y_all_c.mean())), 4),
         "mae_open_pct":    round(mae_open,  4),
         "mae_close_pct":   round(mae_close, 4),
         "mae_high_pct":    round(mae_high,  4),
