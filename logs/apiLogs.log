@@ -1,0 +1,266 @@
+2026-05-27 12:03:18,541 - Get Historical data V2 response
+2026-05-27 12:03:19,205 - Get Historical data V2 response
+2026-05-27 12:03:19,612 - Get Historical data V2 response
+2026-05-27 12:03:20,172 - Get Historical data V2 response
+2026-05-27 12:04:58,043 - Get Historical data V2 response
+2026-05-27 12:04:58,180 - Get Historical data V2 response
+2026-05-27 12:04:58,309 - Get Historical data V2 response
+2026-05-27 12:04:58,762 - Get Historical data V2 response
+2026-05-27 12:04:59,164 - Get Historical data V2 response
+2026-05-27 12:04:59,324 - Get Historical data V2 response
+2026-05-27 12:04:59,511 - Get Historical data V2 response
+2026-05-27 12:04:59,669 - Get Historical data V2 response
+2026-05-27 12:05:00,245 - Get Historical data V2 response
+2026-05-27 12:05:00,379 - Get Historical data V2 response
+2026-05-27 12:05:00,537 - Get Historical data V2 response
+2026-05-27 12:05:00,952 - Get Historical data V2 response
+2026-05-27 12:05:01,092 - Get Historical data V2 response
+2026-05-27 12:05:01,236 - Get Historical data V2 response
+2026-05-27 12:05:01,373 - Get Historical data V2 response
+2026-05-27 12:05:01,516 - Get Historical data V2 response
+2026-05-27 12:05:02,094 - Get Historical data V2 response
+2026-05-27 12:05:03,017 - <Response [200]>
+2026-05-27 12:05:03,018 - Get Quotes response : {'Success': [{'exchange_code': 'NSE', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': None, 'right': None, 'strike_price': 0.0, 'ltp': 23928.3, 'ltt': '27-May-2026 12:05:01', 'best_bid_price': 0.0, 'best_bid_quantity': '0', 'best_offer_price': 0.0, 'best_offer_quantity': '0', 'open': 23880.35, 'high': 23983.2, 'low': 23868.5, 'previous_close': 23913.7, 'ltp_percent_change': 0.0610528692757708, 'upper_circuit': 0.0, 'lower_circuit': 0.0, 'total_quantity_traded': '0', 'spot_price': None}, {'exchange_code': 'NA', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': None, 'right': None, 'strike_price': 0.0, 'ltp': 0.0, 'ltt': 'NA', 'best_bid_price': 0.0, 'best_bid_quantity': '0', 'best_offer_price': 0.0, 'best_offer_quantity': '0', 'open': 0.0, 'high': 0.0, 'low': 0.0, 'previous_close': 0.0, 'ltp_percent_change': 0.0, 'upper_circuit': 0.0, 'lower_circuit': 0.0, 'total_quantity_traded': '0', 'spot_price': None}], 'Status': 200, 'Error': None}
+2026-05-27 12:05:03,173 - <Response [200]>
+2026-05-27 12:05:03,177 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'C', 'strike_price': 23700.0, 'ltp': 313.0, 'ltt': '27-May-2026 12:04:55', 'best_bid_price': 313.05, 'best_bid_quantity': '260', 'best_offer_price': 313.8, 'best_offer_quantity': '455', 'open': 323.0, 'high': 364.9, 'low': 274.0, 'previous_close': 333.0, 'ltp_percent_change': -6.01, 'upper_circuit': 767.9, 'lower_circuit': 0.05, 'total_quantity_traded': '4177615', 'spot_price': '23928.2'}], 'Status': 200, 'Error': None}
+2026-05-27 12:05:03,333 - <Response [503]>
+2026-05-27 12:05:03,333 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-27 12:05:03,499 - <Response [200]>
+2026-05-27 12:05:03,500 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'C', 'strike_price': 23750.0, 'ltp': 277.0, 'ltt': '27-May-2026 12:04:55', 'best_bid_price': 277.2, 'best_bid_quantity': '65', 'best_offer_price': 277.65, 'best_offer_quantity': '130', 'open': 285.0, 'high': 326.0, 'low': 240.8, 'previous_close': 299.4, 'ltp_percent_change': -7.48, 'upper_circuit': 713.2, 'lower_circuit': 0.05, 'total_quantity_traded': '2988895', 'spot_price': '23928.2'}], 'Status': 200, 'Error': None}
+2026-05-27 12:05:03,611 - <Response [503]>
+2026-05-27 12:05:03,611 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-27 12:05:03,721 - <Response [503]>
+2026-05-27 12:05:03,721 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-27 12:05:03,838 - <Response [503]>
+2026-05-27 12:05:03,839 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-27 12:05:03,960 - <Response [503]>
+2026-05-27 12:05:03,960 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-27 12:05:04,092 - <Response [503]>
+2026-05-27 12:05:04,093 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-27 12:05:04,207 - <Response [503]>
+2026-05-27 12:05:04,207 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-27 12:05:04,319 - <Response [503]>
+2026-05-27 12:05:04,319 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-27 12:05:04,481 - <Response [200]>
+2026-05-27 12:05:04,484 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'C', 'strike_price': 23950.0, 'ltp': 155.05, 'ltt': '27-May-2026 12:04:59', 'best_bid_price': 155.2, 'best_bid_quantity': '260', 'best_offer_price': 155.5, 'best_offer_quantity': '585', 'open': 180.0, 'high': 193.6, 'low': 132.05, 'previous_close': 183.3, 'ltp_percent_change': -15.41, 'upper_circuit': 508.15, 'lower_circuit': 0.05, 'total_quantity_traded': '52870545', 'spot_price': '23928.4'}], 'Status': 200, 'Error': None}
+2026-05-27 12:05:04,634 - <Response [200]>
+2026-05-27 12:05:04,640 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'P', 'strike_price': 23950.0, 'ltp': 151.25, 'ltt': '27-May-2026 12:05:03', 'best_bid_price': 151.2, 'best_bid_quantity': '130', 'best_offer_price': 151.55, 'best_offer_quantity': '1235', 'open': 200.0, 'high': 221.75, 'low': 127.2, 'previous_close': 187.8, 'ltp_percent_change': -19.46, 'upper_circuit': 514.5, 'lower_circuit': 0.05, 'total_quantity_traded': '48020180', 'spot_price': '23928.5'}], 'Status': 200, 'Error': None}
+2026-05-27 12:05:04,760 - <Response [503]>
+2026-05-27 12:05:04,761 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-27 12:05:04,878 - <Response [503]>
+2026-05-27 12:05:04,879 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-27 12:05:04,994 - <Response [503]>
+2026-05-27 12:05:04,995 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-27 12:05:05,114 - <Response [503]>
+2026-05-27 12:05:05,115 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-27 12:05:05,271 - <Response [200]>
+2026-05-27 12:05:05,273 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'C', 'strike_price': 24100.0, 'ltp': 89.9, 'ltt': '27-May-2026 12:05:01', 'best_bid_price': 89.75, 'best_bid_quantity': '780', 'best_offer_price': 89.95, 'best_offer_quantity': '520', 'open': 115.0, 'high': 118.35, 'low': 78.1, 'previous_close': 118.75, 'ltp_percent_change': -24.29, 'upper_circuit': 376.85, 'lower_circuit': 0.05, 'total_quantity_traded': '37017110', 'spot_price': '23928.5'}], 'Status': 200, 'Error': None}
+2026-05-27 12:05:05,434 - <Response [200]>
+2026-05-27 12:05:05,435 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'P', 'strike_price': 24100.0, 'ltp': 237.45, 'ltt': '27-May-2026 12:05:01', 'best_bid_price': 237.05, 'best_bid_quantity': '260', 'best_offer_price': 237.55, 'best_offer_quantity': '65', 'open': 276.95, 'high': 324.3, 'low': 202.0, 'previous_close': 273.35, 'ltp_percent_change': -13.13, 'upper_circuit': 666.8, 'lower_circuit': 0.05, 'total_quantity_traded': '9997780', 'spot_price': '23928.65'}], 'Status': 200, 'Error': None}
+2026-05-27 12:05:05,592 - <Response [200]>
+2026-05-27 12:05:05,594 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'C', 'strike_price': 24150.0, 'ltp': 73.45, 'ltt': '27-May-2026 12:05:01', 'best_bid_price': 73.2, 'best_bid_quantity': '195', 'best_offer_price': 73.35, 'best_offer_quantity': '260', 'open': 89.95, 'high': 98.45, 'low': 64.2, 'previous_close': 101.4, 'ltp_percent_change': -27.56, 'upper_circuit': 338.1, 'lower_circuit': 0.05, 'total_quantity_traded': '18256940', 'spot_price': '23928.65'}], 'Status': 200, 'Error': None}
+2026-05-27 12:05:05,711 - <Response [503]>
+2026-05-27 12:05:05,712 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-27 12:05:05,869 - <Response [200]>
+2026-05-27 12:05:05,871 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'C', 'strike_price': 24200.0, 'ltp': 60.0, 'ltt': '27-May-2026 12:05:03', 'best_bid_price': 59.95, 'best_bid_quantity': '1170', 'best_offer_price': 60.1, 'best_offer_quantity': '1300', 'open': 72.0, 'high': 82.2, 'low': 52.7, 'previous_close': 85.65, 'ltp_percent_change': -29.95, 'upper_circuit': 301.65, 'lower_circuit': 0.05, 'total_quantity_traded': '30638530', 'spot_price': '23928.65'}], 'Status': 200, 'Error': None}
+2026-05-27 12:05:05,987 - <Response [503]>
+2026-05-27 12:05:05,987 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-27 12:09:39,888 - Get Historical data V2 response
+2026-05-27 12:09:40,042 - Get Historical data V2 response
+2026-05-27 12:09:40,171 - Get Historical data V2 response
+2026-05-27 12:09:40,305 - Get Historical data V2 response
+2026-05-27 18:16:37,577 - Get Historical data V2 response
+2026-05-27 18:16:37,721 - Get Historical data V2 response
+2026-05-27 18:16:38,174 - Get Historical data V2 response
+2026-05-27 18:16:38,586 - Get Historical data V2 response
+2026-05-27 18:16:38,747 - Get Historical data V2 response
+2026-05-27 18:16:38,922 - Get Historical data V2 response
+2026-05-27 18:16:39,106 - Get Historical data V2 response
+2026-05-27 18:16:39,242 - Get Historical data V2 response
+2026-05-27 18:16:39,819 - Get Historical data V2 response
+2026-05-27 18:16:40,428 - Get Historical data V2 response
+2026-05-27 18:16:40,588 - Get Historical data V2 response
+2026-05-27 18:16:40,733 - Get Historical data V2 response
+2026-05-27 18:16:40,899 - Get Historical data V2 response
+2026-05-27 18:16:41,057 - Get Historical data V2 response
+2026-05-27 18:16:41,453 - Get Historical data V2 response
+2026-05-27 18:16:43,377 - <Response [200]>
+2026-05-27 18:16:43,381 - Get Quotes response : {'Success': [{'exchange_code': 'NSE', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': None, 'right': None, 'strike_price': 0.0, 'ltp': 23907.15, 'ltt': '27-May-2026 16:00:01', 'best_bid_price': 0.0, 'best_bid_quantity': '0', 'best_offer_price': 0.0, 'best_offer_quantity': '0', 'open': 23880.35, 'high': 23983.2, 'low': 23858.25, 'previous_close': 23913.7, 'ltp_percent_change': 0.0273901571065958, 'upper_circuit': 0.0, 'lower_circuit': 0.0, 'total_quantity_traded': '0', 'spot_price': None}, {'exchange_code': 'NA', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': None, 'right': None, 'strike_price': 0.0, 'ltp': 0.0, 'ltt': 'NA', 'best_bid_price': 0.0, 'best_bid_quantity': '0', 'best_offer_price': 0.0, 'best_offer_quantity': '0', 'open': 0.0, 'high': 0.0, 'low': 0.0, 'previous_close': 0.0, 'ltp_percent_change': 0.0, 'upper_circuit': 0.0, 'lower_circuit': 0.0, 'total_quantity_traded': '0', 'spot_price': None}], 'Status': 200, 'Error': None}
+2026-05-27 18:16:43,575 - <Response [200]>
+2026-05-27 18:16:43,579 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'C', 'strike_price': 23650.0, 'ltp': 364.05, 'ltt': '27-May-2026 15:29:57', 'best_bid_price': 360.15, 'best_bid_quantity': '130', 'best_offer_price': 363.75, 'best_offer_quantity': '130', 'open': 321.95, 'high': 404.8, 'low': 294.0, 'previous_close': 354.75, 'ltp_percent_change': -1.02, 'upper_circuit': 823.1, 'lower_circuit': 0.05, 'total_quantity_traded': '1421680', 'spot_price': '23907.15'}], 'Status': 200, 'Error': None}
+2026-05-27 18:16:43,756 - <Response [200]>
+2026-05-27 18:16:43,756 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'P', 'strike_price': 23650.0, 'ltp': 46.2, 'ltt': '27-May-2026 15:29:59', 'best_bid_price': 46.2, 'best_bid_quantity': '650', 'best_offer_price': 46.5, 'best_offer_quantity': '520', 'open': 76.65, 'high': 92.65, 'low': 40.05, 'previous_close': 46.25, 'ltp_percent_change': -38.69, 'upper_circuit': 271.6, 'lower_circuit': 0.05, 'total_quantity_traded': '23085725', 'spot_price': '23907.15'}], 'Status': 200, 'Error': None}
+2026-05-27 18:16:43,875 - <Response [503]>
+2026-05-27 18:16:43,875 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-27 18:16:43,995 - <Response [503]>
+2026-05-27 18:16:43,995 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-27 18:16:44,126 - <Response [503]>
+2026-05-27 18:16:44,126 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-27 18:16:44,245 - <Response [503]>
+2026-05-27 18:16:44,245 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-27 18:16:44,376 - <Response [503]>
+2026-05-27 18:16:44,376 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-27 18:16:44,569 - <Response [200]>
+2026-05-27 18:16:44,569 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'P', 'strike_price': 23800.0, 'ltp': 85.55, 'ltt': '27-May-2026 15:29:59', 'best_bid_price': 85.1, 'best_bid_quantity': '520', 'best_offer_price': 85.55, 'best_offer_quantity': '455', 'open': 120.0, 'high': 146.8, 'low': 74.7, 'previous_close': 87.65, 'ltp_percent_change': -30.36, 'upper_circuit': 382.35, 'lower_circuit': 0.05, 'total_quantity_traded': '85913750', 'spot_price': '23907.15'}], 'Status': 200, 'Error': None}
+2026-05-27 18:16:44,735 - <Response [200]>
+2026-05-27 18:16:44,738 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'C', 'strike_price': 23850.0, 'ltp': 218.2, 'ltt': '27-May-2026 15:29:59', 'best_bid_price': 218.2, 'best_bid_quantity': '65', 'best_offer_price': 219.4, 'best_offer_quantity': '520', 'open': 236.85, 'high': 255.1, 'low': 167.6, 'previous_close': 207.45, 'ltp_percent_change': -7.87, 'upper_circuit': 606.75, 'lower_circuit': 0.05, 'total_quantity_traded': '36479365', 'spot_price': '23907.15'}], 'Status': 200, 'Error': None}
+2026-05-27 18:16:44,898 - <Response [503]>
+2026-05-27 18:16:44,899 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-27 18:16:45,080 - <Response [200]>
+2026-05-27 18:16:45,080 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'C', 'strike_price': 23900.0, 'ltp': 188.25, 'ltt': '27-May-2026 15:29:59', 'best_bid_price': 188.25, 'best_bid_quantity': '260', 'best_offer_price': 188.95, 'best_offer_quantity': '390', 'open': 205.0, 'high': 223.0, 'low': 142.55, 'previous_close': 179.75, 'ltp_percent_change': -9.54, 'upper_circuit': 555.5, 'lower_circuit': 0.05, 'total_quantity_traded': '156082290', 'spot_price': '23907.15'}], 'Status': 200, 'Error': None}
+2026-05-27 18:16:45,223 - <Response [200]>
+2026-05-27 18:16:45,223 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'P', 'strike_price': 23900.0, 'ltp': 123.85, 'ltt': '27-May-2026 15:29:59', 'best_bid_price': 123.05, 'best_bid_quantity': '585', 'best_offer_price': 123.85, 'best_offer_quantity': '390', 'open': 178.0, 'high': 194.35, 'low': 107.35, 'previous_close': 125.5, 'ltp_percent_change': -24.37, 'upper_circuit': 467.9, 'lower_circuit': 0.05, 'total_quantity_traded': '181031695', 'spot_price': '23907.15'}], 'Status': 200, 'Error': None}
+2026-05-27 18:16:45,351 - <Response [503]>
+2026-05-27 18:16:45,351 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-27 18:16:45,515 - <Response [200]>
+2026-05-27 18:16:45,515 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'P', 'strike_price': 23950.0, 'ltp': 145.5, 'ltt': '27-May-2026 15:29:59', 'best_bid_price': 145.55, 'best_bid_quantity': '130', 'best_offer_price': 146.1, 'best_offer_quantity': '325', 'open': 200.0, 'high': 221.75, 'low': 127.2, 'previous_close': 148.0, 'ltp_percent_change': -22.52, 'upper_circuit': 514.5, 'lower_circuit': 0.05, 'total_quantity_traded': '90057500', 'spot_price': '23907.15'}], 'Status': 200, 'Error': None}
+2026-05-27 18:16:45,631 - <Response [503]>
+2026-05-27 18:16:45,631 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-27 18:16:45,753 - <Response [503]>
+2026-05-27 18:16:45,753 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-27 18:16:45,867 - <Response [503]>
+2026-05-27 18:16:45,867 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-27 18:16:45,981 - <Response [503]>
+2026-05-27 18:16:45,981 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-27 18:16:46,094 - <Response [503]>
+2026-05-27 18:16:46,094 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-27 18:16:46,253 - <Response [200]>
+2026-05-27 18:16:46,253 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'P', 'strike_price': 24100.0, 'ltp': 230.85, 'ltt': '27-May-2026 15:29:59', 'best_bid_price': 228.8, 'best_bid_quantity': '130', 'best_offer_price': 230.2, 'best_offer_quantity': '130', 'open': 276.95, 'high': 324.3, 'low': 202.0, 'previous_close': 231.4, 'ltp_percent_change': -15.55, 'upper_circuit': 666.8, 'lower_circuit': 0.05, 'total_quantity_traded': '18563675', 'spot_price': '23907.15'}], 'Status': 200, 'Error': None}
+2026-05-27 18:16:46,366 - <Response [503]>
+2026-05-27 18:16:46,366 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-27 18:16:46,478 - <Response [503]>
+2026-05-27 18:16:46,478 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-28 08:20:17,849 - Get Historical data V2 response
+2026-05-28 08:20:18,314 - Get Historical data V2 response
+2026-05-28 08:20:18,688 - Get Historical data V2 response
+2026-05-28 08:20:18,840 - Get Historical data V2 response
+2026-05-28 10:11:18,997 - Get Historical data V2 response
+2026-05-28 10:11:19,155 - Get Historical data V2 response
+2026-05-28 10:11:19,578 - Get Historical data V2 response
+2026-05-28 10:11:19,931 - Get Historical data V2 response
+2026-05-28 10:15:36,350 - Get Historical data V2 response
+2026-05-28 10:15:36,506 - Get Historical data V2 response
+2026-05-28 10:15:36,853 - Get Historical data V2 response
+2026-05-28 10:15:37,216 - Get Historical data V2 response
+2026-05-28 10:15:37,414 - Get Historical data V2 response
+2026-05-28 10:15:37,558 - Get Historical data V2 response
+2026-05-28 10:15:37,690 - Get Historical data V2 response
+2026-05-28 10:15:37,877 - Get Historical data V2 response
+2026-05-28 10:15:38,033 - Get Historical data V2 response
+2026-05-28 10:15:38,163 - Get Historical data V2 response
+2026-05-28 10:15:38,556 - Get Historical data V2 response
+2026-05-28 10:15:38,932 - Get Historical data V2 response
+2026-05-28 10:15:39,077 - Get Historical data V2 response
+2026-05-28 10:15:39,222 - Get Historical data V2 response
+2026-05-28 10:15:39,371 - Get Historical data V2 response
+2026-05-28 10:15:39,721 - Get Historical data V2 response
+2026-05-28 10:15:39,866 - Get Historical data V2 response
+2026-05-28 10:15:40,277 - Get Historical data V2 response
+2026-05-28 10:15:43,340 - <Response [200]>
+2026-05-28 10:15:43,341 - Get Quotes response : {'Success': [{'exchange_code': 'NSE', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': None, 'right': None, 'strike_price': 0.0, 'ltp': 23907.15, 'ltt': '27-May-2026 16:00:01', 'best_bid_price': 0.0, 'best_bid_quantity': '0', 'best_offer_price': 0.0, 'best_offer_quantity': '0', 'open': 23880.35, 'high': 23983.2, 'low': 23858.25, 'previous_close': 23913.7, 'ltp_percent_change': 0.0273901571065958, 'upper_circuit': 0.0, 'lower_circuit': 0.0, 'total_quantity_traded': '0', 'spot_price': None}, {'exchange_code': 'NA', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': None, 'right': None, 'strike_price': 0.0, 'ltp': 0.0, 'ltt': 'NA', 'best_bid_price': 0.0, 'best_bid_quantity': '0', 'best_offer_price': 0.0, 'best_offer_quantity': '0', 'open': 0.0, 'high': 0.0, 'low': 0.0, 'previous_close': 0.0, 'ltp_percent_change': 0.0, 'upper_circuit': 0.0, 'lower_circuit': 0.0, 'total_quantity_traded': '0', 'spot_price': None}], 'Status': 200, 'Error': None}
+2026-05-28 10:15:43,481 - <Response [200]>
+2026-05-28 10:15:43,482 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'C', 'strike_price': 23650.0, 'ltp': 364.05, 'ltt': '27-May-2026 15:29:57', 'best_bid_price': 360.15, 'best_bid_quantity': '130', 'best_offer_price': 363.75, 'best_offer_quantity': '130', 'open': 321.95, 'high': 404.8, 'low': 294.0, 'previous_close': 354.75, 'ltp_percent_change': -1.02, 'upper_circuit': 823.1, 'lower_circuit': 0.05, 'total_quantity_traded': '1421680', 'spot_price': '23907.15'}], 'Status': 200, 'Error': None}
+2026-05-28 10:15:43,619 - <Response [200]>
+2026-05-28 10:15:43,619 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'P', 'strike_price': 23650.0, 'ltp': 46.2, 'ltt': '27-May-2026 15:29:59', 'best_bid_price': 46.2, 'best_bid_quantity': '650', 'best_offer_price': 46.5, 'best_offer_quantity': '520', 'open': 76.65, 'high': 92.65, 'low': 40.05, 'previous_close': 46.25, 'ltp_percent_change': -38.69, 'upper_circuit': 271.6, 'lower_circuit': 0.05, 'total_quantity_traded': '23085725', 'spot_price': '23907.15'}], 'Status': 200, 'Error': None}
+2026-05-28 10:15:43,746 - <Response [503]>
+2026-05-28 10:15:43,746 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-28 10:15:43,855 - <Response [503]>
+2026-05-28 10:15:43,855 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-28 10:15:43,973 - <Response [503]>
+2026-05-28 10:15:43,973 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-28 10:15:44,084 - <Response [503]>
+2026-05-28 10:15:44,084 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-28 10:15:44,235 - <Response [200]>
+2026-05-28 10:15:44,238 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'C', 'strike_price': 23800.0, 'ltp': 251.55, 'ltt': '27-May-2026 15:29:59', 'best_bid_price': 250.1, 'best_bid_quantity': '1105', 'best_offer_price': 252.1, 'best_offer_quantity': '130', 'open': 248.95, 'high': 290.0, 'low': 195.15, 'previous_close': 240.5, 'ltp_percent_change': -5.75, 'upper_circuit': 658.95, 'lower_circuit': 0.05, 'total_quantity_traded': '36196420', 'spot_price': '23907.15'}], 'Status': 200, 'Error': None}
+2026-05-28 10:15:44,354 - <Response [503]>
+2026-05-28 10:15:44,354 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-28 10:15:44,469 - <Response [503]>
+2026-05-28 10:15:44,469 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-28 10:15:44,615 - <Response [200]>
+2026-05-28 10:15:44,616 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'P', 'strike_price': 23850.0, 'ltp': 103.1, 'ltt': '27-May-2026 15:29:59', 'best_bid_price': 103.1, 'best_bid_quantity': '260', 'best_offer_price': 103.8, 'best_offer_quantity': '390', 'open': 150.0, 'high': 169.0, 'low': 90.0, 'previous_close': 106.55, 'ltp_percent_change': -27.5, 'upper_circuit': 423.85, 'lower_circuit': 0.05, 'total_quantity_traded': '70580900', 'spot_price': '23907.15'}], 'Status': 200, 'Error': None}
+2026-05-28 10:15:44,718 - <Response [503]>
+2026-05-28 10:15:44,718 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-28 10:15:44,876 - <Response [200]>
+2026-05-28 10:15:44,878 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'P', 'strike_price': 23900.0, 'ltp': 123.85, 'ltt': '27-May-2026 15:29:59', 'best_bid_price': 123.05, 'best_bid_quantity': '585', 'best_offer_price': 123.85, 'best_offer_quantity': '390', 'open': 178.0, 'high': 194.35, 'low': 107.35, 'previous_close': 125.5, 'ltp_percent_change': -24.37, 'upper_circuit': 467.9, 'lower_circuit': 0.05, 'total_quantity_traded': '181031695', 'spot_price': '23907.15'}], 'Status': 200, 'Error': None}
+2026-05-28 10:15:45,022 - <Response [200]>
+2026-05-28 10:15:45,023 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'C', 'strike_price': 23950.0, 'ltp': 161.4, 'ltt': '27-May-2026 15:29:59', 'best_bid_price': 161.65, 'best_bid_quantity': '390', 'best_offer_price': 162.15, 'best_offer_quantity': '325', 'open': 180.0, 'high': 193.6, 'low': 120.65, 'previous_close': 154.65, 'ltp_percent_change': -11.95, 'upper_circuit': 508.15, 'lower_circuit': 0.05, 'total_quantity_traded': '95864405', 'spot_price': '23907.15'}], 'Status': 200, 'Error': None}
+2026-05-28 10:15:45,131 - <Response [503]>
+2026-05-28 10:15:45,132 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-28 10:15:45,275 - <Response [200]>
+2026-05-28 10:15:45,277 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'C', 'strike_price': 24000.0, 'ltp': 137.25, 'ltt': '27-May-2026 15:29:59', 'best_bid_price': 136.65, 'best_bid_quantity': '715', 'best_offer_price': 137.25, 'best_offer_quantity': '260', 'open': 149.95, 'high': 166.0, 'low': 101.45, 'previous_close': 131.9, 'ltp_percent_change': -14.17, 'upper_circuit': 462.2, 'lower_circuit': 0.05, 'total_quantity_traded': '142964900', 'spot_price': '23907.15'}], 'Status': 200, 'Error': None}
+2026-05-28 10:15:45,390 - <Response [503]>
+2026-05-28 10:15:45,391 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-28 10:15:45,502 - <Response [503]>
+2026-05-28 10:15:45,502 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-28 10:15:45,650 - <Response [200]>
+2026-05-28 10:15:45,653 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'P', 'strike_price': 24050.0, 'ltp': 199.8, 'ltt': '27-May-2026 15:29:59', 'best_bid_price': 198.7, 'best_bid_quantity': '325', 'best_offer_price': 199.55, 'best_offer_quantity': '195', 'open': 256.0, 'high': 281.85, 'low': 174.45, 'previous_close': 203.5, 'ltp_percent_change': -17.95, 'upper_circuit': 615.0, 'lower_circuit': 0.05, 'total_quantity_traded': '14874145', 'spot_price': '23907.15'}], 'Status': 200, 'Error': None}
+2026-05-28 10:15:45,768 - <Response [503]>
+2026-05-28 10:15:45,768 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-28 10:15:45,879 - <Response [503]>
+2026-05-28 10:15:45,879 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-28 10:15:45,990 - <Response [503]>
+2026-05-28 10:15:45,990 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-28 10:15:46,105 - <Response [503]>
+2026-05-28 10:15:46,105 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-28 10:16:17,768 - Get Historical data V2 response
+2026-05-28 10:16:17,923 - Get Historical data V2 response
+2026-05-28 10:16:18,075 - Get Historical data V2 response
+2026-05-28 10:16:18,219 - Get Historical data V2 response
+2026-05-28 10:16:18,368 - Get Historical data V2 response
+2026-05-28 10:16:18,535 - Get Historical data V2 response
+2026-05-28 10:16:18,689 - Get Historical data V2 response
+2026-05-28 10:16:18,934 - Get Historical data V2 response
+2026-05-28 10:16:19,352 - Get Historical data V2 response
+2026-05-28 10:16:19,503 - Get Historical data V2 response
+2026-05-28 10:16:20,098 - Get Historical data V2 response
+2026-05-28 10:16:20,260 - Get Historical data V2 response
+2026-05-28 10:16:20,398 - Get Historical data V2 response
+2026-05-28 10:16:20,812 - Get Historical data V2 response
+2026-05-28 10:16:21,228 - Get Historical data V2 response
+2026-05-28 10:16:21,843 - Get Historical data V2 response
+2026-05-28 10:16:22,224 - <Response [200]>
+2026-05-28 10:16:22,230 - Get Quotes response : {'Success': [{'exchange_code': 'NSE', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': None, 'right': None, 'strike_price': 0.0, 'ltp': 23907.15, 'ltt': '27-May-2026 16:00:01', 'best_bid_price': 0.0, 'best_bid_quantity': '0', 'best_offer_price': 0.0, 'best_offer_quantity': '0', 'open': 23880.35, 'high': 23983.2, 'low': 23858.25, 'previous_close': 23913.7, 'ltp_percent_change': 0.0273901571065958, 'upper_circuit': 0.0, 'lower_circuit': 0.0, 'total_quantity_traded': '0', 'spot_price': None}, {'exchange_code': 'NA', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': None, 'right': None, 'strike_price': 0.0, 'ltp': 0.0, 'ltt': 'NA', 'best_bid_price': 0.0, 'best_bid_quantity': '0', 'best_offer_price': 0.0, 'best_offer_quantity': '0', 'open': 0.0, 'high': 0.0, 'low': 0.0, 'previous_close': 0.0, 'ltp_percent_change': 0.0, 'upper_circuit': 0.0, 'lower_circuit': 0.0, 'total_quantity_traded': '0', 'spot_price': None}], 'Status': 200, 'Error': None}
+2026-05-28 10:16:22,422 - <Response [200]>
+2026-05-28 10:16:22,426 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'C', 'strike_price': 23650.0, 'ltp': 364.05, 'ltt': '27-May-2026 15:29:57', 'best_bid_price': 360.15, 'best_bid_quantity': '130', 'best_offer_price': 363.75, 'best_offer_quantity': '130', 'open': 321.95, 'high': 404.8, 'low': 294.0, 'previous_close': 354.75, 'ltp_percent_change': -1.02, 'upper_circuit': 823.1, 'lower_circuit': 0.05, 'total_quantity_traded': '1421680', 'spot_price': '23907.15'}], 'Status': 200, 'Error': None}
+2026-05-28 10:16:22,596 - <Response [200]>
+2026-05-28 10:16:22,600 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'P', 'strike_price': 23650.0, 'ltp': 46.2, 'ltt': '27-May-2026 15:29:59', 'best_bid_price': 46.2, 'best_bid_quantity': '650', 'best_offer_price': 46.5, 'best_offer_quantity': '520', 'open': 76.65, 'high': 92.65, 'low': 40.05, 'previous_close': 46.25, 'ltp_percent_change': -38.69, 'upper_circuit': 271.6, 'lower_circuit': 0.05, 'total_quantity_traded': '23085725', 'spot_price': '23907.15'}], 'Status': 200, 'Error': None}
+2026-05-28 10:16:22,764 - <Response [200]>
+2026-05-28 10:16:22,766 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'C', 'strike_price': 23700.0, 'ltp': 323.9, 'ltt': '27-May-2026 15:29:59', 'best_bid_price': 322.0, 'best_bid_quantity': '65', 'best_offer_price': 323.75, 'best_offer_quantity': '130', 'open': 323.0, 'high': 364.9, 'low': 258.1, 'previous_close': 309.55, 'ltp_percent_change': -2.73, 'upper_circuit': 767.9, 'lower_circuit': 0.05, 'total_quantity_traded': '8289515', 'spot_price': '23907.15'}], 'Status': 200, 'Error': None}
+2026-05-28 10:16:22,872 - <Response [503]>
+2026-05-28 10:16:22,872 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-28 10:16:24,087 - <Response [200]>
+2026-05-28 10:16:24,091 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'C', 'strike_price': 23750.0, 'ltp': 286.8, 'ltt': '27-May-2026 15:29:59', 'best_bid_price': 283.5, 'best_bid_quantity': '1040', 'best_offer_price': 286.65, 'best_offer_quantity': '520', 'open': 285.0, 'high': 326.0, 'low': 225.45, 'previous_close': 276.35, 'ltp_percent_change': -4.21, 'upper_circuit': 713.2, 'lower_circuit': 0.05, 'total_quantity_traded': '5834140', 'spot_price': '23907.15'}], 'Status': 200, 'Error': None}
+2026-05-28 10:16:24,245 - <Response [200]>
+2026-05-28 10:16:24,246 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'P', 'strike_price': 23750.0, 'ltp': 70.6, 'ltt': '27-May-2026 15:29:59', 'best_bid_price': 70.15, 'best_bid_quantity': '715', 'best_offer_price': 70.6, 'best_offer_quantity': '520', 'open': 104.9, 'high': 127.15, 'low': 61.35, 'previous_close': 71.4, 'ltp_percent_change': -32.7, 'upper_circuit': 342.65, 'lower_circuit': 0.05, 'total_quantity_traded': '37712220', 'spot_price': '23907.15'}], 'Status': 200, 'Error': None}
+2026-05-28 10:16:24,363 - <Response [503]>
+2026-05-28 10:16:24,363 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-28 10:16:24,475 - <Response [503]>
+2026-05-28 10:16:24,475 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-28 10:16:24,625 - <Response [200]>
+2026-05-28 10:16:24,627 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'C', 'strike_price': 23850.0, 'ltp': 218.2, 'ltt': '27-May-2026 15:29:59', 'best_bid_price': 218.2, 'best_bid_quantity': '65', 'best_offer_price': 219.4, 'best_offer_quantity': '520', 'open': 236.85, 'high': 255.1, 'low': 167.6, 'previous_close': 207.45, 'ltp_percent_change': -7.87, 'upper_circuit': 606.75, 'lower_circuit': 0.05, 'total_quantity_traded': '36479365', 'spot_price': '23907.15'}], 'Status': 200, 'Error': None}
+2026-05-28 10:16:24,776 - <Response [200]>
+2026-05-28 10:16:24,777 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'P', 'strike_price': 23850.0, 'ltp': 103.1, 'ltt': '27-May-2026 15:29:59', 'best_bid_price': 103.1, 'best_bid_quantity': '260', 'best_offer_price': 103.8, 'best_offer_quantity': '390', 'open': 150.0, 'high': 169.0, 'low': 90.0, 'previous_close': 106.55, 'ltp_percent_change': -27.5, 'upper_circuit': 423.85, 'lower_circuit': 0.05, 'total_quantity_traded': '70580900', 'spot_price': '23907.15'}], 'Status': 200, 'Error': None}
+2026-05-28 10:16:24,928 - <Response [200]>
+2026-05-28 10:16:24,929 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'C', 'strike_price': 23900.0, 'ltp': 188.25, 'ltt': '27-May-2026 15:29:59', 'best_bid_price': 188.25, 'best_bid_quantity': '260', 'best_offer_price': 188.95, 'best_offer_quantity': '390', 'open': 205.0, 'high': 223.0, 'low': 142.55, 'previous_close': 179.75, 'ltp_percent_change': -9.54, 'upper_circuit': 555.5, 'lower_circuit': 0.05, 'total_quantity_traded': '156082290', 'spot_price': '23907.15'}], 'Status': 200, 'Error': None}
+2026-05-28 10:16:25,080 - <Response [200]>
+2026-05-28 10:16:25,084 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'P', 'strike_price': 23900.0, 'ltp': 123.85, 'ltt': '27-May-2026 15:29:59', 'best_bid_price': 123.05, 'best_bid_quantity': '585', 'best_offer_price': 123.85, 'best_offer_quantity': '390', 'open': 178.0, 'high': 194.35, 'low': 107.35, 'previous_close': 125.5, 'ltp_percent_change': -24.37, 'upper_circuit': 467.9, 'lower_circuit': 0.05, 'total_quantity_traded': '181031695', 'spot_price': '23907.15'}], 'Status': 200, 'Error': None}
+2026-05-28 10:16:25,227 - <Response [200]>
+2026-05-28 10:16:25,229 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'C', 'strike_price': 23950.0, 'ltp': 161.4, 'ltt': '27-May-2026 15:29:59', 'best_bid_price': 161.65, 'best_bid_quantity': '390', 'best_offer_price': 162.15, 'best_offer_quantity': '325', 'open': 180.0, 'high': 193.6, 'low': 120.65, 'previous_close': 154.65, 'ltp_percent_change': -11.95, 'upper_circuit': 508.15, 'lower_circuit': 0.05, 'total_quantity_traded': '95864405', 'spot_price': '23907.15'}], 'Status': 200, 'Error': None}
+2026-05-28 10:16:25,352 - <Response [503]>
+2026-05-28 10:16:25,352 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-28 10:16:25,468 - <Response [503]>
+2026-05-28 10:16:25,469 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-28 10:16:25,583 - <Response [503]>
+2026-05-28 10:16:25,583 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-28 10:16:25,692 - <Response [503]>
+2026-05-28 10:16:25,692 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-28 10:16:25,801 - <Response [503]>
+2026-05-28 10:16:25,801 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-28 10:16:25,915 - <Response [503]>
+2026-05-28 10:16:25,915 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-28 10:16:26,036 - <Response [503]>
+2026-05-28 10:16:26,036 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-28 10:16:26,157 - <Response [503]>
+2026-05-28 10:16:26,158 - Exception in get_quotes : Expecting value: line 1 column 1 (char 0)
+2026-05-28 10:16:26,309 - <Response [200]>
+2026-05-28 10:16:26,312 - Get Quotes response : {'Success': [{'exchange_code': 'NFO', 'product_type': '', 'stock_code': 'NIFTY', 'expiry_date': '02-Jun-2026', 'right': 'P', 'strike_price': 24150.0, 'ltp': 263.0, 'ltt': '27-May-2026 15:29:59', 'best_bid_price': 262.85, 'best_bid_quantity': '715', 'best_offer_price': 264.4, 'best_offer_quantity': '130', 'open': 340.0, 'high': 349.8, 'low': 231.7, 'previous_close': 264.8, 'ltp_percent_change': -14.05, 'upper_circuit': 720.85, 'lower_circuit': 0.05, 'total_quantity_traded': '4054115', 'spot_price': '23907.15'}], 'Status': 200, 'Error': None}
