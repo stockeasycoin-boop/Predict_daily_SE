@@ -250,11 +250,48 @@ check_login()
 # ── Helpers: load settings persisted to disk ──────────────────────────────────
 SETTINGS_FILE = Path("settings.json")
 
+def _secrets_defaults() -> dict:
+    """Pull known keys from st.secrets (Streamlit Cloud secret manager) if present."""
+    defaults = {}
+    try:
+        s = st.secrets
+        mapping = {
+            "api_key":        ("BREEZE_API_KEY",     None),
+            "api_secret":     ("BREEZE_API_SECRET",  None),
+            "session_token":  ("BREEZE_SESSION_TOKEN", None),
+            "gnews_api_key":  ("GNEWS_API_KEY",      None),
+            "capital":        ("CAPITAL",             None),
+            "min_confidence": ("MIN_CONFIDENCE",      None),
+            "target_pct":     ("TARGET_PCT",          None),
+            "sl_pct":         ("SL_PCT",              None),
+            "max_vix":        ("MAX_VIX",             None),
+        }
+        for json_key, (secret_key, _) in mapping.items():
+            try:
+                val = s[secret_key]
+                if val not in (None, ""):
+                    defaults[json_key] = val
+            except Exception:
+                pass
+    except Exception:
+        pass
+    return defaults
+
+
 def load_settings() -> dict:
+    """Load settings: Streamlit secrets → settings.json → empty dict (priority order)."""
+    base = _secrets_defaults()          # start with cloud secrets
     if SETTINGS_FILE.exists():
-        with open(SETTINGS_FILE) as f:
-            return json.load(f)
-    return {}
+        try:
+            with open(SETTINGS_FILE) as f:
+                on_disk = json.load(f)
+            # Disk values override secrets only if non-empty
+            for k, v in on_disk.items():
+                if v not in (None, "", "YOUR_API_KEY_HERE"):
+                    base[k] = v
+        except Exception:
+            pass
+    return base
 
 def save_settings(d: dict) -> None:
     with open(SETTINGS_FILE, "w") as f:
