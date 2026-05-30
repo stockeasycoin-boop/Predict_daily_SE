@@ -416,7 +416,8 @@ with tab1:
 
     if _tab1_ready:
         # ── Load/run signal ──────────────────────────────────────────────
-        if run_btn or "suggestion" not in st.session_state:
+        _force_news = st.session_state.pop("_force_news_refresh", False)
+        if run_btn or _force_news or "suggestion" not in st.session_state:
             log_step(f"🔮 Generate signal (run_btn={run_btn})")
             with st.spinner("Fetching market data and running model…"):
                 try:
@@ -488,7 +489,8 @@ with tab1:
                             import news_sentiment as ns
                             gnews_key = settings.get("gnews_api_key",
                                                     getattr(cfg, "GNEWS_API_KEY", ""))
-                            news = ns.get_market_sentiment(gnews_key, days=2)
+                            news = ns.get_market_sentiment(gnews_key, days=2,
+                                                           force_refresh=_force_news)
                             if news.get("n_articles", 0) >= 3:
                                 news_conf, news_reason = ns.adjust_confidence(
                                     direction,
@@ -630,6 +632,18 @@ with tab1:
         backend  = news_data.get("backend", "?")
         adjust   = suggestion.get("news_adjustment", "")
         orig_c   = suggestion.get("confidence_original")
+
+        from_cache   = news_data.get("from_cache", False)
+        cache_age    = news_data.get("cache_age_hours")
+        cache_label  = (f"🕒 cached {cache_age:.1f}h ago" if (from_cache and cache_age is not None)
+                        else "🆕 freshly fetched")
+
+        nh_col, nb_col = st.columns([4, 1])
+        nh_col.caption(f"News status: {cache_label} · auto-refreshes every 4h")
+        if nb_col.button("🔄 Fetch fresh news", use_container_width=True,
+                         help="Pull the latest headlines now (uses GNews quota) and regenerate the signal"):
+            st.session_state["_force_news_refresh"] = True
+            st.rerun()
 
         with st.expander(f"📰 News sentiment: **{label}** ({score:+.2f}) — {n_arts} articles via {backend}", expanded=False):
             cN1, cN2, cN3 = st.columns(3)
