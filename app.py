@@ -12,7 +12,29 @@ from datetime import date, datetime
 import json
 import hashlib
 import os
+import sys
+import logging
 from pathlib import Path
+
+# ── Logging setup ─────────────────────────────────────────────────────────────
+# Stream to stdout so Streamlit Community Cloud captures it in "Manage app" logs.
+# force=True overrides handlers Streamlit/uvicorn may have installed first.
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)-7s | %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    handlers=[logging.StreamHandler(sys.stdout)],
+    force=True,
+)
+log = logging.getLogger("nifty_app")
+
+
+def log_step(msg: str, level: str = "info") -> None:
+    """Log a single step to stdout (visible in Streamlit Cloud logs)."""
+    getattr(log, level, log.info)(msg)
+
+
+log_step("🚀 App started / script rerun")
 
 # ── Page configuration (must be first Streamlit call) ────────────────────────
 st.set_page_config(
@@ -395,33 +417,46 @@ with tab1:
     if _tab1_ready:
         # ── Load/run signal ──────────────────────────────────────────────
         if run_btn or "suggestion" not in st.session_state:
+            log_step(f"🔮 Generate signal (run_btn={run_btn})")
             with st.spinner("Fetching market data and running model…"):
                 try:
                     breeze = None
                     if ses_tok and api_key and api_key != "YOUR_API_KEY_HERE":
                         try:
+                            log_step("Step 1/6 — connecting to Breeze API…")
                             breeze = df_mod.init_breeze(api_key, api_sec, ses_tok)
+                            log_step("Step 1/6 — Breeze API connected ✅")
                             st.toast("✅ Breeze API connected", icon="✅")
                         except Exception as e:
+                            log_step(f"Breeze connection failed: {e}. Using cached/Stooq data.", "warning")
                             st.warning(f"Breeze connection failed: {e}. Using cached/Stooq data.")
+                    else:
+                        log_step("Step 1/6 — no Breeze credentials, using cached/Stooq data")
 
+                    log_step("Step 2/6 — loading Nifty / VIX / global data…")
                     nifty_df  = df_mod.load_nifty_data(breeze, force_refresh=run_btn)
                     vix_df    = df_mod.load_vix_data(breeze)
                     global_df = df_mod.load_global_data()
 
                     if nifty_df is None or len(nifty_df) < 50:
+                        log_step("Step 2/6 — insufficient Nifty data", "error")
                         st.error("Not enough market data. Check your internet connection.")
                         _tab1_ready = False
                     else:
+                        log_step(f"Step 2/6 — Nifty data loaded ({len(nifty_df)} rows)")
+                        log_step("Step 3/6 — loading FII/DII, GIFT, PCR, intraday, correlated data…")
                         fii_df     = df_mod.load_fii_dii_data()
                         gift_df    = df_mod.load_gift_data(breeze)
                         pcr_df     = df_mod.load_pcr_data()
                         intra_df   = df_mod.load_intraday_data(breeze)
                         corr_dict  = df_mod.load_correlated_data(breeze)
+                        log_step("Step 4/6 — building features…")
                         feat_df = fe.build_features(
                             nifty_df, vix_df, global_df, fii_df, gift_df, pcr_df,
                             intraday_df=intra_df, corr_dict=corr_dict
                         )
+                        log_step(f"Step 4/6 — features built ({feat_df.shape[0]}x{feat_df.shape[1]})")
+                        log_step("Step 5/6 — running model inference…")
                         preds = mt.predict_today(feat_df, str(cfg.MODEL_DIR))
                         direction  = preds.get("close_direction", preds.get("direction", 0))
                         confidence = preds.get("close_confidence", preds.get("confidence", 0.5))
@@ -444,13 +479,17 @@ with tab1:
                                 )
                             except Exception:
                                 pass
+                        log_step("Step 6/6 — generating trade suggestion…")
                         suggestion = oe.generate_suggestion(
                             direction, confidence, spot, atr_pct, vix, capital, opts_df
                         )
+                        log_step(f"Step 6/6 — suggestion: {suggestion.get('signal', '?')} "
+                                 f"(confidence={suggestion.get('confidence', 0):.2%})")
 
                         # ── News sentiment enrichment ──────────────────────
                         try:
                             import news_sentiment as ns
+                            log_step("Fetching news sentiment…")
                             gnews_key = settings.get("gnews_api_key",
                                                     getattr(cfg, "GNEWS_API_KEY", ""))
                             news = ns.get_market_sentiment(gnews_key, days=2)
@@ -467,7 +506,7 @@ with tab1:
                                 suggestion["news_adjustment"]     = reason_ns
                             suggestion["news"] = news
                         except Exception as ne:
-                            print(f"[app] News sentiment skipped: {ne}")
+                            log_step(f"News sentiment skipped: {ne}", "warning")
                             suggestion["news"] = {"error": str(ne), "n_articles": 0}
 
                         reasoning  = mt.reasoning_for_prediction(feat_df, str(cfg.MODEL_DIR))
@@ -479,11 +518,14 @@ with tab1:
                         st.session_state["live_pcr"]   = live_pcr
                         trades_df = tracker.load_trades()
                         tracker.log_suggestion(suggestion, trades_df)
+                        log_step("✅ Signal generated successfully")
 
                 except FileNotFoundError:
+                    log.exception("❌ Model files not found")
                     st.error("Model files not found. Train the model first (Model Health tab).")
                     _tab1_ready = False
                 except Exception as e:
+                    log.exception("❌ Error generating signal")
                     st.error(f"Error generating signal: {e}")
                     st.exception(e)
                     _tab1_ready = False
@@ -1112,12 +1154,14 @@ with tab3:
 
     # ── Training execution ─────────────────────────────────────────────────
     if train_btn:
+        log_step("🚂 Train model — clicked")
         progress_bar = st.progress(0, text="Starting…")
         status_box   = st.empty()
 
         try:
             status_box.info("Step 1/5 — Reading credentials…")
             progress_bar.progress(10, text="Reading credentials…")
+            log_step("Step 1/5 — reading credentials…")
 
             saved_s   = load_settings()
             api_key3  = saved_s.get("api_key", getattr(cfg, "BREEZE_API_KEY", ""))
@@ -1127,18 +1171,24 @@ with tab3:
             breeze3 = None
             if ses_tok3 and api_key3 and api_key3 not in ("", "YOUR_API_KEY_HERE"):
                 try:
+                    log_step("Step 1/5 — connecting to Breeze API…")
                     breeze3 = df_mod.init_breeze(api_key3, api_sec3, ses_tok3)
+                    log_step("Step 1/5 — Breeze API connected ✅")
                     status_box.info("Step 1/5 — Breeze API connected ✅")
                 except Exception as be:
+                    log_step(f"Breeze unavailable ({be}), using Stooq backup", "warning")
                     status_box.warning(f"Breeze unavailable ({be}), using Stooq backup…")
             else:
+                log_step("Step 1/5 — no Breeze token, using Stooq for data")
                 status_box.info("Step 1/5 — No Breeze session token. Using Stooq for data…")
 
             progress_bar.progress(20, text="Downloading Nifty data…")
             status_box.info("Step 2/5 — Downloading Nifty OHLCV data…")
+            log_step("Step 2/5 — downloading Nifty OHLCV data…")
             nifty3 = df_mod.load_nifty_data(breeze3, force_refresh=True)  # uses TRAINING_DAYS from settings
 
             if nifty3 is None or len(nifty3) < 100:
+                log_step("Step 2/5 — could not load Nifty data", "error")
                 progress_bar.empty()
                 status_box.error(
                     "❌ Could not load Nifty data. "
@@ -1147,8 +1197,10 @@ with tab3:
                     "make sure you have an internet connection."
                 )
             else:
+                log_step(f"Step 2/5 — Nifty data loaded ({len(nifty3)} rows)")
                 progress_bar.progress(40, text="Downloading VIX & global data…")
                 status_box.info("Step 3/5 — Downloading India VIX and global cues…")
+                log_step("Step 3/5 — downloading VIX, global, FII/DII, GIFT, PCR…")
                 vix3    = df_mod.load_vix_data(breeze3, force_refresh=True)
                 global3 = df_mod.load_global_data(force_refresh=True)
                 fii3    = df_mod.load_fii_dii_data(force_refresh=True)
@@ -1157,14 +1209,18 @@ with tab3:
 
                 progress_bar.progress(60, text="Building features...")
                 status_box.info("Step 4/5 — Computing 50+ technical indicators...")
+                log_step("Step 4/5 — building features…")
                 feat3 = fe.build_features(nifty3, vix3, global3, fii3, gift3, pcr3)
+                log_step(f"Step 4/5 — features built ({feat3.shape[0]}x{feat3.shape[1]})")
 
                 progress_bar.progress(75, text="Training XGBoost model…")
                 status_box.info(
                     f"Step 5/5 — Training XGBoost on {len(feat3)} days of data… "
                     f"(5-fold walk-forward CV)"
                 )
+                log_step(f"Step 5/5 — training models on {len(feat3)} rows (Optuna + walk-forward CV)…")
                 _, _, _, _, results = mt.train_model(feat3, model_dir_str, verbose=True, use_optuna=True)
+                log_step("Step 5/5 — training complete")
 
                 progress_bar.progress(100, text="Done!")
                 # results is the metadata dict returned by train_model
@@ -1193,6 +1249,7 @@ with tab3:
                 st.rerun()
 
         except Exception as e:
+            log.exception("❌ Training failed")
             progress_bar.empty()
             status_box.error(f"❌ Training failed: {e}")
             st.exception(e)   # shows full traceback to help debug
