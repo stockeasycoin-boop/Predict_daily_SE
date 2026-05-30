@@ -1382,7 +1382,7 @@ with tab4:
         st.markdown("##### 💰 Capital & risk settings")
         cap_min = st.number_input("Capital per trade (₹)",    min_value=5000,  max_value=500000,
                                    value=int(saved.get("capital", cfg.CAPITAL_MIN)), step=5000)
-        min_conf_pct = st.slider("Minimum confidence to trade (%)", 50, 80,
+        min_conf_pct = st.slider("Minimum confidence to trade (%)", 50, 100,
                                   int(saved.get("min_confidence", cfg.MIN_CONFIDENCE) * 100))
 
         st.divider()
