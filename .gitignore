@@ -3,3 +3,8 @@ settings.json
 *.json
 *.csv
 *.pyc
+logs/apiLogs.log
+
+.venv/
+train_out.log
+models_test/
