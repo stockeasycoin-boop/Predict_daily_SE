@@ -282,6 +282,7 @@ cfg, df_mod, fe, mt, oe, tracker, import_err = import_modules()
 # HEADER
 # ─────────────────────────────────────────────────────────────────────────────
 
+st.markdown("<div style='padding-top:1.5rem'></div>", unsafe_allow_html=True)
 col_title, col_date, col_logout = st.columns([3, 1, 0.6])
 with col_title:
     st.markdown("## 📈 Nifty AI Options Trader")
