@@ -176,6 +176,24 @@ def train_model(feature_df: pd.DataFrame,
         else:   y = y.astype(int)
         return X, y
 
+    def prep_chained(data, target_col, extra_cols):
+        """
+        Build a CHAINED regression matrix: scaled base features + raw upstream
+        target columns (teacher forcing). At inference these upstream columns are
+        filled with the model's own predictions, so each OHLC level influences
+        the next (open → close → high → low).
+        """
+        need = avail + extra_cols + [target_col]
+        sub  = data.dropna(subset=need)
+        X_base = scaler.transform(sub[avail].values.astype(np.float32))
+        if extra_cols:
+            X_extra = sub[extra_cols].values.astype(np.float32)
+            X = np.hstack([X_base, X_extra])
+        else:
+            X = X_base
+        y = sub[target_col].values.astype(np.float32)
+        return X, y
+
     # ═══════════════════════════════════════════════════════════════════════
     # 1. OPEN GAP MODEL
     # ═══════════════════════════════════════════════════════════════════════
@@ -271,14 +289,34 @@ def train_model(feature_df: pd.DataFrame,
         print(f"  XGB Close CV: {cv_close_mean:.3f} ± {cv_close_std:.3f}  "
               f"(bull rate: {y_all_c.mean():.1%})")
 
-    # Close regression (intraday return %)
-    X_reg_c, y_reg_c = prep(df, "close_ret_pct", reg=True)
-    X_reg_c_sc       = scaler.transform(X_reg_c)
+    # Close regression (intraday return %) — CHAINED on predicted open gap
+    X_reg_c, y_reg_c = prep_chained(df, "close_ret_pct", ["open_ret_pct"])
     xgb_close_reg    = _default_xgb_reg()
-    xgb_close_reg.fit(X_reg_c_sc, y_reg_c)
+    xgb_close_reg.fit(X_reg_c, y_reg_c)
     joblib.dump(xgb_close_reg, f"{model_dir}/xgb_close_reg.pkl")
-    mae_close = mean_absolute_error(y_reg_c, xgb_close_reg.predict(X_reg_c_sc))
+    mae_close = mean_absolute_error(y_reg_c, xgb_close_reg.predict(X_reg_c))
     if verbose: print(f"  Close regression MAE: {mae_close:.3f}%")
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # 2b. HIGH / LOW MODELS (chained — influenced by open & close)
+    # ═══════════════════════════════════════════════════════════════════════
+    if verbose: print("\n── Training HIGH / LOW models ──")
+
+    # High regression — chained on predicted open + close
+    X_reg_h, y_reg_h = prep_chained(df, "high_ret_pct", ["open_ret_pct", "close_ret_pct"])
+    xgb_high_reg     = _default_xgb_reg()
+    xgb_high_reg.fit(X_reg_h, y_reg_h)
+    joblib.dump(xgb_high_reg, f"{model_dir}/xgb_high_reg.pkl")
+    mae_high = mean_absolute_error(y_reg_h, xgb_high_reg.predict(X_reg_h))
+    if verbose: print(f"  High regression MAE: {mae_high:.3f}%")
+
+    # Low regression — chained on predicted open + close + high
+    X_reg_l, y_reg_l = prep_chained(df, "low_ret_pct", ["open_ret_pct", "close_ret_pct", "high_ret_pct"])
+    xgb_low_reg      = _default_xgb_reg()
+    xgb_low_reg.fit(X_reg_l, y_reg_l)
+    joblib.dump(xgb_low_reg, f"{model_dir}/xgb_low_reg.pkl")
+    mae_low = mean_absolute_error(y_reg_l, xgb_low_reg.predict(X_reg_l))
+    if verbose: print(f"  Low regression MAE: {mae_low:.3f}%")
 
     # ═══════════════════════════════════════════════════════════════════════
     # 3. SHARED ARTEFACTS
@@ -304,6 +342,8 @@ def train_model(feature_df: pd.DataFrame,
         "cv_close_std":    round(cv_close_std,  4),
         "mae_open_pct":    round(mae_open,  4),
         "mae_close_pct":   round(mae_close, 4),
+        "mae_high_pct":    round(mae_high,  4),
+        "mae_low_pct":     round(mae_low,   4),
         "lgb_available":   LGB_OK,
         "optuna_trials":   n_trials,
         "optuna_used":     OPTUNA_OK and n_trials > 0,
@@ -319,6 +359,8 @@ def train_model(feature_df: pd.DataFrame,
         print(f"  Close model CV accuracy:  {cv_close_mean:.1%}")
         print(f"  Open  regression MAE:     {mae_open:.3f}%")
         print(f"  Close regression MAE:     {mae_close:.3f}%")
+        print(f"  High  regression MAE:     {mae_high:.3f}%")
+        print(f"  Low   regression MAE:     {mae_low:.3f}%")
         print(f"  Ensemble active:          {'Yes (XGB+LGB)' if LGB_OK else 'No (XGB only)'}")
         print(f"  Optuna tuning:            {'Yes (' + str(n_trials) + ' trials)' if n_trials > 0 else 'No'}")
         print(f"{'='*50}\n")
@@ -369,6 +411,8 @@ def predict_today(feature_df: pd.DataFrame, model_dir: str = "models") -> dict:
     lgb_close_m = _load("lgb_close.pkl")
     xgb_open_r  = _load("xgb_open_reg.pkl")
     xgb_close_r = _load("xgb_close_reg.pkl")
+    xgb_high_r  = _load("xgb_high_reg.pkl")
+    xgb_low_r   = _load("xgb_low_reg.pkl")
 
     # ── Open prediction ───────────────────────────────────────────────────
     open_xgb_dir  = int(xgb_open_m.predict(X)[0])  if xgb_open_m  else 0
@@ -381,6 +425,7 @@ def predict_today(feature_df: pd.DataFrame, model_dir: str = "models") -> dict:
     open_conf     = float(np.mean([open_xgb_prob, open_lgb_prob])) if open_agree else 0.5
     open_dir      = open_xgb_dir if open_agree else open_xgb_dir   # XGB wins on disagree
 
+    # ── Chained regression: open → close → high → low ─────────────────────
     open_pred_pct = float(xgb_open_r.predict(X)[0]) if xgb_open_r else 0.0
 
     # ── Close prediction ──────────────────────────────────────────────────
@@ -394,7 +439,30 @@ def predict_today(feature_df: pd.DataFrame, model_dir: str = "models") -> dict:
     close_conf    = float(np.mean([close_xgb_prob, close_lgb_prob])) if close_agree else 0.5
     close_dir     = close_xgb_dir
 
-    close_pred_pct = float(xgb_close_r.predict(X)[0]) if xgb_close_r else 0.0
+    # Close regressor is chained on predicted open gap
+    if xgb_close_r:
+        X_close = np.hstack([X, np.array([[open_pred_pct]], dtype=np.float32)])
+        try:
+            close_pred_pct = float(xgb_close_r.predict(X_close)[0])
+        except Exception:
+            # Backward-compat: old base-only close regressor
+            close_pred_pct = float(xgb_close_r.predict(X)[0])
+    else:
+        close_pred_pct = 0.0
+
+    # High regressor chained on predicted open + close
+    if xgb_high_r:
+        X_high = np.hstack([X, np.array([[open_pred_pct, close_pred_pct]], dtype=np.float32)])
+        high_pred_pct = float(xgb_high_r.predict(X_high)[0])
+    else:
+        high_pred_pct = max(close_pred_pct, 0.0) + 0.3  # fallback estimate
+
+    # Low regressor chained on predicted open + close + high
+    if xgb_low_r:
+        X_low = np.hstack([X, np.array([[open_pred_pct, close_pred_pct, high_pred_pct]], dtype=np.float32)])
+        low_pred_pct = float(xgb_low_r.predict(X_low)[0])
+    else:
+        low_pred_pct = min(close_pred_pct, 0.0) - 0.3  # fallback estimate
 
     ensemble_agree = open_agree and close_agree
 
@@ -412,6 +480,14 @@ def predict_today(feature_df: pd.DataFrame, model_dir: str = "models") -> dict:
     close_mid   = open_mid * (1 + close_pred_pct / 100)
     close_range = (round(close_mid * (1 - atr_pct * 0.35 / 100)),
                    round(close_mid * (1 + atr_pct * 0.35 / 100)))
+
+    # Predicted daily HIGH / LOW (chained, relative to predicted open)
+    high_mid = open_mid * (1 + high_pred_pct / 100)
+    low_mid  = open_mid * (1 + low_pred_pct  / 100)
+    # Enforce OHLC consistency: high ≥ max(open,close), low ≤ min(open,close)
+    predicted_high = round(max(high_mid, open_mid, close_mid))
+    predicted_low  = round(min(low_mid,  open_mid, close_mid))
+    daily_range    = (predicted_low, predicted_high)
 
     # ── Trade signal logic ────────────────────────────────────────────────
     is_tuesday  = feature_df["date"].iloc[-1].weekday() == 1 if "date" in feature_df.columns else False
@@ -457,6 +533,12 @@ def predict_today(feature_df: pd.DataFrame, model_dir: str = "models") -> dict:
         "last_close":       round(last_close, 2),
         "predicted_open":   round(open_mid,   2),
         "predicted_close":  round(close_mid,  2),
+
+        "high_pred_pct":    round(high_pred_pct, 3),
+        "low_pred_pct":     round(low_pred_pct,  3),
+        "predicted_high":   predicted_high,
+        "predicted_low":    predicted_low,
+        "daily_range":      daily_range,
 
         "atr_pct":          round(atr_pct,   3),
         "india_vix":        round(india_vix, 2),

@@ -708,6 +708,36 @@ with tab1:
                    delta=f"VIX {vix_val:.1f}  |  ATR {atr_val:.2f}%",
                    delta_color="off")
 
+        # Row 3 — High / Low prediction (chained, influenced by open & close)
+        h_pct      = preds.get("high_pred_pct", 0.0)
+        l_pct      = preds.get("low_pred_pct",  0.0)
+        pred_high  = preds.get("predicted_high", 0)
+        pred_low   = preds.get("predicted_low",  0)
+        day_rng    = preds.get("daily_range", (pred_low, pred_high))
+
+        st.markdown("")
+        st.markdown("**📊 Predicted day range (High / Low)**")
+        ph1, ph2, ph3, ph4 = st.columns(4)
+        ph1.metric("Predicted high",
+                   f"₹{pred_high:,.0f}",
+                   delta=f"{h_pct:+.2f}% vs open",
+                   delta_color="normal",
+                   help="Chained model — uses predicted open & close as inputs")
+        ph2.metric("Predicted low",
+                   f"₹{pred_low:,.0f}",
+                   delta=f"{l_pct:+.2f}% vs open",
+                   delta_color="inverse",
+                   help="Chained model — uses predicted open, close & high as inputs")
+        ph3.metric("Expected day range",
+                   f"₹{day_rng[0]:,} – ₹{day_rng[1]:,}",
+                   delta=f"{(pred_high - pred_low):,.0f} pts wide",
+                   delta_color="off")
+        ph4.metric("Range vs ATR",
+                   f"{((pred_high - pred_low) / (pred_open or 1) * 100):.2f}%",
+                   delta=f"ATR {atr_val:.2f}%",
+                   delta_color="off",
+                   help="Predicted high-low spread as % of open vs historical ATR")
+
         st.markdown("")
 
     # ── Reasoning panel ────────────────────────────────────────────────────

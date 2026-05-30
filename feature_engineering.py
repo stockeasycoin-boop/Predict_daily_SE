@@ -430,6 +430,13 @@ def build_features(
     df["close_target"]   = (next_close > next_open).astype(int)
     df["close_ret_pct"]  = (next_close - next_open) / (next_open + 1e-9) * 100
 
+    # High / Low targets: % move of next-day high/low vs next-day open.
+    # high_ret_pct is typically ≥ 0, low_ret_pct typically ≤ 0.
+    next_high = h.shift(-1)
+    next_low  = l.shift(-1)
+    df["high_ret_pct"]   = (next_high - next_open) / (next_open + 1e-9) * 100
+    df["low_ret_pct"]    = (next_low  - next_open) / (next_open + 1e-9) * 100
+
     df = df.dropna(subset=["open_target","close_target","rsi_14","ema_21"])
     return df.reset_index(drop=True)
 
