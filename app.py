@@ -77,15 +77,20 @@ st.markdown("""
 # Whitelist — only these Google emails may access the app. Add yours here.
 # Read from (in priority): st.secrets, then ALLOWED_EMAILS env var.
 def _load_allowed_emails() -> list:
-    raw = ""
+    raw = None
     try:
         if "ALLOWED_EMAILS" in st.secrets:
-            raw = str(st.secrets["ALLOWED_EMAILS"])
+            raw = st.secrets["ALLOWED_EMAILS"]
     except Exception:
         pass
-    if not raw:
+    if raw is None or raw == "":
         raw = os.getenv("ALLOWED_EMAILS", "")
-    return [e.strip().lower() for e in raw.split(",") if e.strip()]
+    # raw may be a TOML list (Python list) or a comma-separated string
+    if isinstance(raw, (list, tuple, set)):
+        items = [str(e) for e in raw]
+    else:
+        items = str(raw).split(",")
+    return [e.strip().strip("'\"[]").lower() for e in items if e.strip().strip("'\"[]")]
 
 ALLOWED_EMAILS = _load_allowed_emails()
 
