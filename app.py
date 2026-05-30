@@ -479,35 +479,50 @@ with tab1:
                                 )
                             except Exception:
                                 pass
-                        log_step("Step 6/6 — generating trade suggestion…")
-                        suggestion = oe.generate_suggestion(
-                            direction, confidence, spot, atr_pct, vix, capital, opts_df
-                        )
-                        log_step(f"Step 6/6 — suggestion: {suggestion.get('signal', '?')} "
-                                 f"(confidence={suggestion.get('confidence', 0):.2%})")
-
-                        # ── News sentiment enrichment ──────────────────────
+                        # ── News sentiment FIRST — so it can gate the trade ──
+                        log_step("Step 6/6 — fetching news sentiment…")
+                        news = {"n_articles": 0}
+                        news_conf = confidence
+                        news_reason = ""
                         try:
                             import news_sentiment as ns
-                            log_step("Fetching news sentiment…")
                             gnews_key = settings.get("gnews_api_key",
                                                     getattr(cfg, "GNEWS_API_KEY", ""))
                             news = ns.get_market_sentiment(gnews_key, days=2)
-                            if news.get("n_articles", 0) >= 3 and suggestion.get("signal") != "NO_TRADE":
-                                new_conf, reason_ns = ns.adjust_confidence(
-                                    suggestion["direction"],
-                                    suggestion["confidence"],
+                            if news.get("n_articles", 0) >= 3:
+                                news_conf, news_reason = ns.adjust_confidence(
+                                    direction,
+                                    confidence,
                                     news,
                                     max_boost   = getattr(cfg, "NEWS_MAX_BOOST",   0.08),
                                     max_penalty = getattr(cfg, "NEWS_MAX_PENALTY", 0.15),
                                 )
-                                suggestion["confidence_original"] = suggestion["confidence"]
-                                suggestion["confidence"]          = new_conf
-                                suggestion["news_adjustment"]     = reason_ns
-                            suggestion["news"] = news
+                                log_step(f"News {news.get('label','?')} ({news.get('score',0):+.2f}) "
+                                         f"→ confidence {confidence:.0%} → {news_conf:.0%}")
                         except Exception as ne:
                             log_step(f"News sentiment skipped: {ne}", "warning")
-                            suggestion["news"] = {"error": str(ne), "n_articles": 0}
+                            news = {"error": str(ne), "n_articles": 0}
+
+                        # Generate suggestion using the NEWS-ADJUSTED confidence,
+                        # so strong adverse news can pull it below threshold
+                        # (BUY → NO_TRADE) and agreement can keep a trade alive.
+                        log_step("Step 6/6 — generating trade suggestion…")
+                        suggestion = oe.generate_suggestion(
+                            direction, news_conf, spot, atr_pct, vix, capital, opts_df
+                        )
+                        suggestion["news"] = news
+                        if news.get("n_articles", 0) >= 3:
+                            suggestion["confidence_original"] = confidence
+                            suggestion["news_adjustment"]     = news_reason
+                            if news_conf < confidence and suggestion.get("signal") == "NO_TRADE" \
+                                    and confidence >= getattr(cfg, "MIN_CONFIDENCE", 0.70):
+                                suggestion["reason"] = (
+                                    f"Model was {confidence:.0%} confident, but {news.get('label','adverse')} "
+                                    f"news ({news.get('score',0):+.2f}) cut it to {news_conf:.0%} — below "
+                                    f"threshold. Standing down. ({news_reason})"
+                                )
+                        log_step(f"Step 6/6 — suggestion: {suggestion.get('signal', '?')} "
+                                 f"(confidence={suggestion.get('confidence', 0):.2%})")
 
                         reasoning  = mt.reasoning_for_prediction(feat_df, str(cfg.MODEL_DIR))
                         st.session_state["suggestion"] = suggestion
