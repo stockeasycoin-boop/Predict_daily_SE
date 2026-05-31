@@ -299,17 +299,22 @@ def aggregate(scored: list[dict]) -> dict:
     elif score < -0.05: label = "slightly bearish"
     else:               label = "neutral"
 
+    def _fmt(a):
+        return {
+            "title":       a.get("title", "")[:140],
+            "sentiment":   a.get("sentiment", 0.0),
+            "source":      (a.get("source") or {}).get("name", "unknown"),
+            "url":         a.get("url", ""),
+            "publishedAt": a.get("publishedAt", ""),
+        }
+
     # Top 5 strongest-signal headlines (by |sentiment|)
     top = sorted(scored, key=lambda a: abs(a.get("sentiment", 0.0)), reverse=True)[:5]
-    top_headlines = [
-        {
-            "title":     t.get("title", "")[:140],
-            "sentiment": t.get("sentiment", 0.0),
-            "source":    (t.get("source") or {}).get("name", "unknown"),
-            "url":       t.get("url", ""),
-        }
-        for t in top
-    ]
+    top_headlines = [_fmt(t) for t in top]
+
+    # Last 5 fetched headlines (most recent by publish time)
+    latest = sorted(scored, key=lambda a: a.get("publishedAt", ""), reverse=True)[:5]
+    latest_headlines = [_fmt(t) for t in latest]
 
     return {
         "score":          round(score, 4),
@@ -322,6 +327,7 @@ def aggregate(scored: list[dict]) -> dict:
         "pct_negative":   round(n_neg / n * 100, 1) if n else 0.0,
         "backend":        scored[0].get("backend", _detect_backend()),
         "top_headlines":  top_headlines,
+        "latest_headlines": latest_headlines,
     }
 
 

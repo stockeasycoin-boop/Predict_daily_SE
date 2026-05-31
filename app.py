@@ -669,16 +669,29 @@ with tab1:
                            delta_color="normal" if delta >= 0 else "inverse")
             if adjust:
                 st.caption(f"_{adjust}_")
-            top = news_data.get("top_headlines", [])
-            if top:
-                st.markdown("**Top headlines driving sentiment:**")
-                for h in top:
+            top    = news_data.get("top_headlines", [])
+            latest = news_data.get("latest_headlines", [])
+            if top or latest:
+                col_top, col_latest = st.columns(2)
+
+                def _render(h):
                     icon = "🟢" if h["sentiment"] > 0.15 else "🔴" if h["sentiment"] < -0.15 else "⚪"
+                    when = (h.get("publishedAt", "") or "")[:16].replace("T", " ")
                     st.markdown(
                         f"{icon} **{h['sentiment']:+.2f}** — [{h['title']}]({h['url']}) "
-                        f"<span style='color:#888;font-size:0.85em'>· {h['source']}</span>",
+                        f"<span style='color:#888;font-size:0.85em'>· {h['source']}"
+                        f"{(' · ' + when) if when else ''}</span>",
                         unsafe_allow_html=True,
                     )
+
+                with col_top:
+                    st.markdown("**Top headlines driving sentiment:**")
+                    for h in top:
+                        _render(h)
+                with col_latest:
+                    st.markdown("**Last fetched articles:**")
+                    for h in latest:
+                        _render(h)
     elif news_data.get("error"):
         st.caption(f"📰 News sentiment unavailable: {news_data['error']}")
 
