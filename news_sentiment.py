@@ -15,8 +15,10 @@ limits (100 requests/day).
 """
 
 from __future__ import annotations
+import os
 import json
 import time
+import logging
 import warnings
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -25,6 +27,15 @@ from typing import Optional
 import requests
 
 warnings.filterwarnings("ignore")
+
+# ── Silence noisy transformers / HF deprecation chatter ──────────────────────
+os.environ.setdefault("TRANSFORMERS_VERBOSITY", "error")
+os.environ.setdefault("TRANSFORMERS_NO_ADVISORY_WARNINGS", "1")
+os.environ.setdefault("HF_HUB_DISABLE_TELEMETRY", "1")
+os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
+for _noisy in ("transformers", "transformers.modeling_utils",
+               "transformers.configuration_utils", "huggingface_hub"):
+    logging.getLogger(_noisy).setLevel(logging.ERROR)
 
 # ── Lazy backend detection ───────────────────────────────────────────────────
 _FINBERT = None      # cached pipeline (loaded once)
