@@ -676,7 +676,8 @@ with tab1:
 
                 def _render(h):
                     icon = "🟢" if h["sentiment"] > 0.15 else "🔴" if h["sentiment"] < -0.15 else "⚪"
-                    when = (h.get("publishedAt", "") or "")[:16].replace("T", " ")
+                    # Prefer IST display string; fall back to raw UTC
+                    when = h.get("publishedIST") or (h.get("publishedAt", "") or "")[:16].replace("T", " ")
                     st.markdown(
                         f"{icon} **{h['sentiment']:+.2f}** — [{h['title']}]({h['url']}) "
                         f"<span style='color:#888;font-size:0.85em'>· {h['source']}"

@@ -299,13 +299,25 @@ def aggregate(scored: list[dict]) -> dict:
     elif score < -0.05: label = "slightly bearish"
     else:               label = "neutral"
 
+    def _to_ist(utc_str: str) -> str:
+        """Convert GNews UTC 'YYYY-MM-DDTHH:MM:SSZ' to IST 'YYYY-MM-DD HH:MM IST'."""
+        if not utc_str:
+            return ""
+        try:
+            dt = datetime.strptime(utc_str[:19], "%Y-%m-%dT%H:%M:%S")
+            ist = dt + timedelta(hours=5, minutes=30)
+            return ist.strftime("%Y-%m-%d %H:%M IST")
+        except Exception:
+            return utc_str
+
     def _fmt(a):
         return {
-            "title":       a.get("title", "")[:140],
-            "sentiment":   a.get("sentiment", 0.0),
-            "source":      (a.get("source") or {}).get("name", "unknown"),
-            "url":         a.get("url", ""),
-            "publishedAt": a.get("publishedAt", ""),
+            "title":         a.get("title", "")[:140],
+            "sentiment":     a.get("sentiment", 0.0),
+            "source":        (a.get("source") or {}).get("name", "unknown"),
+            "url":           a.get("url", ""),
+            "publishedAt":   a.get("publishedAt", ""),          # raw UTC (for sorting)
+            "publishedIST":  _to_ist(a.get("publishedAt", "")), # display string
         }
 
     # Top 5 strongest-signal headlines (by |sentiment|)
