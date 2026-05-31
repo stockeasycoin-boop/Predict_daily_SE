@@ -649,8 +649,23 @@ with tab1:
             _ttl_min = 5
         _ttl_txt = "no cache" if _ttl_min <= 0 else f"refreshes every {_ttl_min} min"
 
+        # News coverage window (e.g. "29–31 May")
+        try:
+            _look_days = int(getattr(cfg, "GNEWS_LOOKBACK_DAYS", 3))
+        except Exception:
+            _look_days = 3
+        _today = datetime.now()
+        _start = _today - timedelta(days=max(0, _look_days - 1))
+        if _start.month == _today.month:
+            _range_txt = f"{_start.day}–{_today.day} {_today.strftime('%b')}"
+        else:
+            _range_txt = f"{_start.strftime('%d %b')} – {_today.strftime('%d %b')}"
+
         nh_col, nb_col = st.columns([4, 1])
-        nh_col.caption(f"News status: {cache_label} · {_ttl_txt}")
+        nh_col.caption(
+            f"📅 Analysing last {_look_days} days of news ({_range_txt}) · "
+            f"{cache_label} · {_ttl_txt}"
+        )
         if nb_col.button("🔄 Fetch fresh news", use_container_width=True,
                          help="Pull the latest headlines now (uses GNews quota) and regenerate the signal"):
             st.session_state["_force_news_refresh"] = True
