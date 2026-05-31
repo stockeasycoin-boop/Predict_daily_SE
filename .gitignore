@@ -3,6 +3,12 @@ settings.json
 *.json
 *.csv
 *.pyc
+
+# News scraper runtime cache (per-day JSON/CSV + seen-urls)
+data/raw/news/
+.venv/
+train_out.log
+models_test/
 logs/apiLogs.log
 
 .venv/

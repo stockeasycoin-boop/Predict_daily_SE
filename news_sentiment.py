@@ -20,7 +20,7 @@ import json
 import time
 import logging
 import warnings
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -99,108 +99,66 @@ def _detect_backend() -> str:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# GNEWS FETCH
+# NEWS FETCH — scraped from The Hindu + TOI via news_scraper.py
+# (RSS discovery + trafilatura body extraction; no API key required)
 # ─────────────────────────────────────────────────────────────────────────────
-
-GNEWS_URL = "https://gnews.io/api/v4/search"
-
-# India/Nifty-focused search queries (combined with OR via comma-quote trick)
-NIFTY_QUERIES = [
-    "Nifty 50",
-    "Indian stock market",
-    "Sensex",
-    "RBI India",
-    "FII India",
-]
 
 
 def _gnews_cfg():
-    """Read GNews premium tuning from settings (with safe fallbacks)."""
+    """Read news tuning from settings (with safe fallbacks).
+    Returns (max_per_query, lookback_days, query_pause, cache_minutes).
+    Name kept for backward compatibility with callers."""
     try:
         from settings import (GNEWS_MAX_PER_QUERY, GNEWS_LOOKBACK_DAYS,
                               GNEWS_QUERY_PAUSE, GNEWS_CACHE_MINUTES)
         return (int(GNEWS_MAX_PER_QUERY), int(GNEWS_LOOKBACK_DAYS),
                 float(GNEWS_QUERY_PAUSE), int(GNEWS_CACHE_MINUTES))
     except Exception:
-        return (10, 2, 0.3, 240)   # free-tier-safe defaults
+        return (50, 3, 0.0, 5)
 
 
-def fetch_gnews(api_key: str, query: str, days: int = None,
-                max_results: int = None) -> list[dict]:
-    """
-    Fetch news articles from GNews API for a given query.
-
-    Parameters
-    ----------
-    api_key      : Your GNews API key
-    query        : Search query (e.g. "Nifty 50")
-    days         : Look back this many days (defaults to GNEWS_LOOKBACK_DAYS)
-    max_results  : Articles per query (defaults to GNEWS_MAX_PER_QUERY;
-                   premium plans allow up to 100)
-
-    Returns
-    -------
-    List of article dicts with keys: title, description, publishedAt, source, url
-    """
-    if not api_key or api_key in ("YOUR_GNEWS_API_KEY", ""):
-        return []
-
-    cfg_max, cfg_days, _, _ = _gnews_cfg()
-    if days is None:
-        days = cfg_days
-    if max_results is None:
-        max_results = cfg_max
-
-    from_dt = (datetime.utcnow() - timedelta(days=days)).strftime("%Y-%m-%dT%H:%M:%SZ")
-    params = {
-        "q":        query,
-        "lang":     "en",
-        "country":  "in",                           # India-focused
-        "max":      max(1, min(max_results, 100)),  # premium allows up to 100
-        "from":     from_dt,
-        "sortby":   "publishedAt",                  # newest first -> realtime
-        "apikey":   api_key,
-    }
+def _ist_iso_to_utc_z(ist_iso: str) -> str:
+    """Convert IST ISO string from scraper -> 'YYYY-MM-DDTHH:MM:SSZ' (UTC)."""
+    if not ist_iso:
+        return ""
     try:
-        resp = requests.get(GNEWS_URL, params=params, timeout=10)
-        if resp.status_code == 401:
-            print("[news] GNews 401 - API key invalid.")
-            return []
-        if resp.status_code == 403:
-            print("[news] GNews 403 - quota exhausted or plan limit reached.")
-            return []
-        if resp.status_code == 429:
-            print("[news] GNews 429 - rate limited; slow down requests.")
-            return []
-        resp.raise_for_status()
-        data = resp.json()
-        return data.get("articles", [])
-    except Exception as e:
-        print(f"[news] GNews fetch failed for '{query}': {e}")
-        return []
+        dt = datetime.fromisoformat(ist_iso)
+        if dt.tzinfo is None:
+            return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+        return dt.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    except Exception:
+        return ist_iso
 
 
-def fetch_all_news(api_key: str, days: int = None) -> list[dict]:
+def fetch_all_news(api_key: str = None, days: int = None) -> list[dict]:
     """
-    Fetch news for all Nifty-related queries and dedupe by URL.
-    Costs ~len(NIFTY_QUERIES) GNews calls. On a premium plan each call can
-    return up to 100 fresh articles, so this yields a deep realtime snapshot.
+    Scrape Indian news (The Hindu + TOI) via news_scraper and return articles
+    in the legacy GNews shape: {title, description, publishedAt, url, source}.
+
+    `api_key` is ignored — kept for backward compatibility with prior callers.
+    `days`    is the lookback window (defaults to settings.GNEWS_LOOKBACK_DAYS).
     """
-    cfg_max, cfg_days, pause, _ = _gnews_cfg()
+    _, cfg_days, _, _ = _gnews_cfg()
     if days is None:
         days = cfg_days
 
-    seen = set()
-    articles = []
-    for q in NIFTY_QUERIES:
-        for art in fetch_gnews(api_key, q, days=days, max_results=cfg_max):
-            url = art.get("url")
-            if url and url not in seen:
-                seen.add(url)
-                articles.append(art)
-        if pause > 0:
-            time.sleep(pause)
-    return articles
+    try:
+        from news_scraper import fetch_recent
+        scraped = fetch_recent(days)
+    except Exception as e:
+        print(f"[news] scraper failed: {e}")
+        return []
+
+    out = []
+    for a in scraped:
+        out.append({
+            "title":       a.get("headline", ""),
+            "description": (a.get("body") or "")[:400],
+            "publishedAt": _ist_iso_to_utc_z(a.get("published_ist", "")),
+            "url":         a.get("url", ""),
+            "source":      {"name": a.get("source", "rss")},
+        })
+    return out
 
 
 # ─────────────────────────────────────────────────────────────────────────────
