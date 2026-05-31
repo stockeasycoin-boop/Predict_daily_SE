@@ -489,7 +489,7 @@ with tab1:
                             import news_sentiment as ns
                             gnews_key = settings.get("gnews_api_key",
                                                     getattr(cfg, "GNEWS_API_KEY", ""))
-                            news = ns.get_market_sentiment(gnews_key, days=2,
+                            news = ns.get_market_sentiment(gnews_key,
                                                            force_refresh=_force_news)
                             if news.get("n_articles", 0) >= 3:
                                 news_conf, news_reason = ns.adjust_confidence(
@@ -634,12 +634,23 @@ with tab1:
         orig_c   = suggestion.get("confidence_original")
 
         from_cache   = news_data.get("from_cache", False)
-        cache_age    = news_data.get("cache_age_hours")
-        cache_label  = (f"🕒 cached {cache_age:.1f}h ago" if (from_cache and cache_age is not None)
-                        else "🆕 freshly fetched")
+        cache_age_m  = news_data.get("cache_age_minutes")
+        cache_age_h  = news_data.get("cache_age_hours")
+        if from_cache and cache_age_m is not None:
+            cache_label = (f"🕒 cached {cache_age_m:.0f} min ago" if cache_age_m < 90
+                           else f"🕒 cached {cache_age_m/60:.1f}h ago")
+        elif from_cache and cache_age_h is not None:
+            cache_label = f"🕒 cached {cache_age_h:.1f}h ago"
+        else:
+            cache_label = "🆕 freshly fetched (realtime)"
+        try:
+            _ttl_min = int(getattr(cfg, "GNEWS_CACHE_MINUTES", 5))
+        except Exception:
+            _ttl_min = 5
+        _ttl_txt = "no cache" if _ttl_min <= 0 else f"refreshes every {_ttl_min} min"
 
         nh_col, nb_col = st.columns([4, 1])
-        nh_col.caption(f"News status: {cache_label} · auto-refreshes every 4h")
+        nh_col.caption(f"News status: {cache_label} · {_ttl_txt}")
         if nb_col.button("🔄 Fetch fresh news", use_container_width=True,
                          help="Pull the latest headlines now (uses GNews quota) and regenerate the signal"):
             st.session_state["_force_news_refresh"] = True

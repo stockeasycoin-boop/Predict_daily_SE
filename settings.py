@@ -25,6 +25,15 @@ BREEZE_SESSION_TOKEN = os.getenv("BREEZE_SESSION_TOKEN", "")  # Refresh daily
 # ─────────────────────────────────────────────────────────────────────
 GNEWS_API_KEY = os.getenv("GNEWS_API_KEY", "")
 
+# ── GNews PREMIUM / realtime tuning ──────────────────────────────────────
+# These are sized for a PAID GNews plan (higher rate limits, up to 100
+# articles/request, near-realtime indexing). On the free tier, lower
+# GNEWS_MAX_PER_QUERY back to 10 and raise GNEWS_CACHE_MINUTES to ~240.
+GNEWS_CACHE_MINUTES = int(os.getenv("GNEWS_CACHE_MINUTES", "5"))   # cache TTL; 5 ≈ realtime
+GNEWS_MAX_PER_QUERY = int(os.getenv("GNEWS_MAX_PER_QUERY", "50"))  # premium allows up to 100
+GNEWS_LOOKBACK_DAYS = int(os.getenv("GNEWS_LOOKBACK_DAYS", "1"))   # tighter window = fresher
+GNEWS_QUERY_PAUSE   = float(os.getenv("GNEWS_QUERY_PAUSE", "0.0")) # premium: no throttle needed
+
 # News-sentiment adjustment caps (used by news_sentiment.adjust_confidence)
 NEWS_MAX_BOOST   = 0.08   # max upward adjustment when news agrees with model
 NEWS_MAX_PENALTY = 0.15   # max downward adjustment when news disagrees

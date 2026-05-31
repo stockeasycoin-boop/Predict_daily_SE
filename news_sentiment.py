@@ -98,16 +98,29 @@ NIFTY_QUERIES = [
 ]
 
 
-def fetch_gnews(api_key: str, query: str, days: int = 2, max_results: int = 10) -> list[dict]:
+def _gnews_cfg():
+    """Read GNews premium tuning from settings (with safe fallbacks)."""
+    try:
+        from settings import (GNEWS_MAX_PER_QUERY, GNEWS_LOOKBACK_DAYS,
+                              GNEWS_QUERY_PAUSE, GNEWS_CACHE_MINUTES)
+        return (int(GNEWS_MAX_PER_QUERY), int(GNEWS_LOOKBACK_DAYS),
+                float(GNEWS_QUERY_PAUSE), int(GNEWS_CACHE_MINUTES))
+    except Exception:
+        return (10, 2, 0.3, 240)   # free-tier-safe defaults
+
+
+def fetch_gnews(api_key: str, query: str, days: int = None,
+                max_results: int = None) -> list[dict]:
     """
     Fetch news articles from GNews API for a given query.
 
     Parameters
     ----------
-    api_key      : Your GNews API key (free at gnews.io)
+    api_key      : Your GNews API key
     query        : Search query (e.g. "Nifty 50")
-    days         : Look back this many days
-    max_results  : Up to 10 articles per query on free tier
+    days         : Look back this many days (defaults to GNEWS_LOOKBACK_DAYS)
+    max_results  : Articles per query (defaults to GNEWS_MAX_PER_QUERY;
+                   premium plans allow up to 100)
 
     Returns
     -------
@@ -116,20 +129,32 @@ def fetch_gnews(api_key: str, query: str, days: int = 2, max_results: int = 10) 
     if not api_key or api_key in ("YOUR_GNEWS_API_KEY", ""):
         return []
 
+    cfg_max, cfg_days, _, _ = _gnews_cfg()
+    if days is None:
+        days = cfg_days
+    if max_results is None:
+        max_results = cfg_max
+
     from_dt = (datetime.utcnow() - timedelta(days=days)).strftime("%Y-%m-%dT%H:%M:%SZ")
     params = {
         "q":        query,
         "lang":     "en",
-        "country":  "in",          # India-focused
-        "max":      min(max_results, 10),
+        "country":  "in",                           # India-focused
+        "max":      max(1, min(max_results, 100)),  # premium allows up to 100
         "from":     from_dt,
-        "sortby":   "publishedAt",
+        "sortby":   "publishedAt",                  # newest first -> realtime
         "apikey":   api_key,
     }
     try:
         resp = requests.get(GNEWS_URL, params=params, timeout=10)
+        if resp.status_code == 401:
+            print("[news] GNews 401 - API key invalid.")
+            return []
         if resp.status_code == 403:
-            print("[news] GNews 403 — API key invalid or quota exhausted (100/day on free tier).")
+            print("[news] GNews 403 - quota exhausted or plan limit reached.")
+            return []
+        if resp.status_code == 429:
+            print("[news] GNews 429 - rate limited; slow down requests.")
             return []
         resp.raise_for_status()
         data = resp.json()
@@ -139,20 +164,26 @@ def fetch_gnews(api_key: str, query: str, days: int = 2, max_results: int = 10) 
         return []
 
 
-def fetch_all_news(api_key: str, days: int = 2) -> list[dict]:
+def fetch_all_news(api_key: str, days: int = None) -> list[dict]:
     """
     Fetch news for all Nifty-related queries and dedupe by URL.
-    Costs ~5 GNews calls (one per query in NIFTY_QUERIES).
+    Costs ~len(NIFTY_QUERIES) GNews calls. On a premium plan each call can
+    return up to 100 fresh articles, so this yields a deep realtime snapshot.
     """
+    cfg_max, cfg_days, pause, _ = _gnews_cfg()
+    if days is None:
+        days = cfg_days
+
     seen = set()
     articles = []
     for q in NIFTY_QUERIES:
-        for art in fetch_gnews(api_key, q, days=days, max_results=10):
+        for art in fetch_gnews(api_key, q, days=days, max_results=cfg_max):
             url = art.get("url")
             if url and url not in seen:
                 seen.add(url)
                 articles.append(art)
-        time.sleep(0.3)   # be polite to the API
+        if pause > 0:
+            time.sleep(pause)
     return articles
 
 
@@ -296,7 +327,7 @@ def aggregate(scored: list[dict]) -> dict:
 
 def get_market_sentiment(
     api_key: str,
-    days: int = 2,
+    days: int = None,
     force_refresh: bool = False,
     cache_dir: Optional[Path] = None,
 ) -> dict:
@@ -318,15 +349,19 @@ def get_market_sentiment(
     cache_dir.mkdir(exist_ok=True)
     cache_file = cache_dir / "news_sentiment.json"
 
-    # Serve from cache if fresh
-    if cache_file.exists() and not force_refresh:
-        age_hrs = (datetime.now().timestamp() - cache_file.stat().st_mtime) / 3600
-        if age_hrs < 4:
+    # Cache TTL in minutes (small on premium plans = near-realtime).
+    _, _, _, cache_minutes = _gnews_cfg()
+
+    # Serve from cache only if still within the (short) TTL
+    if cache_file.exists() and not force_refresh and cache_minutes > 0:
+        age_min = (datetime.now().timestamp() - cache_file.stat().st_mtime) / 60
+        if age_min < cache_minutes:
             try:
                 with open(cache_file) as f:
                     cached = json.load(f)
                 cached["from_cache"] = True
-                cached["cache_age_hours"] = round(age_hrs, 2)
+                cached["cache_age_hours"]   = round(age_min / 60, 3)
+                cached["cache_age_minutes"] = round(age_min, 1)
                 return cached
             except Exception:
                 pass   # fall through to refresh
