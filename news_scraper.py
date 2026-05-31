@@ -24,8 +24,12 @@ import json
 import time
 import hashlib
 import logging
+import threading
 from datetime import datetime, timedelta, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+# ── Concurrency: serialize file I/O during parallel body extraction ──────────
+_save_lock = threading.Lock()
 
 import pytz
 import requests
@@ -149,26 +153,33 @@ CSV_FIELDS = ["published_ist", "source", "headline", "url", "body", "page_date",
 
 
 def save_article(article: dict) -> None:
+    """Thread-safe persist: serialised JSON read-modify-write + atomic replace."""
     date_str = article["published_ist"][:10]
     json_path = os.path.join(OUTPUT_DIR, f"news_{date_str}.json")
-    records = []
-    if os.path.exists(json_path):
-        try:
-            with open(json_path) as f:
-                records = json.load(f)
-        except Exception:
-            records = []
-    records.append(article)
-    with open(json_path, "w", encoding="utf-8") as f:
-        json.dump(records, f, indent=2, ensure_ascii=False)
+    csv_path  = os.path.join(OUTPUT_DIR, f"news_{date_str}.csv")
 
-    csv_path = os.path.join(OUTPUT_DIR, f"news_{date_str}.csv")
-    write_header = not os.path.exists(csv_path)
-    with open(csv_path, "a", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=CSV_FIELDS)
-        if write_header:
-            w.writeheader()
-        w.writerow({k: article.get(k, "") for k in CSV_FIELDS})
+    with _save_lock:
+        # ── JSON: load existing, append, atomic write ──────────────────────
+        records = []
+        if os.path.exists(json_path):
+            try:
+                with open(json_path, encoding="utf-8") as f:
+                    records = json.load(f)
+            except Exception:
+                records = []   # corrupt file → start fresh
+        records.append(article)
+        tmp = json_path + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(records, f, indent=2, ensure_ascii=False)
+        os.replace(tmp, json_path)
+
+        # ── CSV: append one row ────────────────────────────────────────────
+        write_header = not os.path.exists(csv_path)
+        with open(csv_path, "a", newline="", encoding="utf-8") as f:
+            w = csv.DictWriter(f, fieldnames=CSV_FIELDS)
+            if write_header:
+                w.writeheader()
+            w.writerow({k: article.get(k, "") for k in CSV_FIELDS})
 
 
 # ── Discovery: build the list of new URLs to extract ─────────────────────────
