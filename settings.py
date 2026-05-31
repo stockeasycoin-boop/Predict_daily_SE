@@ -31,7 +31,7 @@ GNEWS_API_KEY = os.getenv("GNEWS_API_KEY", "")
 # GNEWS_MAX_PER_QUERY back to 10 and raise GNEWS_CACHE_MINUTES to ~240.
 GNEWS_CACHE_MINUTES = int(os.getenv("GNEWS_CACHE_MINUTES", "5"))   # cache TTL; 5 ≈ realtime
 GNEWS_MAX_PER_QUERY = int(os.getenv("GNEWS_MAX_PER_QUERY", "50"))  # premium allows up to 100
-GNEWS_LOOKBACK_DAYS = int(os.getenv("GNEWS_LOOKBACK_DAYS", "1"))   # tighter window = fresher
+GNEWS_LOOKBACK_DAYS = int(os.getenv("GNEWS_LOOKBACK_DAYS", "3"))   # days of news to analyse
 GNEWS_QUERY_PAUSE   = float(os.getenv("GNEWS_QUERY_PAUSE", "0.0")) # premium: no throttle needed
 
 # News-sentiment adjustment caps (used by news_sentiment.adjust_confidence)

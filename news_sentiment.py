@@ -38,6 +38,11 @@ def _load_finbert():
     if _FINBERT is not None:
         return _FINBERT
     try:
+        from transformers.utils import logging as hf_logging
+        hf_logging.set_verbosity_error()
+    except Exception:
+        pass
+    try:
         from transformers import pipeline
         _FINBERT = pipeline(
             "sentiment-analysis",
