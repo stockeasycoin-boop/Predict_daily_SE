@@ -32,7 +32,7 @@ except ImportError:
 
 from fyers_data import get_fyers_credentials
 
-DEFAULT_REDIRECT = "http://127.0.0.1:8080/"
+DEFAULT_REDIRECT = "http://localhost:8501/"
 SETTINGS_PATH = Path(__file__).parent / "settings.json"
 
 
@@ -109,6 +109,10 @@ def main() -> int:
     print(f"\n  {auth_url}\n")
     print("STEP 2 — after login, you'll be redirected to a URL like:")
     print(f"  {redirect}?s=ok&code=200&auth_code=AAA...&state=local-cli")
+    print()
+    print("  ⚠️  If Streamlit is running on 8501, it will try to render a page.")
+    print("  COPY THE URL FROM THE BROWSER ADDRESS BAR (not the page content).")
+    print("  Tip: stop Streamlit first, or open the URL in incognito.")
     print()
     raw = input("Paste the redirected URL (or just the auth_code): ").strip()
 
