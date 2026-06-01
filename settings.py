@@ -20,6 +20,22 @@ BREEZE_API_SECRET  = os.getenv("BREEZE_API_SECRET",  "YOUR_API_SECRET_HERE")
 BREEZE_SESSION_TOKEN = os.getenv("BREEZE_SESSION_TOKEN", "")  # Refresh daily
 
 # ─────────────────────────────────────────────────────────────────────
+# FYERS API CREDENTIALS (alternative data provider)
+# Step 1: register an app at https://myapi.fyers.in
+# Step 2: paste App ID + Secret into settings.json or Streamlit secrets
+# Step 3: each morning, run `python auth_fyers.py` to refresh the daily token
+# ─────────────────────────────────────────────────────────────────────
+FYERS_CLIENT_ID     = os.getenv("FYERS_CLIENT_ID",     "")
+FYERS_SECRET_ID     = os.getenv("FYERS_SECRET_ID",     "")
+FYERS_ACCESS_TOKEN  = os.getenv("FYERS_ACCESS_TOKEN",  "")  # Refresh daily
+FYERS_REDIRECT_URI  = os.getenv("FYERS_REDIRECT_URI",  "http://127.0.0.1:8080/")
+
+# Which provider to use as the primary daily-OHLCV source:
+#   "breeze" (default — existing pipeline), "fyers" (Fyers API), or "auto"
+#   (try Fyers first, fall back to Breeze, then to Stooq/cache).
+DATA_PROVIDER = os.getenv("DATA_PROVIDER", "auto")
+
+# ─────────────────────────────────────────────────────────────────────
 # GNEWS API (news sentiment enrichment) — free 100 req/day at gnews.io
 # Paste key into Settings tab; saved to settings.json
 # ─────────────────────────────────────────────────────────────────────
