@@ -421,22 +421,66 @@ with tab1:
             log_step(f"🔮 Generate signal (run_btn={run_btn})")
             with st.spinner("Fetching market data and running model…"):
                 try:
+                    # ── Provider selection ────────────────────────────────
+                    # User-visible toggle in Settings tab, persisted to
+                    # settings.json["data_provider"] (defaults to "breeze").
+                    provider = (settings.get("data_provider")
+                                or getattr(cfg, "DATA_PROVIDER", "breeze")).lower()
+                    use_fyers = provider in ("fyers", "auto")
+
+                    # ── Fyers client (used when provider == fyers/auto) ──
+                    fyers = None
+                    if use_fyers:
+                        try:
+                            import fyers_data as fyd
+                            fy_cid = settings.get("fyers_client_id",
+                                                  getattr(cfg, "FYERS_CLIENT_ID", ""))
+                            fy_tok = settings.get("fyers_access_token",
+                                                  getattr(cfg, "FYERS_ACCESS_TOKEN", ""))
+                            if fy_cid and fy_tok:
+                                log_step("Step 1/6 — connecting to Fyers API…")
+                                fyers = fyd.init_fyers(fy_cid, fy_tok)
+                                log_step("Step 1/6 — Fyers API connected ✅")
+                                st.toast("✅ Fyers API connected", icon="✅")
+                            elif provider == "fyers":
+                                log_step("Step 1/6 — Fyers selected but token empty; "
+                                         "run `python auth_fyers.py`", "warning")
+                                st.warning("Fyers selected but access token is empty. "
+                                           "Run `python auth_fyers.py` to refresh it.")
+                        except Exception as e:
+                            log_step(f"Fyers connection failed: {e}", "warning")
+                            st.warning(f"Fyers connection failed: {e}")
+
+                    # ── Breeze client (used for everything Fyers doesn't cover) ──
                     breeze = None
                     if ses_tok and api_key and api_key != "YOUR_API_KEY_HERE":
                         try:
                             log_step("Step 1/6 — connecting to Breeze API…")
                             breeze = df_mod.init_breeze(api_key, api_sec, ses_tok)
                             log_step("Step 1/6 — Breeze API connected ✅")
-                            st.toast("✅ Breeze API connected", icon="✅")
+                            if not fyers:
+                                st.toast("✅ Breeze API connected", icon="✅")
                         except Exception as e:
                             log_step(f"Breeze connection failed: {e}. Using cached/Stooq data.", "warning")
-                            st.warning(f"Breeze connection failed: {e}. Using cached/Stooq data.")
+                            if not fyers:
+                                st.warning(f"Breeze connection failed: {e}. Using cached/Stooq data.")
                     else:
                         log_step("Step 1/6 — no Breeze credentials, using cached/Stooq data")
 
+                    # ── Nifty + VIX: Fyers if connected, else Breeze ──
                     log_step("Step 2/6 — loading Nifty / VIX / global data…")
-                    nifty_df  = df_mod.load_nifty_data(breeze, force_refresh=run_btn)
-                    vix_df    = df_mod.load_vix_data(breeze)
+                    if fyers is not None:
+                        import fyers_data as fyd
+                        log_step(f"Step 2/6 — using Fyers for Nifty + VIX (provider={provider})")
+                        nifty_df = fyd.load_nifty_data_fyers(fyers, force_refresh=run_btn)
+                        try:
+                            vix_df = fyd.fetch_vix_fyers(fyers)
+                        except Exception as e:
+                            log_step(f"Fyers VIX fetch failed ({e}); falling back to Breeze", "warning")
+                            vix_df = df_mod.load_vix_data(breeze)
+                    else:
+                        nifty_df = df_mod.load_nifty_data(breeze, force_refresh=run_btn)
+                        vix_df   = df_mod.load_vix_data(breeze)
                     global_df = df_mod.load_global_data()
 
                     if nifty_df is None or len(nifty_df) < 50:
@@ -1425,6 +1469,41 @@ with tab4:
                                placeholder="Paste today's session token from the login URL")
 
         st.divider()
+        st.markdown("##### 📊 Fyers API credentials (alternative provider)")
+        st.markdown(
+            "Fyers is an alternative to Breeze for **Nifty + India VIX** daily OHLCV.\n"
+            "1. Register an app at [myapi.fyers.in](https://myapi.fyers.in) → get App ID + Secret\n"
+            "2. Save them below + select **Fyers** as data provider\n"
+            "3. Each morning run `python auth_fyers.py` in a terminal to refresh the daily access token\n"
+            "4. Paste the generated token into the **Access token** field (or it auto-saves to settings.json)"
+        )
+        fy_cid = st.text_input("Fyers App ID",
+                               value=saved.get("fyers_client_id", ""),
+                               placeholder="e.g. XXXXXXXX-100")
+        fy_sid = st.text_input("Fyers Secret ID", type="password",
+                               value=saved.get("fyers_secret_id", ""),
+                               placeholder="Your Fyers app secret")
+        fy_tok = st.text_input("Fyers Access Token (refresh daily)", type="password",
+                               value=saved.get("fyers_access_token", ""),
+                               placeholder="Run `python auth_fyers.py` to generate")
+
+        provider_options = ["breeze", "fyers", "auto"]
+        _cur_prov = (saved.get("data_provider")
+                     or getattr(cfg, "DATA_PROVIDER", "breeze")).lower()
+        _idx = provider_options.index(_cur_prov) if _cur_prov in provider_options else 0
+        data_provider = st.radio(
+            "Data provider for Nifty + VIX",
+            options=provider_options,
+            index=_idx,
+            horizontal=True,
+            help=(
+                "breeze = ICICI Breeze (full features: intraday, options chain). "
+                "fyers = Fyers for Nifty+VIX only (Breeze still used for options chain). "
+                "auto = use Fyers if its token is fresh, fall back to Breeze."
+            ),
+        )
+
+        st.divider()
         st.markdown("##### 📰 News sentiment (optional)")
         st.caption(
             "Get a free GNews API key at gnews.io (100 requests/day). "
@@ -1457,6 +1536,10 @@ with tab4:
                 "api_key":        api_k,
                 "api_secret":     api_s,
                 "session_token":  ses_t,
+                "fyers_client_id":    fy_cid,
+                "fyers_secret_id":    fy_sid,
+                "fyers_access_token": fy_tok,
+                "data_provider":  data_provider,
                 "gnews_api_key":  gnews_k,
                 "capital":        cap_min,
                 "min_confidence": min_conf_pct / 100,
