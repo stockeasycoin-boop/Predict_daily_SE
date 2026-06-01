@@ -213,6 +213,187 @@ def fetch_vix_fyers(fyers, days: int = 730) -> pd.DataFrame | None:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# INTRADAY 5-min — drop-in for data_fetcher.fetch_intraday_breeze
+# ─────────────────────────────────────────────────────────────────────────────
+
+def fetch_intraday_fyers(fyers, symbol: str = "NIFTY",
+                         days_back: int = 60) -> pd.DataFrame | None:
+    """5-minute intraday candles for the past `days_back` days, market hours only."""
+    df = fetch_history_fyers(fyers, symbol, "5", days_back)
+    if df is None or df.empty:
+        return None
+    # Keep only NSE market hours: 9:15 to 15:30 IST
+    h, m = df["date"].dt.hour, df["date"].dt.minute
+    df = df[(h > 9) | ((h == 9) & (m >= 15))]
+    df = df[(h < 15) | ((h == 15) & (m <= 30))]
+    print(f"[Fyers] Intraday {symbol} 5min: {len(df)} candles "
+          f"({df['date'].dt.date.min()} → {df['date'].dt.date.max()})")
+    return df.reset_index(drop=True)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# BANK NIFTY + SECTOR INDICES — drop-in for fetch_correlated_daily
+# ─────────────────────────────────────────────────────────────────────────────
+
+def fetch_correlated_fyers(fyers, days: int = 730) -> dict[str, pd.DataFrame]:
+    """Daily OHLCV for Bank Nifty and sector indices configured in settings."""
+    from settings import CORRELATED_INSTRUMENTS
+    out = {}
+    for sym in CORRELATED_INSTRUMENTS:
+        df = fetch_history_fyers(fyers, sym, "D", days)
+        if df is not None and len(df) > 30:
+            out[sym] = df
+            print(f"[Fyers] {sym} daily: {len(df)} rows")
+        else:
+            print(f"[Fyers] {sym} — no data (symbol not found via Fyers)")
+    return out
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# LIVE QUOTE — drop-in for fetch_live_quote_breeze
+# ─────────────────────────────────────────────────────────────────────────────
+
+def fetch_live_quote_fyers(fyers, symbol: str = "NIFTY") -> dict | None:
+    sym = fyers_symbol(symbol)
+    try:
+        resp = fyers.quotes({"symbols": sym})
+        if resp.get("s") == "ok" and resp.get("d"):
+            v = resp["d"][0].get("v", {})
+            return {
+                "ltp":        float(v.get("lp", 0) or 0),
+                "open":       float(v.get("open_price",       0) or 0),
+                "high":       float(v.get("high_price",       0) or 0),
+                "low":        float(v.get("low_price",        0) or 0),
+                "prev_close": float(v.get("prev_close_price", 0) or 0),
+            }
+        print(f"[Fyers] live quote response: {resp}")
+    except Exception as e:
+        print(f"[Fyers] live quote failed: {e}")
+    return None
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# OPTIONS CHAIN — drop-in for fetch_options_chain_breeze
+# Returns (DataFrame[strike,type,ltp,bid,ask,oi,volume,iv], pcr)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def fetch_options_chain_fyers(fyers, expiry_str: str = "",
+                              spot: float = 0.0,
+                              strikecount: int = 10
+                              ) -> tuple["pd.DataFrame | None", float]:
+    """
+    Fetch Nifty options chain via Fyers.
+
+    Fyers' option_chain endpoint returns symmetric strikes around spot
+    (controlled by strikecount = strikes on either side, total = 2*strikecount+1).
+    `expiry_str` is currently advisory — Fyers picks the nearest expiry by default.
+    """
+    try:
+        payload = {
+            "symbol":      fyers_symbol("NIFTY"),
+            "strikecount": int(strikecount),
+            "timestamp":   "",            # "" = current/nearest expiry
+        }
+        resp = fyers.optionchain(data=payload)
+    except Exception as e:
+        print(f"[Fyers] options chain failed: {e}")
+        return None, 1.0
+
+    if not isinstance(resp, dict) or resp.get("s") != "ok":
+        print(f"[Fyers] options chain bad response: {resp}")
+        return None, 1.0
+
+    data = resp.get("data", {}) or {}
+    rows = data.get("optionsChain") or data.get("optionchain") or []
+    ce_oi = pe_oi = 0.0
+    out_rows = []
+    for r in rows:
+        opt_type = (r.get("option_type") or r.get("optionType") or "").upper()
+        if opt_type not in ("CE", "PE"):
+            # Index spot row — skip
+            continue
+        strike = float(r.get("strike_price") or r.get("strikePrice") or 0)
+        ltp    = float(r.get("ltp") or r.get("lastPrice") or 0)
+        oi     = float(r.get("oi") or r.get("openInterest") or 0)
+        volume = float(r.get("volume") or 0)
+        iv     = float(r.get("iv") or r.get("impliedVolatility") or 0)
+        bid    = float(r.get("bid") or r.get("bestBid") or 0)
+        ask    = float(r.get("ask") or r.get("bestAsk") or 0)
+        if opt_type == "CE":
+            ce_oi += oi
+        else:
+            pe_oi += oi
+        out_rows.append({
+            "strike": strike, "type": opt_type,
+            "ltp": ltp, "bid": bid, "ask": ask,
+            "oi": oi, "volume": volume, "iv": iv,
+        })
+
+    pcr = round(pe_oi / ce_oi, 3) if ce_oi > 0 else 1.0
+    return (pd.DataFrame(out_rows) if out_rows else None), pcr
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CACHE-AWARE WRAPPERS for intraday & correlated — same shape as data_fetcher
+# ─────────────────────────────────────────────────────────────────────────────
+
+def load_intraday_data_fyers(fyers=None, force_refresh: bool = False,
+                             days_back: int = None) -> pd.DataFrame | None:
+    """5-min Nifty intraday with disk cache (mirrors load_intraday_data)."""
+    from settings import DATA_DIR, INTRADAY_DAYS_BACK
+    if days_back is None:
+        days_back = INTRADAY_DAYS_BACK
+    cache = DATA_DIR / "intraday_nifty.csv"
+
+    if cache.exists() and not force_refresh:
+        age = (datetime.now().timestamp() - cache.stat().st_mtime) / 3600
+        if age < 4:
+            df = pd.read_csv(cache, parse_dates=["date"])
+            print(f"[Cache] Intraday Nifty (fyers source): {len(df)} candles")
+            return df.sort_values("date").reset_index(drop=True)
+
+    if fyers is None:
+        if cache.exists():
+            df = pd.read_csv(cache, parse_dates=["date"])
+            print(f"[Cache] Using stale intraday cache: {len(df)} candles")
+            return df.sort_values("date").reset_index(drop=True)
+        return None
+
+    df = fetch_intraday_fyers(fyers, "NIFTY", days_back)
+    if df is not None and len(df):
+        df.to_csv(cache, index=False)
+    return df
+
+
+def load_correlated_data_fyers(fyers=None,
+                               force_refresh: bool = False) -> dict[str, pd.DataFrame]:
+    """Bank Nifty + sector indices via Fyers, per-symbol cache."""
+    from settings import DATA_DIR, CORRELATED_INSTRUMENTS, TRAINING_DAYS
+    out: dict[str, pd.DataFrame] = {}
+
+    for sym in CORRELATED_INSTRUMENTS:
+        cache = DATA_DIR / f"corr_{sym.lower()}.csv"
+        if cache.exists() and not force_refresh:
+            age = (datetime.now().timestamp() - cache.stat().st_mtime) / 3600
+            if age < 8:
+                df = pd.read_csv(cache, parse_dates=["date"])
+                print(f"[Cache] {sym} (fyers source): {len(df)} rows")
+                out[sym] = df.sort_values("date").reset_index(drop=True)
+                continue
+        if fyers is None:
+            if cache.exists():
+                out[sym] = pd.read_csv(cache, parse_dates=["date"]) \
+                            .sort_values("date").reset_index(drop=True)
+            continue
+        df = fetch_history_fyers(fyers, sym, "D", TRAINING_DAYS)
+        if df is not None and len(df) > 30:
+            df.to_csv(cache, index=False)
+            out[sym] = df
+            print(f"[Fyers] {sym} daily: {len(df)} rows")
+    return out
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # CACHE-AWARE WRAPPER — drop-in for data_fetcher.load_nifty_data
 # ─────────────────────────────────────────────────────────────────────────────
 

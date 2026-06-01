@@ -493,8 +493,16 @@ with tab1:
                         fii_df     = df_mod.load_fii_dii_data()
                         gift_df    = df_mod.load_gift_data(breeze)
                         pcr_df     = df_mod.load_pcr_data()
-                        intra_df   = df_mod.load_intraday_data(breeze)
-                        corr_dict  = df_mod.load_correlated_data(breeze)
+
+                        # Intraday + correlated indices: prefer Fyers if connected
+                        if fyers is not None:
+                            import fyers_data as fyd
+                            intra_df  = fyd.load_intraday_data_fyers(fyers, force_refresh=run_btn)
+                            corr_dict = fyd.load_correlated_data_fyers(fyers, force_refresh=run_btn)
+                            log_step("Step 3/6 — intraday + correlated via Fyers")
+                        else:
+                            intra_df  = df_mod.load_intraday_data(breeze)
+                            corr_dict = df_mod.load_correlated_data(breeze)
                         log_step("Step 4/6 — building features…")
                         feat_df = fe.build_features(
                             nifty_df, vix_df, global_df, fii_df, gift_df, pcr_df,
@@ -507,16 +515,33 @@ with tab1:
                         confidence = preds.get("close_confidence", preds.get("confidence", 0.5))
                         atr_pct    = preds.get("atr_pct", 0.8)
                         vix        = preds.get("india_vix", 16.0)
+                        # Live spot quote: Fyers if connected, else Breeze
                         spot = None
-                        if breeze:
+                        if fyers is not None:
+                            import fyers_data as fyd
+                            live = fyd.fetch_live_quote_fyers(fyers, "NIFTY")
+                            if live:
+                                spot = live["ltp"]
+                        if not spot and breeze:
                             live = df_mod.fetch_live_quote_breeze(breeze)
                             if live:
                                 spot = live["ltp"]
                         if not spot:
                             spot = float(nifty_df["close"].iloc[-1])
+
+                        # Options chain: Fyers if connected, else Breeze
                         opts_df = None
                         live_pcr = None
-                        if breeze:
+                        if fyers is not None:
+                            try:
+                                import fyers_data as fyd
+                                expiry_str = oe.breeze_expiry_format(oe.next_expiry())
+                                opts_df, live_pcr = fyd.fetch_options_chain_fyers(
+                                    fyers, expiry_str, spot
+                                )
+                            except Exception as e:
+                                log_step(f"Fyers options chain failed ({e})", "warning")
+                        if opts_df is None and breeze:
                             try:
                                 expiry_str = oe.breeze_expiry_format(oe.next_expiry())
                                 opts_df, live_pcr = df_mod.fetch_options_chain_breeze(
