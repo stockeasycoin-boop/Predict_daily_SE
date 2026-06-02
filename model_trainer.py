@@ -408,10 +408,19 @@ def predict_today(feature_df: pd.DataFrame, model_dir: str = "models") -> dict:
     scaler    = joblib.load(f"{model_dir}/scaler.pkl")
     feat_list = joblib.load(f"{model_dir}/feature_list.pkl")
 
-    avail = [f for f in feat_list if f in feature_df.columns]
-    row   = feature_df[avail].tail(1).copy()
-    row   = row.fillna(feature_df[avail].mean())
-    X     = scaler.transform(row.values.astype(np.float32))
+    avail   = [f for f in feat_list if f in feature_df.columns]
+    missing = [f for f in feat_list if f not in feature_df.columns]
+    if missing:
+        sample = ", ".join(missing[:6]) + ("…" if len(missing) > 6 else "")
+        raise RuntimeError(
+            f"Model expects {len(feat_list)} features but only {len(avail)} are in "
+            f"the current data — {len(missing)} are missing (e.g. {sample}). "
+            "This usually means the feature pipeline changed since training. "
+            "Go to Model Health → Train model now to retrain with current data."
+        )
+    row = feature_df[avail].tail(1).copy()
+    row = row.fillna(feature_df[avail].mean())
+    X   = scaler.transform(row.values.astype(np.float32))
 
     def _load(fname):
         p = Path(f"{model_dir}/{fname}")
