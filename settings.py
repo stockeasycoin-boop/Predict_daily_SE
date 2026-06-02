@@ -28,7 +28,10 @@ BREEZE_SESSION_TOKEN = os.getenv("BREEZE_SESSION_TOKEN", "")  # Refresh daily
 FYERS_CLIENT_ID     = os.getenv("FYERS_CLIENT_ID",     "")
 FYERS_SECRET_ID     = os.getenv("FYERS_SECRET_ID",     "")
 FYERS_ACCESS_TOKEN  = os.getenv("FYERS_ACCESS_TOKEN",  "")  # Refresh daily
-FYERS_REDIRECT_URI  = os.getenv("FYERS_REDIRECT_URI",  "http://localhost:8501/")
+FYERS_REDIRECT_URI  = os.getenv(
+    "FYERS_REDIRECT_URI",
+    "https://trade.fyers.in/api-login/redirect-uri/index.html",
+)
 
 # Which provider to use as the primary daily-OHLCV source:
 #   "breeze" (default — existing pipeline), "fyers" (Fyers API), or "auto"

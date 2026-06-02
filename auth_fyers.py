@@ -32,7 +32,7 @@ except ImportError:
 
 from fyers_data import get_fyers_credentials
 
-DEFAULT_REDIRECT = "http://localhost:8501/"
+DEFAULT_REDIRECT = "https://trade.fyers.in/api-login/redirect-uri/index.html"
 SETTINGS_PATH = Path(__file__).parent / "settings.json"
 
 
@@ -107,14 +107,11 @@ def main() -> int:
     auth_url = session.generate_authcode()
     print("STEP 1 — open this URL in your browser and log in:")
     print(f"\n  {auth_url}\n")
-    print("STEP 2 — after login, you'll be redirected to a URL like:")
-    print(f"  {redirect}?s=ok&code=200&auth_code=AAA...&state=local-cli")
+    print("STEP 2 — after login, Fyers will redirect you to:")
+    print(f"  {redirect}")
+    print("  That page will DISPLAY YOUR AUTH CODE on screen — just copy it.")
     print()
-    print("  ⚠️  If Streamlit is running on 8501, it will try to render a page.")
-    print("  COPY THE URL FROM THE BROWSER ADDRESS BAR (not the page content).")
-    print("  Tip: stop Streamlit first, or open the URL in incognito.")
-    print()
-    raw = input("Paste the redirected URL (or just the auth_code): ").strip()
+    raw = input("Paste the auth_code (or the full redirected URL): ").strip()
 
     code = _extract_auth_code(raw)
     if not code:
