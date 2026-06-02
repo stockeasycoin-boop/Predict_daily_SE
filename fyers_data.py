@@ -38,13 +38,20 @@ except ImportError:
 # ─────────────────────────────────────────────────────────────────────────────
 
 FYERS_SYMBOLS = {
-    # Indices
-    "NIFTY":      "NSE:NIFTY50-INDEX",
-    "BANKNIFTY":  "NSE:NIFTYBANK-INDEX",
-    "CNXIT":      "NSE:CNXIT-INDEX",
-    "CNXAUTO":    "NSE:CNXAUTO-INDEX",
-    "CNXFMCG":    "NSE:CNXFMCG-INDEX",
-    "INDIAVIX":   "NSE:INDIAVIX-INDEX",
+    # Indices — Fyers uses the modern NSE names ("NIFTYIT" not "CNXIT").
+    # The settings.py CORRELATED_INSTRUMENTS list still uses legacy CNX names
+    # for backward-compatibility with the Breeze pipeline; we translate here.
+    "NIFTY":       "NSE:NIFTY50-INDEX",
+    "BANKNIFTY":   "NSE:NIFTYBANK-INDEX",
+    "CNXIT":       "NSE:NIFTYIT-INDEX",       # was CNXIT pre-2013
+    "CNXAUTO":     "NSE:NIFTYAUTO-INDEX",     # was CNXAUTO pre-2013
+    "CNXFMCG":     "NSE:NIFTYFMCG-INDEX",     # was CNXFMCG pre-2013
+    "CNXPHARMA":   "NSE:NIFTYPHARMA-INDEX",
+    "NIFTYIT":     "NSE:NIFTYIT-INDEX",
+    "NIFTYAUTO":   "NSE:NIFTYAUTO-INDEX",
+    "NIFTYFMCG":   "NSE:NIFTYFMCG-INDEX",
+    "NIFTYPHARMA": "NSE:NIFTYPHARMA-INDEX",
+    "INDIAVIX":    "NSE:INDIAVIX-INDEX",
 }
 
 
