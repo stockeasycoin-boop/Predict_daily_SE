@@ -3,8 +3,12 @@ settings.json
 *.json
 *.csv
 *.pyc
-logs/apiLogs.log
 
+# All logs (apps + Fyers/Breeze SDK + train output)
+logs/
+*.log
+
+# Local dev artifacts
 .venv/
 train_out.log
 models_test/
