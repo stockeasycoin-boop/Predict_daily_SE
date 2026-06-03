@@ -316,6 +316,20 @@ def build_features(
     df["near_52w_low"] = (c <= c.rolling(252).min() * 1.01).astype(int)
 
     # ── B. INTRADAY FEATURES ─────────────────────────────────────────────────
+    # ALWAYS pre-seed defaults so columns exist even when intraday is missing
+    # or too sparse to extract real features (e.g. NSE:NIFTY50-INDEX returns
+    # very few 5-min candles via Fyers — the inner extract would yield 0 rows
+    # and we'd otherwise end up with missing columns at inference time).
+    _intra_default_cols = [
+        "prev_intra_morning_ret", "prev_intra_afternoon_ret",
+        "prev_intra_reversal",    "prev_intra_breakout",
+        "prev_intra_close_strength", "prev_intra_intraday_range",
+        "prev_intra_day_oc_ret",  "prev_intra_morning_vol_ratio",
+        "prev_intra_vol_spike_hour",
+    ]
+    for col in _intra_default_cols:
+        df[col] = 0.0
+
     if intraday_df is not None and len(intraday_df) > 0:
         intra_feat = extract_intraday_features(intraday_df)
         if len(intra_feat) > 0:
@@ -323,19 +337,18 @@ def build_features(
             # Shift by 1: yesterday's intraday → today's prediction input
             intra_shifted = intra_feat.copy()
             intra_shifted["date"] = intra_shifted["date"] + pd.Timedelta(days=1)
-            # Align to next trading day
+            # Drop the 0.0 defaults before merging so we don't end up with
+            # _x / _y suffixed columns.
+            df = df.drop(columns=[c for c in _intra_default_cols if c in df.columns])
             df = pd.merge(df, intra_shifted.add_prefix("prev_intra_").rename(
-                columns={"prev_intra_date":"date"}), on="date", how="left")
-            # Forward-fill gaps (weekends/holidays)
+                columns={"prev_intra_date": "date"}), on="date", how="left")
+            # Forward-fill gaps (weekends/holidays) and zero-fill leading NaN
             intra_cols = [c_ for c_ in df.columns if c_.startswith("prev_intra_")]
-            df[intra_cols] = df[intra_cols].ffill()
-    else:
-        for col in ["prev_intra_morning_ret","prev_intra_afternoon_ret",
-                    "prev_intra_reversal","prev_intra_breakout",
-                    "prev_intra_close_strength","prev_intra_intraday_range",
-                    "prev_intra_day_oc_ret","prev_intra_morning_vol_ratio",
-                    "prev_intra_vol_spike_hour"]:
-            df[col] = 0.0
+            df[intra_cols] = df[intra_cols].ffill().fillna(0)
+            # Make sure no expected column got lost during the merge
+            for col in _intra_default_cols:
+                if col not in df.columns:
+                    df[col] = 0.0
 
     # ── C. BANK NIFTY + SECTOR ───────────────────────────────────────────────
     if corr_dict:
