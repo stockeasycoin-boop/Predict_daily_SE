@@ -130,47 +130,93 @@ def _ist_iso_to_utc_z(ist_iso: str) -> str:
         return ist_iso
 
 
+GNEWS_URL = "https://gnews.io/api/v4/search"
+NIFTY_QUERIES = ["Nifty 50", "Indian stock market", "Sensex", "RBI India", "FII India"]
+
+
+def _fetch_gnews_articles(api_key: str, days: int, max_per_query: int) -> list[dict]:
+    """Fetch fresh articles from GNews. Returns [] on any failure."""
+    if not api_key or api_key in ("YOUR_GNEWS_API_KEY", ""):
+        return []
+    from_dt = (datetime.utcnow() - timedelta(days=days)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    seen, out = set(), []
+    for q in NIFTY_QUERIES:
+        try:
+            resp = requests.get(GNEWS_URL, timeout=10, params={
+                "q": q, "lang": "en", "country": "in",
+                "max": max(1, min(max_per_query, 100)),
+                "from": from_dt, "sortby": "publishedAt", "apikey": api_key,
+            })
+            if resp.status_code != 200:
+                print(f"[gnews] '{q}' → HTTP {resp.status_code}")
+                continue
+            for art in resp.json().get("articles", []):
+                u = art.get("url")
+                if u and u not in seen:
+                    seen.add(u)
+                    out.append(art)
+        except Exception as e:
+            print(f"[gnews] '{q}' failed: {e}")
+    return out
+
+
 def fetch_all_news(api_key: str = None, days: int = None) -> list[dict]:
     """
-    Scrape Indian news (The Hindu + TOI) via news_scraper and return articles
-    in the legacy GNews shape: {title, description, publishedAt, url, source}.
+    HYBRID news fetch: scraper (Hindu + TOI + Moneycontrol + LiveMint) UNIONED
+    with GNews. Articles deduped by URL. Whichever source is unavailable is
+    silently skipped — we use whatever's reachable. Then filter to market-
+    relevant only before returning.
 
-    `api_key` is ignored — kept for backward compatibility with prior callers.
-    `days`    is the lookback window (defaults to settings.GNEWS_LOOKBACK_DAYS).
+    Returns GNews-shape dicts: {title, description, publishedAt, url, source}.
     """
-    _, cfg_days, _, _ = _gnews_cfg()
+    cfg_max, cfg_days, _, _ = _gnews_cfg()
     if days is None:
         days = cfg_days
 
+    # ── Source 1: RSS scraper (Hindu, TOI, Moneycontrol, LiveMint) ─────────
+    scraped: list[dict] = []
     try:
         from news_scraper import fetch_recent, is_market_relevant
-        scraped = fetch_recent(days)
+        raw = fetch_recent(days)
+        for a in raw:
+            tag = a.get("market_relevant")
+            if tag is None:
+                tag = is_market_relevant(a.get("headline", ""), a.get("body", ""))
+            if not tag:
+                continue
+            scraped.append({
+                "title":       a.get("headline", ""),
+                "description": (a.get("body") or "")[:400],
+                "publishedAt": _ist_iso_to_utc_z(a.get("published_ist", "")),
+                "url":         a.get("url", ""),
+                "source":      {"name": a.get("source", "rss")},
+            })
+        print(f"[news] scraper: {len(scraped)} market-relevant articles")
     except Exception as e:
-        print(f"[news] scraper failed: {e}")
-        return []
+        print(f"[news] scraper unavailable: {e}")
 
-    # Keep only market-relevant articles. Trust the scraper's tag when present,
-    # otherwise compute it on the fly (handles older cached articles without the tag).
-    relevant = []
-    for a in scraped:
-        tag = a.get("market_relevant")
-        if tag is None:
-            tag = is_market_relevant(a.get("headline", ""), a.get("body", ""))
-        if tag:
-            relevant.append(a)
+    # ── Source 2: GNews API ───────────────────────────────────────────────
+    try:
+        from news_scraper import is_market_relevant as _rel
+    except Exception:
+        _rel = lambda *_: True
+    gnews_raw = _fetch_gnews_articles(api_key or "", days, cfg_max)
+    gnews_filtered = [
+        a for a in gnews_raw
+        if _rel(a.get("title", ""), a.get("description", ""))
+    ]
+    print(f"[news] gnews: {len(gnews_filtered)} (of {len(gnews_raw)}) market-relevant")
 
-    print(f"[news] filtered: kept {len(relevant)}/{len(scraped)} as market-relevant")
-
-    out = []
-    for a in relevant:
-        out.append({
-            "title":       a.get("headline", ""),
-            "description": (a.get("body") or "")[:400],
-            "publishedAt": _ist_iso_to_utc_z(a.get("published_ist", "")),
-            "url":         a.get("url", ""),
-            "source":      {"name": a.get("source", "rss")},
-        })
-    return out
+    # ── Merge + dedupe by URL ─────────────────────────────────────────────
+    by_url = {a["url"]: a for a in scraped if a.get("url")}
+    for a in gnews_filtered:
+        u = a.get("url")
+        if u and u not in by_url:
+            by_url[u] = a
+    combined = list(by_url.values())
+    print(f"[news] hybrid total: {len(combined)} unique articles "
+          f"(scraper={len(scraped)} + gnews={len(gnews_filtered)} − overlap)")
+    return combined
 
 
 # ─────────────────────────────────────────────────────────────────────────────

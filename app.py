@@ -890,6 +890,65 @@ with tab1:
 
         st.markdown("")
 
+    # ── 10-min LSTM forecast graph (if model is trained) ───────────────────
+    try:
+        import lstm_intraday as lstm_mod
+        feat_df_state = st.session_state.get("feat_df")
+        if feat_df_state is not None and len(feat_df_state) and \
+                lstm_mod.MODEL_FILE.exists():
+            news_score_v = (suggestion.get("news") or {}).get("score", 0.0)
+            df_intraday = lstm_mod.predict_next_day_intraday(
+                feat_df_state.iloc[-1],
+                news_score=float(news_score_v),
+                ref_open_price=float(preds.get("predicted_open",
+                                               feat_df_state["close"].iloc[-1])),
+            )
+            if df_intraday is not None and len(df_intraday):
+                st.markdown("#### 🕒 Predicted 10-minute path — 9:15 → 15:25")
+                st.caption(
+                    "LSTM forecast of each 10-min bar's open / high / low / close, "
+                    "anchored to predicted opening price. Influenced by yesterday's "
+                    "intraday path, daily features, and news sentiment."
+                )
+                import plotly.graph_objects as _go
+                fig_intra = _go.Figure(data=[_go.Candlestick(
+                    x=df_intraday["time"],
+                    open=df_intraday["open"], high=df_intraday["high"],
+                    low=df_intraday["low"],   close=df_intraday["close"],
+                    increasing_line_color="#2e7d32",
+                    decreasing_line_color="#c62828",
+                    name="Predicted OHLC",
+                )])
+                fig_intra.add_trace(_go.Scatter(
+                    x=df_intraday["time"], y=df_intraday["close"],
+                    mode="lines", line=dict(color="#1565c0", width=1.5),
+                    name="Close path", opacity=0.55,
+                ))
+                fig_intra.update_layout(
+                    height=420, margin=dict(l=0, r=20, t=10, b=20),
+                    paper_bgcolor="white", plot_bgcolor="white",
+                    xaxis=dict(gridcolor="#f0f0f0",
+                               rangebreaks=[dict(bounds=[15.5, 9.25], pattern="hour")],
+                               tickformat="%H:%M"),
+                    yaxis=dict(gridcolor="#f0f0f0", tickformat=",.0f"),
+                    showlegend=False,
+                )
+                st.plotly_chart(fig_intra, width='stretch',
+                                config={"displayModeBar": False})
+                with st.expander("📋 Predicted 10-min table"):
+                    df_show = df_intraday.copy()
+                    df_show["time"] = df_show["time"].dt.strftime("%H:%M")
+                    st.dataframe(df_show, width='stretch', hide_index=True)
+        elif feat_df_state is not None and not lstm_mod.MODEL_FILE.exists():
+            st.info(
+                "🕒 **10-minute LSTM forecast available after training.** "
+                "Run `python fetch_5min_history.py` then `python lstm_intraday.py train` "
+                "in a terminal (~30 min – 2 hrs), restart the app, and the predicted "
+                "intraday graph will appear here."
+            )
+    except Exception as e:
+        log_step(f"LSTM forecast skipped: {e}", "warning")
+
     # ── Reasoning panel ────────────────────────────────────────────────────
     if reasoning and (reasoning.get("bullish_factors") or reasoning.get("bearish_factors")):
         st.markdown("#### 🔍 Why is the model saying this?")
