@@ -1353,6 +1353,28 @@ with tab3:
             api_sec3  = saved_s.get("api_secret", getattr(cfg, "BREEZE_API_SECRET", ""))
             ses_tok3  = saved_s.get("session_token", "")
 
+            # ── Provider selection (mirrors Today's Signal tab) ─────────────
+            provider3 = (saved_s.get("data_provider")
+                         or getattr(cfg, "DATA_PROVIDER", "breeze")).lower()
+            use_fyers3 = provider3 in ("fyers", "auto")
+
+            # ── Fyers client (used when provider == fyers/auto) ────────────
+            fyers3 = None
+            if use_fyers3:
+                try:
+                    import fyers_data as fyd
+                    fy_cid3 = saved_s.get("fyers_client_id",
+                                          getattr(cfg, "FYERS_CLIENT_ID", ""))
+                    fy_tok3 = saved_s.get("fyers_access_token",
+                                          getattr(cfg, "FYERS_ACCESS_TOKEN", ""))
+                    if fy_cid3 and fy_tok3:
+                        log_step("Step 1/5 — connecting to Fyers API…")
+                        fyers3 = fyd.init_fyers(fy_cid3, fy_tok3)
+                        log_step("Step 1/5 — Fyers API connected ✅")
+                        status_box.info("Step 1/5 — Fyers API connected ✅")
+                except Exception as fe:
+                    log_step(f"Fyers connect failed for training: {fe}", "warning")
+
             breeze3 = None
             if ses_tok3 and api_key3 and api_key3 not in ("", "YOUR_API_KEY_HERE"):
                 try:
@@ -1370,7 +1392,12 @@ with tab3:
             progress_bar.progress(20, text="Downloading Nifty data…")
             status_box.info("Step 2/5 — Downloading Nifty OHLCV data…")
             log_step("Step 2/5 — downloading Nifty OHLCV data…")
-            nifty3 = df_mod.load_nifty_data(breeze3, force_refresh=True)  # uses TRAINING_DAYS from settings
+            if fyers3 is not None:
+                import fyers_data as fyd
+                log_step("Step 2/5 — using Fyers for Nifty (provider=" + provider3 + ")")
+                nifty3 = fyd.load_nifty_data_fyers(fyers3, force_refresh=True)
+            else:
+                nifty3 = df_mod.load_nifty_data(breeze3, force_refresh=True)  # uses TRAINING_DAYS from settings
 
             if nifty3 is None or len(nifty3) < 100:
                 log_step("Step 2/5 — could not load Nifty data", "error")
@@ -1386,7 +1413,11 @@ with tab3:
                 progress_bar.progress(40, text="Downloading VIX & global data…")
                 status_box.info("Step 3/5 — Downloading India VIX and global cues…")
                 log_step("Step 3/5 — downloading VIX, global, FII/DII, GIFT, PCR…")
-                vix3    = df_mod.load_vix_data(breeze3, force_refresh=True)
+                if fyers3 is not None:
+                    import fyers_data as fyd
+                    vix3 = fyd.fetch_vix_fyers(fyers3)
+                else:
+                    vix3 = df_mod.load_vix_data(breeze3, force_refresh=True)
                 global3 = df_mod.load_global_data(force_refresh=True)
                 fii3    = df_mod.load_fii_dii_data(force_refresh=True)
                 gift3   = df_mod.load_gift_data(force_refresh=True)
@@ -1395,7 +1426,15 @@ with tab3:
                 progress_bar.progress(60, text="Building features...")
                 status_box.info("Step 4/5 — Computing 50+ technical indicators...")
                 log_step("Step 4/5 — building features…")
-                feat3 = fe.build_features(nifty3, vix3, global3, fii3, gift3, pcr3)
+                # Include intraday + correlated when Fyers is connected so the
+                # training feature set matches what Today's Signal produces.
+                intra3 = corr3 = None
+                if fyers3 is not None:
+                    import fyers_data as fyd
+                    intra3 = fyd.load_intraday_data_fyers(fyers3, force_refresh=True)
+                    corr3  = fyd.load_correlated_data_fyers(fyers3, force_refresh=True)
+                feat3 = fe.build_features(nifty3, vix3, global3, fii3, gift3, pcr3,
+                                          intraday_df=intra3, corr_dict=corr3)
                 log_step(f"Step 4/5 — features built ({feat3.shape[0]}x{feat3.shape[1]})")
 
                 progress_bar.progress(75, text="Training XGBoost model…")
