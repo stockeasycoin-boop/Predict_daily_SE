@@ -494,12 +494,23 @@ with tab1:
                         gift_df    = df_mod.load_gift_data(breeze)
                         pcr_df     = df_mod.load_pcr_data()
 
-                        # Intraday + correlated indices: prefer Fyers if connected
+                        # Intraday + correlated indices: prefer Fyers if connected.
+                        # If Fyers intraday is sparse (< ~20 candles/day), pivot
+                        # to Breeze when its session is available — that's the
+                        # only source that reliably gives dense 5-min Nifty data.
                         if fyers is not None:
                             import fyers_data as fyd
                             intra_df  = fyd.load_intraday_data_fyers(fyers, force_refresh=run_btn)
                             corr_dict = fyd.load_correlated_data_fyers(fyers, force_refresh=run_btn)
                             log_step("Step 3/6 — intraday + correlated via Fyers")
+                            sparse = (intra_df is None) or (len(intra_df) < 100)
+                            if sparse and breeze is not None:
+                                log_step("Step 3/6 — Fyers intraday sparse → pivoting to Breeze for intraday",
+                                         "warning")
+                                bz_intra = df_mod.load_intraday_data(breeze, force_refresh=run_btn)
+                                if bz_intra is not None and len(bz_intra) > (len(intra_df) if intra_df is not None else 0):
+                                    intra_df = bz_intra
+                                    log_step(f"Step 3/6 — Breeze intraday: {len(intra_df)} candles")
                         else:
                             intra_df  = df_mod.load_intraday_data(breeze)
                             corr_dict = df_mod.load_correlated_data(breeze)

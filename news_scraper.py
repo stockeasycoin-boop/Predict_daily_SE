@@ -58,20 +58,74 @@ log = logging.getLogger("news_scraper")
 
 # RSS feeds = discovery layer. Add/remove sections freely; structure is identical.
 RSS_FEEDS = {
+    # ── The Hindu (general + business) ─────────────────────────────────────
     "thehindu": [
-        "https://www.thehindu.com/feeder/default.rss",                 # top news
-        "https://www.thehindu.com/business/feeder/default.rss",        # business
-        "https://www.thehindu.com/news/national/feeder/default.rss",   # national
-        "https://www.thehindu.com/news/international/feeder/default.rss",
-        "https://www.thehindu.com/sci-tech/feeder/default.rss",
+        "https://www.thehindu.com/business/feeder/default.rss",
+        "https://www.thehindu.com/business/markets/feeder/default.rss",
+        "https://www.thehindu.com/business/Economy/feeder/default.rss",
+        "https://www.thehindu.com/news/national/feeder/default.rss",
     ],
+    # ── Times of India (business + markets) ────────────────────────────────
     "timesofindia": [
-        "https://timesofindia.indiatimes.com/rssfeedstopstories.cms",  # top stories
         "https://timesofindia.indiatimes.com/rssfeeds/1898055.cms",    # business
-        "https://timesofindia.indiatimes.com/rssfeeds/296589292.cms",  # india
-        "https://timesofindia.indiatimes.com/rssfeeds/-2128936835.cms",# world
+        "https://timesofindia.indiatimes.com/rssfeeds/2147477890.cms", # markets
+        "https://timesofindia.indiatimes.com/rssfeedstopstories.cms",  # top
+    ],
+    # ── Moneycontrol (markets-first) ───────────────────────────────────────
+    "moneycontrol": [
+        "https://www.moneycontrol.com/rss/marketreports.xml",
+        "https://www.moneycontrol.com/rss/business.xml",
+        "https://www.moneycontrol.com/rss/economy.xml",
+        "https://www.moneycontrol.com/rss/MCtopnews.xml",
+        "https://www.moneycontrol.com/rss/results.xml",
+    ],
+    # ── LiveMint (markets-first) ───────────────────────────────────────────
+    "livemint": [
+        "https://www.livemint.com/rss/markets",
+        "https://www.livemint.com/rss/money",
+        "https://www.livemint.com/rss/economy",
+        "https://www.livemint.com/rss/companies",
     ],
 }
+
+
+# ── Market-relevance filter ──────────────────────────────────────────────────
+# Keywords that signal a story is about Indian markets / macro / policy.
+# An article is "market-relevant" if its title or body excerpt contains any
+# of these. Tagged at scrape time; news_sentiment then drops the rest before
+# sentiment scoring so we don't bias the score with celebrity/sports/etc.
+MARKET_KEYWORDS = {
+    # Indian indices / exchanges
+    "nifty", "sensex", "bse", "nse", "nse500", "nifty50", "niftybank",
+    "bank nifty", "midcap", "smallcap", "sgx nifty", "gift nifty",
+    # Generic market vocab
+    "stock", "stocks", "equity", "equities", "share", "shares", "index",
+    "market", "markets", "bourse", "ipo", "fpo", "listing", "exchange",
+    # Derivatives / futures / options
+    "futures", "options", "derivative", "open interest", "expiry",
+    # Institutional flow / regulators
+    "fii", "dii", "fpi", "sebi", "rbi", "mpc", "fed", "ecb",
+    # Macro / policy
+    "interest rate", "repo rate", "inflation", "cpi", "wpi", "gdp",
+    "monetary policy", "fiscal", "budget", "rupee", "inr", "currency",
+    "bond", "yield", "treasury",
+    # Sectors that move Nifty
+    "banking", "it sector", "auto", "pharma", "fmcg", "metal", "energy",
+    # Commodities
+    "crude", "oil price", "gold", "silver", "commodity",
+    # Global drivers
+    "dow", "nasdaq", "s&p", "wall street", "hang seng", "nikkei",
+    # Corporate / earnings (specific phrases — bare "results" matched cricket etc.)
+    "earnings", "quarterly results", "quarterly profit", "annual results",
+    "q1 results", "q2 results", "q3 results", "q4 results",
+    "revenue", "ebitda", "dividend", "buyback", "earnings per share", "eps",
+}
+
+
+def is_market_relevant(title: str, body: str) -> bool:
+    """Heuristic: True if title or first ~500 chars of body contains a market keyword."""
+    blob = (title or "").lower() + " " + (body or "")[:500].lower()
+    return any(kw in blob for kw in MARKET_KEYWORDS)
 
 HEADERS = {
     "User-Agent": (
@@ -149,7 +203,8 @@ def extract_body_and_date(url: str):
 
 
 # ── Persistence ──────────────────────────────────────────────────────────────
-CSV_FIELDS = ["published_ist", "source", "headline", "url", "body", "page_date", "scraped_at"]
+CSV_FIELDS = ["published_ist", "source", "headline", "url", "body", "page_date",
+              "scraped_at", "market_relevant"]
 
 
 def save_article(article: dict) -> None:
@@ -218,13 +273,14 @@ def _process_entry(source: str, entry) -> dict | None:
     if not body:
         return None
     return {
-        "published_ist": pub_dt.isoformat(),
-        "source":        source,
-        "headline":      headline,
-        "url":           url,
-        "body":          body,
-        "page_date":     page_date,
-        "scraped_at":    datetime.now(IST).isoformat(),
+        "published_ist":    pub_dt.isoformat(),
+        "source":           source,
+        "headline":         headline,
+        "url":              url,
+        "body":             body,
+        "page_date":        page_date,
+        "scraped_at":       datetime.now(IST).isoformat(),
+        "market_relevant":  is_market_relevant(headline, body),
     }
 
 

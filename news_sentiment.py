@@ -143,14 +143,26 @@ def fetch_all_news(api_key: str = None, days: int = None) -> list[dict]:
         days = cfg_days
 
     try:
-        from news_scraper import fetch_recent
+        from news_scraper import fetch_recent, is_market_relevant
         scraped = fetch_recent(days)
     except Exception as e:
         print(f"[news] scraper failed: {e}")
         return []
 
-    out = []
+    # Keep only market-relevant articles. Trust the scraper's tag when present,
+    # otherwise compute it on the fly (handles older cached articles without the tag).
+    relevant = []
     for a in scraped:
+        tag = a.get("market_relevant")
+        if tag is None:
+            tag = is_market_relevant(a.get("headline", ""), a.get("body", ""))
+        if tag:
+            relevant.append(a)
+
+    print(f"[news] filtered: kept {len(relevant)}/{len(scraped)} as market-relevant")
+
+    out = []
+    for a in relevant:
         out.append({
             "title":       a.get("headline", ""),
             "description": (a.get("body") or "")[:400],

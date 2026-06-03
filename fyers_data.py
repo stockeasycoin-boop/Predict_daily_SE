@@ -225,17 +225,50 @@ def fetch_vix_fyers(fyers, days: int = 730) -> pd.DataFrame | None:
 
 def fetch_intraday_fyers(fyers, symbol: str = "NIFTY",
                          days_back: int = 60) -> pd.DataFrame | None:
-    """5-minute intraday candles for the past `days_back` days, market hours only."""
+    """
+    5-min intraday candles, market hours only.
+
+    NOTE on sparse data: Fyers' history endpoint returns *very* few 5-min
+    candles for index symbols (NSE:NIFTY50-INDEX) — often just a handful
+    per day. For dense intraday you need the Nifty futures contract
+    (e.g. NSE:NIFTY25JUNFUT). We log both the requested symbol and the
+    actual candle count so the caller can decide whether to fall back.
+    """
     df = fetch_history_fyers(fyers, symbol, "5", days_back)
     if df is None or df.empty:
+        print(f"[Fyers] Intraday {symbol} 5min: 0 candles returned by API.")
         return None
     # Keep only NSE market hours: 9:15 to 15:30 IST
     h, m = df["date"].dt.hour, df["date"].dt.minute
     df = df[(h > 9) | ((h == 9) & (m >= 15))]
     df = df[(h < 15) | ((h == 15) & (m <= 30))]
-    print(f"[Fyers] Intraday {symbol} 5min: {len(df)} candles "
-          f"({df['date'].dt.date.min()} → {df['date'].dt.date.max()})")
+    n_days = df["date"].dt.date.nunique() if len(df) else 0
+    per_day = (len(df) / n_days) if n_days else 0
+    print(f"[Fyers] Intraday {symbol} 5min: {len(df)} candles across "
+          f"{n_days} days (~{per_day:.0f}/day; healthy = ~75/day). "
+          f"Range: {df['date'].dt.date.min() if len(df) else None} → "
+          f"{df['date'].dt.date.max() if len(df) else None}")
     return df.reset_index(drop=True)
+
+
+def fetch_nifty_futures_symbol() -> str:
+    """
+    Build the Fyers symbol for the current near-month Nifty futures contract.
+    Format: NSE:NIFTY{YY}{MMM}FUT  e.g. NSE:NIFTY25JUNFUT
+    """
+    today = datetime.now()
+    # Last Thursday of the month is expiry; if past, use next month.
+    yr = today.year
+    mo = today.month
+    # Simple heuristic: if today is in the last week of the month, roll to next.
+    if today.day >= 25:
+        mo += 1
+        if mo > 12:
+            mo = 1
+            yr += 1
+    months = ["JAN","FEB","MAR","APR","MAY","JUN",
+              "JUL","AUG","SEP","OCT","NOV","DEC"]
+    return f"NSE:NIFTY{yr % 100:02d}{months[mo-1]}FUT"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -346,7 +379,12 @@ def fetch_options_chain_fyers(fyers, expiry_str: str = "",
 
 def load_intraday_data_fyers(fyers=None, force_refresh: bool = False,
                              days_back: int = None) -> pd.DataFrame | None:
-    """5-min Nifty intraday with disk cache (mirrors load_intraday_data)."""
+    """
+    5-min Nifty intraday with disk cache (mirrors load_intraday_data).
+
+    Auto-promotes from index symbol to FUTURES if the index returns sparse
+    data (Fyers' /history endpoint serves very few 5-min candles for indices).
+    """
     from settings import DATA_DIR, INTRADAY_DAYS_BACK
     if days_back is None:
         days_back = INTRADAY_DAYS_BACK
@@ -366,7 +404,18 @@ def load_intraday_data_fyers(fyers=None, force_refresh: bool = False,
             return df.sort_values("date").reset_index(drop=True)
         return None
 
+    # Try the index first
     df = fetch_intraday_fyers(fyers, "NIFTY", days_back)
+    sparse_threshold = max(20 * days_back, 200)   # expect ~75/day; require >=20/day
+    if df is None or len(df) < sparse_threshold:
+        n = 0 if df is None else len(df)
+        fut_sym = fetch_nifty_futures_symbol()
+        print(f"[Fyers] Index intraday too sparse ({n} candles); "
+              f"trying futures {fut_sym}…")
+        df_fut = fetch_intraday_fyers(fyers, fut_sym, days_back)
+        if df_fut is not None and len(df_fut) > (len(df) if df is not None else 0):
+            df = df_fut
+
     if df is not None and len(df):
         df.to_csv(cache, index=False)
     return df
