@@ -23,6 +23,9 @@ torch>=2.0.0
 # VADER (lightweight fallback)
 vaderSentiment>=3.3.2
 
+# Time-series predictors (alternative backends to LSTM)
+statsmodels>=0.14.0
+
 # News scraper (RSS discovery + HTML body extraction)
 feedparser>=6.0.10
 trafilatura>=1.12.0

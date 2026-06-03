@@ -370,6 +370,93 @@ def predict_next_day_intraday(daily_feat_row: pd.Series,
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# LEGACY-SHAPE PREDICT — drop-in for model_trainer.predict_today()
+# Derives daily-level metrics (open/close/high/low + direction + confidence)
+# from the 38-bar 10-minute forecast.
+# ─────────────────────────────────────────────────────────────────────────────
+
+def predict_today_compat(feature_df: pd.DataFrame, news_score: float = 0.0
+                         ) -> dict:
+    """Mirror model_trainer.predict_today's return shape using ONLY the LSTM."""
+    if not TORCH_OK or not MODEL_FILE.exists():
+        raise RuntimeError(
+            "LSTM model not trained yet. Run:\n"
+            "  python fetch_5min_history.py\n"
+            "  python lstm_intraday.py train"
+        )
+
+    last_row   = feature_df.iloc[-1]
+    last_close = float(feature_df["close"].iloc[-1]) if "close" in feature_df else 23000.0
+    atr_pct    = float(last_row.get("atr_pct",   0.8))
+    india_vix  = float(last_row.get("india_vix", 16.0))
+
+    df_pred = predict_next_day_intraday(
+        last_row, news_score=news_score, ref_open_price=last_close,
+    )
+    if df_pred is None or df_pred.empty:
+        raise RuntimeError("LSTM produced no forecast — check 5-min cache.")
+
+    pred_open  = float(df_pred["open"].iloc[0])
+    pred_close = float(df_pred["close"].iloc[-1])
+    pred_high  = float(df_pred["high"].max())
+    pred_low   = float(df_pred["low"].min())
+
+    open_ret_pct  = (pred_open  - last_close) / (last_close + 1e-9) * 100
+    close_ret_pct = (pred_close - pred_open)  / (pred_open  + 1e-9) * 100
+    high_ret_pct  = (pred_high  - pred_open)  / (pred_open  + 1e-9) * 100
+    low_ret_pct   = (pred_low   - pred_open)  / (pred_open  + 1e-9) * 100
+
+    open_dir  = int(pred_open  > last_close * 1.0015)
+    close_dir = int(pred_close > pred_open)
+
+    # Confidence proxy: magnitude of predicted return / typical daily ATR.
+    open_conf  = min(0.99, 0.50 + abs(open_ret_pct)  / max(atr_pct * 2, 1e-6) * 0.20)
+    close_conf = min(0.99, 0.50 + abs(close_ret_pct) / max(atr_pct * 2, 1e-6) * 0.20)
+
+    return {
+        "open_direction":   open_dir,
+        "open_confidence":  round(open_conf, 4),
+        "open_pred_pct":    round(open_ret_pct, 3),
+        "open_range":       (round(pred_open * (1 - atr_pct * 0.25 / 100)),
+                             round(pred_open * (1 + atr_pct * 0.25 / 100))),
+        "open_agree":       True,
+
+        "close_direction":  close_dir,
+        "close_confidence": round(close_conf, 4),
+        "close_pred_pct":   round(close_ret_pct, 3),
+        "close_range":      (round(pred_close * (1 - atr_pct * 0.35 / 100)),
+                             round(pred_close * (1 + atr_pct * 0.35 / 100))),
+        "close_agree":      True,
+
+        "ensemble_agree":   True,
+        "trade_signal":     "BUY_CE" if close_dir == 1 else "BUY_PE",
+        "signal_reason":    "",
+
+        "last_close":       round(last_close, 2),
+        "predicted_open":   round(pred_open,  2),
+        "predicted_close":  round(pred_close, 2),
+
+        "high_pred_pct":    round(high_ret_pct, 3),
+        "low_pred_pct":     round(low_ret_pct, 3),
+        "predicted_high":   round(pred_high),
+        "predicted_low":    round(pred_low),
+        "daily_range":      (round(pred_low), round(pred_high)),
+
+        "atr_pct":          round(atr_pct, 3),
+        "india_vix":        round(india_vix, 2),
+
+        # Legacy keys for options_engine compat
+        "direction":          close_dir,
+        "confidence":         round(close_conf, 4),
+        "predicted_move_pct": round(abs(close_ret_pct), 3),
+
+        # Carry the full 10-min path for the UI
+        "_intraday_path":     df_pred,
+        "_model_backend":     "lstm",
+    }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # CLI
 # ─────────────────────────────────────────────────────────────────────────────
 

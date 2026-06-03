@@ -520,8 +520,37 @@ with tab1:
                             intraday_df=intra_df, corr_dict=corr_dict
                         )
                         log_step(f"Step 4/6 — features built ({feat_df.shape[0]}x{feat_df.shape[1]})")
-                        log_step("Step 5/6 — running model inference…")
-                        preds = mt.predict_today(feat_df, str(cfg.MODEL_DIR))
+
+                        # ── Model backend selection (LSTM / ARIMA / SARIMA) ──
+                        # User-visible toggle in Settings; defaults to LSTM.
+                        model_type = (settings.get("model_type") or "lstm").lower()
+                        log_step(f"Step 5/6 — running {model_type.upper()} inference…")
+
+                        # News score is needed by both LSTM and ARIMA as an
+                        # exogenous input — fetch a quick read here (cached).
+                        try:
+                            import news_sentiment as ns_pre
+                            _gkey = settings.get("gnews_api_key",
+                                                 getattr(cfg, "GNEWS_API_KEY", ""))
+                            _news_pre = ns_pre.get_market_sentiment(_gkey)
+                            _news_score_in = float(_news_pre.get("score", 0.0))
+                        except Exception:
+                            _news_score_in = 0.0
+
+                        if model_type == "lstm":
+                            import lstm_intraday as _lstm
+                            preds = _lstm.predict_today_compat(feat_df,
+                                                               news_score=_news_score_in)
+                        elif model_type in ("arima", "sarima"):
+                            import arima_model as _arima
+                            preds = _arima.predict_today_compat(
+                                feat_df, news_score=_news_score_in,
+                                use_seasonal=(model_type == "sarima"),
+                            )
+                        else:
+                            # Legacy XGBoost path (kept for backward-compat;
+                            # not selectable via the UI any more)
+                            preds = mt.predict_today(feat_df, str(cfg.MODEL_DIR))
                         direction  = preds.get("close_direction", preds.get("direction", 0))
                         confidence = preds.get("close_confidence", preds.get("confidence", 0.5))
                         atr_pct    = preds.get("atr_pct", 0.8)
@@ -1638,6 +1667,26 @@ with tab4:
             ),
         )
 
+        # ── Prediction model backend ──────────────────────────────────────
+        st.divider()
+        st.markdown("##### 🧠 Prediction model")
+        st.caption(
+            "Choose the prediction engine. "
+            "**LSTM** = sequence model trained on intraday + daily features (run "
+            "`python lstm_intraday.py train` once). "
+            "**ARIMA / SARIMA** = classical time-series with exogenous VIX/FII/news "
+            "(trains automatically in seconds; no setup)."
+        )
+        _model_opts = ["lstm", "arima", "sarima"]
+        _cur_model = (saved.get("model_type") or "lstm").lower()
+        _midx = _model_opts.index(_cur_model) if _cur_model in _model_opts else 0
+        model_type_sel = st.radio(
+            "Prediction backend",
+            options=_model_opts, index=_midx, horizontal=True,
+            help="LSTM needs one-time training. ARIMA/SARIMA are instant but "
+                 "less accurate on regime changes.",
+        )
+
         st.divider()
         st.markdown("##### 📰 News sentiment (optional)")
         st.caption(
@@ -1675,6 +1724,7 @@ with tab4:
                 "fyers_secret_id":    fy_sid,
                 "fyers_access_token": fy_tok,
                 "data_provider":  data_provider,
+                "model_type":     model_type_sel,
                 "gnews_api_key":  gnews_k,
                 "capital":        cap_min,
                 "min_confidence": min_conf_pct / 100,
