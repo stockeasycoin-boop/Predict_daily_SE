@@ -740,7 +740,8 @@ with tab1:
             st.session_state["_force_news_refresh"] = True
             st.rerun()
 
-        with st.expander(f"📰 News sentiment: **{label}** ({score:+.2f}) — {n_arts} articles via {backend}", expanded=False):
+        with st.expander(f"📰 News sentiment: **{label}** ({score:+.2f}) — {n_arts} articles "
+                         f"(scraped from The Hindu + TOI · scored by {backend})", expanded=False):
             cN1, cN2, cN3 = st.columns(3)
             cN1.metric("Sentiment score", f"{score:+.2f}", label)
             cN2.metric("Positive / Negative",

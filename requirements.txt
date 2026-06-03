@@ -22,3 +22,9 @@ torch>=2.0.0
 
 # VADER (lightweight fallback)
 vaderSentiment>=3.3.2
+
+# News scraper (RSS discovery + HTML body extraction)
+feedparser>=6.0.10
+trafilatura>=1.12.0
+pytz>=2023.3
+lxml>=4.9.0

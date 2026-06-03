@@ -4,9 +4,12 @@ settings.json
 *.csv
 *.pyc
 
-# All logs (apps + Fyers/Breeze SDK + train output)
+# Logs (app + Fyers/Breeze SDK + train output)
 logs/
 *.log
+
+# News scraper runtime cache (per-day JSON/CSV + seen-urls)
+data/raw/news/
 
 # Local dev artifacts
 .venv/
