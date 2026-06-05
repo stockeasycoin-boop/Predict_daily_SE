@@ -537,16 +537,34 @@ with tab1:
                         except Exception:
                             _news_score_in = 0.0
 
-                        if model_type == "lstm":
-                            import lstm_intraday as _lstm
-                            preds = _lstm.predict_today_compat(feat_df,
-                                                               news_score=_news_score_in)
-                        elif model_type in ("arima", "sarima"):
+                        def _arima_predict(seasonal: bool):
                             import arima_model as _arima
-                            preds = _arima.predict_today_compat(
+                            return _arima.predict_today_compat(
                                 feat_df, news_score=_news_score_in,
-                                use_seasonal=(model_type == "sarima"),
+                                use_seasonal=seasonal,
                             )
+
+                        if model_type == "lstm":
+                            try:
+                                import lstm_intraday as _lstm
+                                preds = _lstm.predict_today_compat(
+                                    feat_df, news_score=_news_score_in,
+                                )
+                            except RuntimeError as _e:
+                                # LSTM not trained yet → graceful fallback to
+                                # ARIMA so the user still gets a prediction.
+                                log_step(f"LSTM unavailable ({_e}); falling back to ARIMA",
+                                         "warning")
+                                st.warning(
+                                    "🧠 LSTM model isn't trained yet — using "
+                                    "**ARIMA** as a temporary fallback. To enable "
+                                    "LSTM, run in a terminal:\n\n"
+                                    "```\npython fetch_5min_history.py\n"
+                                    "python lstm_intraday.py train\n```"
+                                )
+                                preds = _arima_predict(seasonal=False)
+                        elif model_type in ("arima", "sarima"):
+                            preds = _arima_predict(seasonal=(model_type == "sarima"))
                         else:
                             # Legacy XGBoost path (kept for backward-compat;
                             # not selectable via the UI any more)
