@@ -18,13 +18,28 @@ Entry points:
 """
 
 from __future__ import annotations
+import os
 import time
+import logging
 import warnings
 from datetime import datetime, timedelta
 
 import pandas as pd
 
 warnings.filterwarnings("ignore")
+
+# ── Silence Fyers SDK's per-call DEBUG spam ──────────────────────────────────
+# The SDK logs {'Status Code': 200, 'API': '/history'} on every HTTP call;
+# only show that when FYERS_DEBUG=1 is set explicitly in the environment.
+_FYERS_DEBUG = os.getenv("FYERS_DEBUG", "0").lower() in ("1", "true", "yes")
+_FYERS_LOG_LEVEL = logging.DEBUG if _FYERS_DEBUG else logging.WARNING
+for _name in (
+    "fyers_apiv3", "fyersModel", "fyers_apiv3.FyersWebsocket",
+    "fyers_apiv3.fyersModel", "fyers", "urllib3", "requests",
+):
+    _lg = logging.getLogger(_name)
+    _lg.setLevel(_FYERS_LOG_LEVEL)
+    _lg.propagate = _FYERS_DEBUG
 
 try:
     from fyers_apiv3 import fyersModel
@@ -172,6 +187,7 @@ def fetch_history_fyers(fyers, symbol: str = "NIFTY", resolution: str = "D",
     start_target = end - timedelta(days=days)
     cursor = end
     frames: list[pd.DataFrame] = []
+    n_chunks = 0
 
     while cursor > start_target:
         chunk_start = max(cursor - timedelta(days=chunk), start_target)
@@ -180,9 +196,10 @@ def fetch_history_fyers(fyers, symbol: str = "NIFTY", resolution: str = "D",
             chunk_start.strftime("%Y-%m-%d"),
             cursor.strftime("%Y-%m-%d"),
         )
+        n_chunks += 1
         if df is None:
-            print(f"[Fyers] aborting chunked fetch after failure at "
-                  f"{chunk_start.date()} → {cursor.date()}")
+            print(f"[Fyers] {sym} {resolution}: aborted at chunk {n_chunks} "
+                  f"({chunk_start.date()} → {cursor.date()})")
             break
         if not df.empty:
             frames.append(df)
@@ -190,11 +207,15 @@ def fetch_history_fyers(fyers, symbol: str = "NIFTY", resolution: str = "D",
         time.sleep(0.25)   # polite throttling
 
     if not frames:
+        print(f"[Fyers] {sym} {resolution}: 0 rows ({n_chunks} chunks tried)")
         return None
     out = pd.concat(frames, ignore_index=True) \
             .drop_duplicates(subset=["date"]) \
             .sort_values("date") \
             .reset_index(drop=True)
+    # Single informative summary line per symbol — no per-call spam
+    print(f"[Fyers] {sym} {resolution}: {len(out):,} rows in {n_chunks} chunks "
+          f"({out['date'].min().date()} → {out['date'].max().date()})")
     return out
 
 
