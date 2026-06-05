@@ -50,9 +50,10 @@ MODEL_FILE    = MODEL_DIR / "lstm_intraday.pt"
 SCALER_FILE   = MODEL_DIR / "scalers.pt"
 META_FILE     = MODEL_DIR / "meta.json"
 
-BARS_PER_DAY    = 38           # 9:15..15:25 at 10-min cadence
-SEQ_BARS        = 76           # lookback = 2 trading days
+BARS_PER_DAY    = 37           # NSE 9:15→15:30, 10-min after floor() = ~37
+SEQ_BARS        = 74           # lookback = 2 trading days (2 × 37)
 PRED_BARS       = BARS_PER_DAY
+MIN_BARS_PER_DAY = 30          # accept partial days; pad up to PRED_BARS
 N_BAR_FEATURES  = 5            # open_ret, high_ret, low_ret, close_ret, vol_log
 N_STATIC_FEATS  = 8            # see _build_static_features
 HIDDEN          = 64
@@ -79,11 +80,11 @@ def aggregate_to_10min(df_5: pd.DataFrame) -> pd.DataFrame:
         volume=("volume", "sum"),
     ).rename(columns={"bucket": "date"})
     g = g.sort_values("date").reset_index(drop=True)
-    # Keep only market-hour bars: 9:15..15:25
+    # Keep only market-hour bars: NSE 9:15 → 15:30 (inclusive)
     h, m = g["date"].dt.hour, g["date"].dt.minute
-    g = g[(h > 9) | ((h == 9) & (m >= 15))]
-    g = g[(h < 15) | ((h == 15) & (m <= 25))]
-    return g.reset_index(drop=True)
+    mask_morning  = (h > 9) | ((h == 9) & (m >= 10))
+    mask_evening  = (h < 15) | ((h == 15) & (m <= 30))
+    return g[mask_morning & mask_evening].reset_index(drop=True)
 
 
 def _bar_features(df_10: pd.DataFrame) -> np.ndarray:
@@ -125,28 +126,46 @@ def build_training_tensors(df_10: pd.DataFrame,
       y        : (N_days, PRED_BARS, 4)   — open_ret, high_ret, low_ret, close_ret
                  measured vs each day's first bar's open
     """
-    df = df_10.copy()
+    df = df_10.copy().reset_index(drop=True)
     df["trading_date"] = df["date"].dt.date
     days = sorted(df["trading_date"].unique())
 
-    bar_feats = _bar_features(df)
-    df_idx = df.reset_index()
+    bar_feats = _bar_features(df)        # ndarray aligned to df rows
 
     X_seq_list, X_stat_list, y_list = [], [], []
+    skipped_short_today = skipped_short_seq = 0
     for i, day in enumerate(days):
         if i < 2:
             continue   # need 2 prior days of context
-        prev_days = days[max(0, i - 5):i]            # gather up to 5 prior days
-        seq_mask = df["trading_date"].isin(prev_days)
-        seq_feats = bar_feats[seq_mask.values][-SEQ_BARS:]
-        if len(seq_feats) < SEQ_BARS:
-            continue
 
-        today_mask = df["trading_date"] == day
-        today_bars = df[today_mask]
-        if len(today_bars) < PRED_BARS:
+        # ── Encoder sequence: last SEQ_BARS bars from up to 5 prior days ──
+        prev_days = days[max(0, i - 5):i]
+        seq_idx   = np.where(df["trading_date"].isin(prev_days).values)[0]
+        if len(seq_idx) == 0:
+            skipped_short_seq += 1
             continue
-        today_bars = today_bars.iloc[:PRED_BARS]
+        seq_arr = bar_feats[seq_idx]
+        if len(seq_arr) >= SEQ_BARS:
+            seq_arr = seq_arr[-SEQ_BARS:]
+        else:
+            # Pad short sequences at the front with zeros (model learns to ignore)
+            pad = np.zeros((SEQ_BARS - len(seq_arr), seq_arr.shape[1]),
+                           dtype=seq_arr.dtype)
+            seq_arr = np.concatenate([pad, seq_arr], axis=0)
+
+        # ── Target: today's bars, padded/truncated to exactly PRED_BARS ──
+        today_idx  = np.where(df["trading_date"].values == day)[0]
+        if len(today_idx) < MIN_BARS_PER_DAY:
+            skipped_short_today += 1
+            continue
+        today_bars = df.iloc[today_idx]
+        if len(today_bars) >= PRED_BARS:
+            today_bars = today_bars.iloc[:PRED_BARS]
+        else:
+            # Pad short days by repeating the last bar
+            last = today_bars.iloc[[-1]]
+            n_pad = PRED_BARS - len(today_bars)
+            today_bars = pd.concat([today_bars] + [last] * n_pad, ignore_index=True)
 
         day_open = float(today_bars["open"].iloc[0])
         eps = 1e-9
@@ -163,12 +182,17 @@ def build_training_tensors(df_10: pd.DataFrame,
             if len(row):
                 static = _build_static_features(row.iloc[0])
 
-        X_seq_list.append(seq_feats.astype(np.float32))
+        X_seq_list.append(seq_arr.astype(np.float32))
         X_stat_list.append(static)
         y_list.append(y_bars.astype(np.float32))
 
+    print(f"[train] built {len(y_list)} samples "
+          f"(skipped short_today={skipped_short_today}, short_seq={skipped_short_seq})")
     if not y_list:
-        raise RuntimeError("No training samples built — check 5-min data depth.")
+        raise RuntimeError(
+            "No training samples built. Check: 5-min data has at least 100 "
+            "trading days and each day has >=30 ten-min bars after aggregation."
+        )
     return np.stack(X_seq_list), np.stack(X_stat_list), np.stack(y_list)
 
 
