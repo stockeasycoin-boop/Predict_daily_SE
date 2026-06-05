@@ -494,29 +494,36 @@ with tab1:
                         gift_df    = df_mod.load_gift_data(breeze)
                         pcr_df     = df_mod.load_pcr_data()
 
-                        # ── Intraday: NEVER use Fyers (it returns ~9 candles/day
-                        #    for both index and futures symbols — unusable).
-                        #    Preferred sources in order:
-                        #      1) data/intraday_5min_3yr.csv (built by fetch_5min_history.py)
-                        #      2) Breeze /historical_data_v2 (~last 60 days)
-                        #      3) data/intraday_nifty.csv stale cache
+                        # ── Intraday source priority (Fyers never used here):
+                        #    1) Breeze 1-min — append-only cache (data/intraday_1min.csv)
+                        #       grows daily; cold start fetches 60 days.
+                        #    2) data/intraday_5min_3yr.csv  (built by fetch_5min_history.py)
+                        #    3) data/intraday_nifty.csv stale 5-min cache
                         intra_df = None
-                        big_cache = cfg.DATA_DIR / "intraday_5min_3yr.csv"
-                        if big_cache.exists():
-                            try:
-                                _big = pd.read_csv(big_cache, parse_dates=["date"])
-                                # Tail to last N calendar days for feature engineering
-                                cutoff = _big["date"].max() - pd.Timedelta(
-                                    days=getattr(cfg, "INTRADAY_DAYS_BACK", 5) * 2)
-                                intra_df = _big[_big["date"] >= cutoff] \
-                                            .sort_values("date").reset_index(drop=True)
-                                log_step(f"Step 3/6 — intraday from 3-yr cache: {len(intra_df)} candles")
-                            except Exception as _ie:
-                                log_step(f"3-yr cache read failed ({_ie}); trying Breeze", "warning")
+                        try:
+                            intra_df = df_mod.load_intraday_1min_cached(breeze)
+                            if intra_df is not None and len(intra_df):
+                                log_step(f"Step 3/6 — intraday from 1-min Breeze cache: "
+                                         f"{len(intra_df):,} candles")
+                        except Exception as _e1:
+                            log_step(f"1-min cache failed ({_e1})", "warning")
+
+                        if intra_df is None or len(intra_df) < 100:
+                            big_cache = cfg.DATA_DIR / "intraday_5min_3yr.csv"
+                            if big_cache.exists():
+                                try:
+                                    _big = pd.read_csv(big_cache, parse_dates=["date"])
+                                    intra_df = _big.sort_values("date").reset_index(drop=True)
+                                    log_step(f"Step 3/6 — intraday from 5-min 3-yr cache: "
+                                             f"{len(intra_df):,} candles")
+                                except Exception:
+                                    pass
+
                         if intra_df is None or len(intra_df) < 100:
                             intra_df = df_mod.load_intraday_data(breeze)
                             if intra_df is not None:
-                                log_step(f"Step 3/6 — Breeze intraday: {len(intra_df)} candles")
+                                log_step(f"Step 3/6 — Breeze 5-min intraday: "
+                                         f"{len(intra_df)} candles")
 
                         # ── Correlated indices: Fyers is fine here (daily, not intraday) ──
                         if fyers is not None:
@@ -1554,19 +1561,31 @@ with tab3:
                 progress_bar.progress(60, text="Building features...")
                 status_box.info("Step 4/5 — Computing 50+ technical indicators...")
                 log_step("Step 4/5 — building features…")
-                # Include intraday + correlated so the training feature set
-                # matches what Today's Signal produces. Intraday NEVER uses
-                # Fyers (sparse) — falls back to the 3-yr cache then Breeze.
+                # Intraday source priority (Fyers never used):
+                #   1) Breeze 1-min append-only cache  (data/intraday_1min.csv)
+                #   2) Big 5-min snapshot              (data/intraday_5min_3yr.csv)
+                #   3) Breeze 5-min wrapper            (data/intraday_nifty.csv)
                 intra3 = corr3 = None
-                big_cache_t = cfg.DATA_DIR / "intraday_5min_3yr.csv"
-                if big_cache_t.exists():
-                    try:
-                        intra3 = pd.read_csv(big_cache_t, parse_dates=["date"]) \
-                                   .sort_values("date").reset_index(drop=True)
-                        log_step(f"Step 4/5 — intraday from 3-yr cache: {len(intra3)} candles")
-                    except Exception:
-                        pass
-                if intra3 is None and breeze3 is not None:
+                try:
+                    intra3 = df_mod.load_intraday_1min_cached(breeze3)
+                    if intra3 is not None and len(intra3):
+                        log_step(f"Step 4/5 — intraday from 1-min Breeze cache: "
+                                 f"{len(intra3):,} candles")
+                except Exception:
+                    pass
+
+                if intra3 is None or len(intra3) < 100:
+                    big_cache_t = cfg.DATA_DIR / "intraday_5min_3yr.csv"
+                    if big_cache_t.exists():
+                        try:
+                            intra3 = pd.read_csv(big_cache_t, parse_dates=["date"]) \
+                                       .sort_values("date").reset_index(drop=True)
+                            log_step(f"Step 4/5 — intraday from 5-min 3-yr cache: "
+                                     f"{len(intra3):,} candles")
+                        except Exception:
+                            pass
+
+                if (intra3 is None or len(intra3) < 100) and breeze3 is not None:
                     intra3 = df_mod.load_intraday_data(breeze3, force_refresh=True)
                 if fyers3 is not None:
                     import fyers_data as fyd

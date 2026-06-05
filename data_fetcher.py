@@ -345,6 +345,86 @@ def load_vix_data(breeze=None, force_refresh: bool = False) -> pd.DataFrame | No
     return df
 
 
+def fetch_intraday_1min_breeze(breeze, days_back: int = 60) -> pd.DataFrame | None:
+    """Fetch 1-minute Nifty candles via Breeze (caps at ~60 days per call)."""
+    df = _breeze_hist(breeze, "NIFTY", "1minute", min(days_back, 60))
+    if df is not None and len(df):
+        # Keep only NSE market hours: 9:15..15:30
+        h, m = df["date"].dt.hour, df["date"].dt.minute
+        df = df[(h > 9) | ((h == 9) & (m >= 15))]
+        df = df[(h < 15) | ((h == 15) & (m <= 30))]
+        df = df.reset_index(drop=True)
+        print(f"[Breeze] Intraday NIFTY 1min: {len(df)} candles "
+              f"({df['date'].dt.date.min()} → {df['date'].dt.date.max()})")
+    return df
+
+
+def load_intraday_1min_cached(breeze=None) -> pd.DataFrame | None:
+    """
+    Append-only 1-minute intraday cache.
+
+    Behaviour:
+      - Reads data/intraday_1min.csv if present.
+      - If Breeze is connected, computes the gap between the cache's last date
+        and today, then fetches only the missing window (capped at 60 days
+        per Breeze call) and APPENDS to the cache.
+      - Cache is NEVER cleared — it grows day by day.
+      - Returns the full merged DataFrame (sorted, deduped on `date`).
+      - If Breeze is None: returns whatever's already in the cache.
+    """
+    from settings import DATA_DIR
+    cache = DATA_DIR / "intraday_1min.csv"
+
+    existing = None
+    if cache.exists():
+        try:
+            existing = pd.read_csv(cache, parse_dates=["date"])
+            existing = existing.sort_values("date").reset_index(drop=True)
+        except Exception as e:
+            print(f"[Cache] 1-min read failed: {e}")
+            existing = None
+
+    if breeze is None:
+        if existing is not None and len(existing):
+            print(f"[Cache] 1-min (Breeze offline): {len(existing):,} rows  "
+                  f"({existing['date'].min().date()} → {existing['date'].max().date()})")
+        return existing
+
+    # Decide how many days to top up
+    if existing is None or existing.empty:
+        days_needed = 60                              # cold-start: full 60-day window
+        print("[Cache] 1-min cold start — fetching 60 days from Breeze.")
+    else:
+        last_dt = existing["date"].max()
+        gap_days = (datetime.now() - last_dt).days
+        if gap_days < 0:
+            gap_days = 0
+        days_needed = min(max(gap_days + 1, 1), 60)   # always re-fetch today
+        print(f"[Cache] 1-min top-up: cache to {last_dt.date()}, "
+              f"fetching last {days_needed} days from Breeze.")
+
+    fresh = fetch_intraday_1min_breeze(breeze, days_back=days_needed)
+    if fresh is None or fresh.empty:
+        print("[Cache] 1-min: Breeze returned nothing — keeping existing cache.")
+        return existing
+
+    if existing is None or existing.empty:
+        merged = fresh
+        n_new  = len(fresh)
+    else:
+        before = len(existing)
+        merged = pd.concat([existing, fresh], ignore_index=True)
+        merged = merged.drop_duplicates(subset=["date"]).sort_values("date").reset_index(drop=True)
+        n_new = len(merged) - before
+
+    try:
+        merged.to_csv(cache, index=False)
+        print(f"[Cache] 1-min saved: {len(merged):,} rows total (+{n_new:,} new) → {cache}")
+    except Exception as e:
+        print(f"[Cache] 1-min write failed: {e}")
+    return merged
+
+
 def load_intraday_data(breeze=None, force_refresh: bool = False,
                        stock_code: str = "NIFTY") -> pd.DataFrame | None:
     """Load intraday 5-min candles. Re-fetched daily (stale after 8hrs)."""
