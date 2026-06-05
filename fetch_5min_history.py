@@ -61,9 +61,37 @@ def fetch_via_fyers(days: int) -> pd.DataFrame | None:
     return df
 
 
-def fetch_via_breeze(days: int) -> pd.DataFrame | None:
-    """Breeze caps intraday history at 60 days per call; we loop."""
-    from data_fetcher import init_breeze, fetch_intraday_breeze
+def _breeze_chunk(bz, from_dt: datetime, to_dt: datetime) -> pd.DataFrame | None:
+    """One direct Breeze /historical_data_v2 call for a custom date range."""
+    try:
+        resp = bz.get_historical_data_v2(
+            interval="5minute",
+            from_date=from_dt.strftime("%Y-%m-%dT07:00:00.000Z"),
+            to_date=to_dt.strftime("%Y-%m-%dT07:00:00.000Z"),
+            stock_code="NIFTY",
+            exchange_code="NSE",
+            product_type="cash",
+        )
+        if resp.get("Status") != 200 or not resp.get("Success"):
+            return None
+        df = pd.DataFrame(resp["Success"])
+        df["date"] = pd.to_datetime(df["datetime"])
+        for c in ("open", "high", "low", "close"):
+            df[c] = pd.to_numeric(df[c], errors="coerce")
+        df["volume"] = pd.to_numeric(df.get("volume", 0), errors="coerce").fillna(0)
+        return df[["date", "open", "high", "low", "close", "volume"]] \
+                 .dropna(subset=["open", "close"])
+    except Exception as e:
+        print(f"[breeze] chunk {from_dt.date()}→{to_dt.date()} failed: {e}")
+        return None
+
+
+def fetch_via_breeze(days: int, chunk_days: int = 55) -> pd.DataFrame | None:
+    """
+    Walk backwards in `chunk_days`-day windows so we span the full `days`
+    history. Breeze's per-call cap is ~60 days for 5-min — we leave headroom.
+    """
+    from data_fetcher import init_breeze
     s = _load_settings()
     api_k = s.get("api_key")
     api_s = s.get("api_secret")
@@ -73,21 +101,42 @@ def fetch_via_breeze(days: int) -> pd.DataFrame | None:
         return None
     try:
         bz = init_breeze(api_k, api_s, tok)
+        print("[breeze] connected.")
     except Exception as e:
         print(f"[fetch] Breeze init failed: {e}")
         return None
-    frames = []
+
     cursor = datetime.now()
     target = cursor - timedelta(days=days)
+    n_chunks = (days + chunk_days - 1) // chunk_days
+    print(f"[breeze] will issue ~{n_chunks} chunked 5-min calls "
+          f"(window={chunk_days}d, range={target.date()}→{cursor.date()})")
+
+    frames = []
+    chunk_idx = 0
     while cursor > target:
-        chunk = fetch_intraday_breeze(bz, "NIFTY", days_back=60)
-        if chunk is None or chunk.empty:
-            break
-        frames.append(chunk)
-        # Move cursor back; Breeze always returns "last N days", no offset support
-        # → can't chunk further with this SDK call. Break after one fetch.
-        break
-    return pd.concat(frames, ignore_index=True).drop_duplicates(["date"]) if frames else None
+        chunk_idx += 1
+        chunk_start = max(cursor - timedelta(days=chunk_days), target)
+        df = _breeze_chunk(bz, chunk_start, cursor)
+        n = 0 if df is None else len(df)
+        print(f"  [{chunk_idx:>3d}/{n_chunks}] {chunk_start.date()}→{cursor.date()}: {n} bars")
+        if df is not None and n:
+            frames.append(df)
+        elif df is None:
+            # transient failure — short backoff, single retry
+            time.sleep(1.5)
+            df = _breeze_chunk(bz, chunk_start, cursor)
+            if df is not None and len(df):
+                frames.append(df)
+                print(f"        retry ok: {len(df)} bars")
+        cursor = chunk_start - timedelta(seconds=1)
+        time.sleep(0.4)   # polite throttle
+
+    if not frames:
+        return None
+    out = pd.concat(frames, ignore_index=True) \
+            .drop_duplicates(["date"]).sort_values("date").reset_index(drop=True)
+    return out
 
 
 def main():
