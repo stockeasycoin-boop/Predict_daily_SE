@@ -494,25 +494,35 @@ with tab1:
                         gift_df    = df_mod.load_gift_data(breeze)
                         pcr_df     = df_mod.load_pcr_data()
 
-                        # Intraday + correlated indices: prefer Fyers if connected.
-                        # If Fyers intraday is sparse (< ~20 candles/day), pivot
-                        # to Breeze when its session is available — that's the
-                        # only source that reliably gives dense 5-min Nifty data.
+                        # ── Intraday: NEVER use Fyers (it returns ~9 candles/day
+                        #    for both index and futures symbols — unusable).
+                        #    Preferred sources in order:
+                        #      1) data/intraday_5min_3yr.csv (built by fetch_5min_history.py)
+                        #      2) Breeze /historical_data_v2 (~last 60 days)
+                        #      3) data/intraday_nifty.csv stale cache
+                        intra_df = None
+                        big_cache = cfg.DATA_DIR / "intraday_5min_3yr.csv"
+                        if big_cache.exists():
+                            try:
+                                _big = pd.read_csv(big_cache, parse_dates=["date"])
+                                # Tail to last N calendar days for feature engineering
+                                cutoff = _big["date"].max() - pd.Timedelta(
+                                    days=getattr(cfg, "INTRADAY_DAYS_BACK", 5) * 2)
+                                intra_df = _big[_big["date"] >= cutoff] \
+                                            .sort_values("date").reset_index(drop=True)
+                                log_step(f"Step 3/6 — intraday from 3-yr cache: {len(intra_df)} candles")
+                            except Exception as _ie:
+                                log_step(f"3-yr cache read failed ({_ie}); trying Breeze", "warning")
+                        if intra_df is None or len(intra_df) < 100:
+                            intra_df = df_mod.load_intraday_data(breeze)
+                            if intra_df is not None:
+                                log_step(f"Step 3/6 — Breeze intraday: {len(intra_df)} candles")
+
+                        # ── Correlated indices: Fyers is fine here (daily, not intraday) ──
                         if fyers is not None:
                             import fyers_data as fyd
-                            intra_df  = fyd.load_intraday_data_fyers(fyers, force_refresh=run_btn)
                             corr_dict = fyd.load_correlated_data_fyers(fyers, force_refresh=run_btn)
-                            log_step("Step 3/6 — intraday + correlated via Fyers")
-                            sparse = (intra_df is None) or (len(intra_df) < 100)
-                            if sparse and breeze is not None:
-                                log_step("Step 3/6 — Fyers intraday sparse → pivoting to Breeze for intraday",
-                                         "warning")
-                                bz_intra = df_mod.load_intraday_data(breeze, force_refresh=run_btn)
-                                if bz_intra is not None and len(bz_intra) > (len(intra_df) if intra_df is not None else 0):
-                                    intra_df = bz_intra
-                                    log_step(f"Step 3/6 — Breeze intraday: {len(intra_df)} candles")
                         else:
-                            intra_df  = df_mod.load_intraday_data(breeze)
                             corr_dict = df_mod.load_correlated_data(breeze)
                         log_step("Step 4/6 — building features…")
                         feat_df = fe.build_features(
@@ -1544,13 +1554,25 @@ with tab3:
                 progress_bar.progress(60, text="Building features...")
                 status_box.info("Step 4/5 — Computing 50+ technical indicators...")
                 log_step("Step 4/5 — building features…")
-                # Include intraday + correlated when Fyers is connected so the
-                # training feature set matches what Today's Signal produces.
+                # Include intraday + correlated so the training feature set
+                # matches what Today's Signal produces. Intraday NEVER uses
+                # Fyers (sparse) — falls back to the 3-yr cache then Breeze.
                 intra3 = corr3 = None
+                big_cache_t = cfg.DATA_DIR / "intraday_5min_3yr.csv"
+                if big_cache_t.exists():
+                    try:
+                        intra3 = pd.read_csv(big_cache_t, parse_dates=["date"]) \
+                                   .sort_values("date").reset_index(drop=True)
+                        log_step(f"Step 4/5 — intraday from 3-yr cache: {len(intra3)} candles")
+                    except Exception:
+                        pass
+                if intra3 is None and breeze3 is not None:
+                    intra3 = df_mod.load_intraday_data(breeze3, force_refresh=True)
                 if fyers3 is not None:
                     import fyers_data as fyd
-                    intra3 = fyd.load_intraday_data_fyers(fyers3, force_refresh=True)
-                    corr3  = fyd.load_correlated_data_fyers(fyers3, force_refresh=True)
+                    corr3 = fyd.load_correlated_data_fyers(fyers3, force_refresh=True)
+                elif breeze3 is not None:
+                    corr3 = df_mod.load_correlated_data(breeze3, force_refresh=True)
                 feat3 = fe.build_features(nifty3, vix3, global3, fii3, gift3, pcr3,
                                           intraday_df=intra3, corr_dict=corr3)
                 log_step(f"Step 4/5 — features built ({feat3.shape[0]}x{feat3.shape[1]})")
