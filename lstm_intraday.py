@@ -369,7 +369,12 @@ def predict_next_day_intraday(daily_feat_row: pd.Series,
             torch.tensor(static, dtype=torch.float32, device=device).unsqueeze(0),
         ).cpu().numpy()[0]                    # (PRED_BARS, 4)
 
-    # Reconstruct ₹ prices from returns
+    # Sanity clip: Nifty rarely moves >0.6% in 10 min intraday.
+    # Anchored to the day-open price, a full session's cumulative move sits in
+    # ±3%. Clip raw returns to ±0.03 so a poorly-trained model can't blow up.
+    pred = np.clip(pred, -0.03, 0.03)
+
+    # Reconstruct ₹ prices from returns (relative to day-open anchor)
     if ref_open_price is None:
         ref_open_price = float(daily_feat_row.get("close", 23000.0))
     open_ret, high_ret, low_ret, close_ret = pred[:, 0], pred[:, 1], pred[:, 2], pred[:, 3]
@@ -377,6 +382,22 @@ def predict_next_day_intraday(daily_feat_row: pd.Series,
     h_px = ref_open_price * (1 + high_ret)
     l_px = ref_open_price * (1 + low_ret)
     c_px = ref_open_price * (1 + close_ret)
+
+    # ── OHLC consistency: high ≥ max(o,c), low ≤ min(o,c). The 4 outputs are
+    # predicted independently, so we have to enforce candle validity here.
+    bar_max = np.maximum(o_px, c_px)
+    bar_min = np.minimum(o_px, c_px)
+    h_px = np.maximum(h_px, bar_max)
+    l_px = np.minimum(l_px, bar_min)
+    # Also enforce monotonic continuity: each bar's open ≈ previous bar's close
+    # (intraday bars don't have gaps). Smooths the wild bar-to-bar swings.
+    for i in range(1, len(o_px)):
+        o_px[i] = c_px[i - 1]
+    # Re-derive high/low after open snap
+    bar_max = np.maximum(o_px, c_px)
+    bar_min = np.minimum(o_px, c_px)
+    h_px = np.maximum(h_px, bar_max)
+    l_px = np.minimum(l_px, bar_min)
 
     # Build the bar timestamps for the next trading day
     next_day = (pd.Timestamp(date.today()) + pd.Timedelta(days=1))
