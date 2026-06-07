@@ -365,16 +365,18 @@ def fetch_gift_nifty_breeze(breeze) -> float | None:
     We use Nifty near-month futures on NFO as a proxy — it tracks
     GIFT Nifty very closely during pre-market hours.
 
-    NFO futures REQUIRE an expiry_date (Breeze returns 500 without it).
+    NFO futures require BOTH expiry_date AND right="others"
+    (Breeze returns 500 if either is missing for NFO).
     """
     expiry_str = _nifty_futures_expiry_str()
 
-    # Primary: Nifty near-month futures on NFO (requires expiry date)
+    # Primary: Nifty near-month futures on NFO
+    # right="others" is required by Breeze for futures (not call/put)
     resp = _breeze_get_quotes_with_retry(
         breeze,
         stock_code="NIFTY", exchange_code="NFO",
         product_type="futures", expiry_date=expiry_str,
-        right="", strike_price="",
+        right="others", strike_price="",
     )
     if resp.get("Status") == 200 and resp.get("Success"):
         ltp = float(resp["Success"][0].get("ltp", 0) or 0)
@@ -408,7 +410,7 @@ def fetch_options_chain_breeze(breeze, expiry_str: str,
 
     for strike in strikes:
         for right in ["call", "put"]:
-            time.sleep(0.1)   # 100 ms between requests — prevents Breeze 503 rate-limiting
+            time.sleep(0.2)   # 200 ms between requests — Breeze rate-limits at ~1 req/200ms
             resp = _breeze_get_quotes_with_retry(
                 breeze,
                 stock_code="NIFTY", exchange_code="NFO",
