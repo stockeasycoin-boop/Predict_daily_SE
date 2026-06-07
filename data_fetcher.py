@@ -326,29 +326,75 @@ def fetch_live_quote_breeze(breeze) -> dict | None:
     return None
 
 
+def _nifty_futures_expiry_str() -> str:
+    """
+    Return the near-month Nifty futures expiry in Breeze format.
+
+    Nifty monthly futures expire on the LAST THURSDAY of the month.
+    If today is past that Thursday, roll to next month's last Thursday.
+    Format: '2026-06-26T07:00:00.000Z'
+    """
+    today = date.today()
+
+    def last_thursday(year: int, month: int) -> date:
+        # Find last day of month, walk back to Thursday (weekday 3)
+        if month == 12:
+            last = date(year + 1, 1, 1) - timedelta(days=1)
+        else:
+            last = date(year, month + 1, 1) - timedelta(days=1)
+        while last.weekday() != 3:   # 3 = Thursday
+            last -= timedelta(days=1)
+        return last
+
+    expiry = last_thursday(today.year, today.month)
+    if today > expiry:                # already past this month's expiry
+        if today.month == 12:
+            expiry = last_thursday(today.year + 1, 1)
+        else:
+            expiry = last_thursday(today.year, today.month + 1)
+
+    return expiry.strftime("%Y-%m-%dT07:00:00.000Z")
+
+
 def fetch_gift_nifty_breeze(breeze) -> float | None:
     """
     Fetch the live GIFT Nifty (SGX Nifty) futures price from Breeze.
     Used at 8:45 AM to check if GIFT contradicts the model's direction.
-    Tries multiple product/exchange combos since GIFT listing varies.
-    Returns the LTP as a float, or None if unavailable.
+
+    Breeze does NOT support 'GIFTNIFTY' as a stock code.
+    We use Nifty near-month futures on NFO as a proxy — it tracks
+    GIFT Nifty very closely during pre-market hours.
+
+    NFO futures REQUIRE an expiry_date (Breeze returns 500 without it).
     """
-    combos = [
-        {"stock_code": "GIFTNIFTY", "exchange_code": "NSE",  "product_type": "futures"},
-        {"stock_code": "NIFTY",     "exchange_code": "NFO",  "product_type": "futures"},
-    ]
-    for params in combos:
-        resp = _breeze_get_quotes_with_retry(
-            breeze,
-            stock_code=params["stock_code"],
-            exchange_code=params["exchange_code"],
-            product_type=params["product_type"],
-            expiry_date="", right="", strike_price="",
-        )
-        if resp.get("Status") == 200 and resp.get("Success"):
-            ltp = float(resp["Success"][0].get("ltp", 0) or 0)
-            if ltp > 0:
-                return ltp
+    expiry_str = _nifty_futures_expiry_str()
+
+    # Primary: Nifty near-month futures on NFO (requires expiry date)
+    resp = _breeze_get_quotes_with_retry(
+        breeze,
+        stock_code="NIFTY", exchange_code="NFO",
+        product_type="futures", expiry_date=expiry_str,
+        right="", strike_price="",
+    )
+    if resp.get("Status") == 200 and resp.get("Success"):
+        ltp = float(resp["Success"][0].get("ltp", 0) or 0)
+        if ltp > 0:
+            print(f"[GIFT Nifty] Using NFO futures proxy — LTP: {ltp}  expiry: {expiry_str}")
+            return ltp
+
+    # Fallback: Nifty spot on NSE (open before 9:15, decent proxy)
+    resp2 = _breeze_get_quotes_with_retry(
+        breeze,
+        stock_code="NIFTY", exchange_code="NSE",
+        product_type="cash", expiry_date="", right="", strike_price="",
+    )
+    if resp2.get("Status") == 200 and resp2.get("Success"):
+        ltp = float(resp2["Success"][0].get("ltp", 0) or 0)
+        if ltp > 0:
+            print(f"[GIFT Nifty] Futures unavailable — using NSE spot as fallback: {ltp}")
+            return ltp
+
+    print("[GIFT Nifty] Both futures and spot fetch failed — GIFT override skipped")
     return None
 
 
@@ -362,6 +408,7 @@ def fetch_options_chain_breeze(breeze, expiry_str: str,
 
     for strike in strikes:
         for right in ["call", "put"]:
+            time.sleep(0.1)   # 100 ms between requests — prevents Breeze 503 rate-limiting
             resp = _breeze_get_quotes_with_retry(
                 breeze,
                 stock_code="NIFTY", exchange_code="NFO",
