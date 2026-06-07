@@ -1,0 +1,23 @@
+# Runtime artifacts
+__pycache__/
+*.py[cod]
+*.pkl
+*.joblib
+
+# Model weights & data (large binaries, fetched at runtime)
+models/
+data/
+logs/
+trades/
+
+# Secrets — never commit API keys
+settings.json
+
+# Temp / crash dumps
+*.stackdump
+*.log
+
+# Virtual envs
+.venv/
+venv/
+env/
