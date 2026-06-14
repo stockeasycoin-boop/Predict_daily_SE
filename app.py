@@ -604,6 +604,7 @@ with tab1:
                         log_step(f"Step 6/6 — suggestion: {suggestion.get('signal', '?')} "
                                  f"(confidence={suggestion.get('confidence', 0):.2%})")
 
+                        feat_df = preds.pop("_feat_row", pd.DataFrame())
                         reasoning  = mt.reasoning_for_prediction(feat_df, str(cfg.MODEL_DIR))
                         st.session_state["suggestion"] = suggestion
                         st.session_state["reasoning"]  = reasoning

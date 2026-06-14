@@ -974,6 +974,7 @@ def predict_today_from_5min(df_5min: pd.DataFrame,
         "direction": close_dir,
         "confidence": round(close_conf, 4),
         "predicted_move_pct": round(abs(close_pred_pct), 3),
+        "_feat_row": row,
     }
 
 
