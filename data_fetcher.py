@@ -116,6 +116,19 @@ def fetch_vix_breeze(breeze, days: int = 730) -> pd.DataFrame | None:
 # 2. INTRADAY 5-MIN CANDLES  (last N trading days)
 # ─────────────────────────────────────────────────────────────────────────────
 
+def _filter_market_hours(df: pd.DataFrame) -> pd.DataFrame:
+    """Keep only market hours: 9:15 to 15:30 IST."""
+    df = df[
+        (df["date"].dt.hour > 9) |
+        ((df["date"].dt.hour == 9) & (df["date"].dt.minute >= 15))
+    ]
+    df = df[
+        (df["date"].dt.hour < 15) |
+        ((df["date"].dt.hour == 15) & (df["date"].dt.minute <= 30))
+    ]
+    return df
+
+
 def fetch_intraday_breeze(breeze, stock_code: str = "NIFTY",
                           days_back: int = 60) -> pd.DataFrame | None:
     """
@@ -125,18 +138,81 @@ def fetch_intraday_breeze(breeze, stock_code: str = "NIFTY",
     """
     df = _breeze_hist(breeze, stock_code, "5minute", min(days_back, 60))
     if df is not None:
-        # Keep only market hours: 9:15 to 15:30 IST
-        df = df[
-            (df["date"].dt.hour > 9) |
-            ((df["date"].dt.hour == 9) & (df["date"].dt.minute >= 15))
-        ]
-        df = df[
-            (df["date"].dt.hour < 15) |
-            ((df["date"].dt.hour == 15) & (df["date"].dt.minute <= 30))
-        ]
+        df = _filter_market_hours(df)
         print(f"[Breeze] Intraday {stock_code} 5min: {len(df)} candles "
               f"({df['date'].dt.date.min()} → {df['date'].dt.date.max()})")
     return df
+
+
+def fetch_intraday_chunked(breeze, stock_code: str = "NIFTY",
+                           total_days: int = 730,
+                           chunk_days: int = 55) -> pd.DataFrame | None:
+    """
+    Fetch 5-min intraday candles over a long period by fetching in chunks.
+    Breeze caps at 60 days per request, so we loop backwards in 55-day windows
+    (with 5-day overlap to avoid boundary gaps).
+    """
+    try:
+        import pytz as _pz
+        _ist = _pz.timezone("Asia/Kolkata")
+        now = datetime.now(_ist)
+    except Exception:
+        now = datetime.now()
+    all_chunks = []
+    cursor_end = now + timedelta(days=1)
+
+    fetched_days = 0
+    chunk_num = 0
+
+    while fetched_days < total_days:
+        chunk_num += 1
+        days_this = min(chunk_days, total_days - fetched_days)
+        cursor_start = cursor_end - timedelta(days=days_this)
+
+        from_str = cursor_start.strftime("%Y-%m-%dT07:00:00.000Z")
+        to_str   = cursor_end.strftime("%Y-%m-%dT07:00:00.000Z")
+
+        try:
+            resp = breeze.get_historical_data_v2(
+                interval="5minute",
+                from_date=from_str,
+                to_date=to_str,
+                stock_code=stock_code,
+                exchange_code="NSE",
+                product_type="cash",
+            )
+            if resp.get("Status") == 200 and resp.get("Success"):
+                df = pd.DataFrame(resp["Success"])
+                df["datetime_raw"] = pd.to_datetime(df["datetime"])
+                df["date"] = df["datetime_raw"]
+                for col in ["open", "high", "low", "close"]:
+                    df[col] = pd.to_numeric(df[col], errors="coerce")
+                df["volume"] = pd.to_numeric(
+                    df.get("volume", 0), errors="coerce").fillna(0)
+                df = df[["date","open","high","low","close","volume"]].dropna(subset=["open","close"])
+                df = _filter_market_hours(df)
+                if len(df) > 0:
+                    all_chunks.append(df)
+                    print(f"  [chunk {chunk_num}] {len(df)} candles "
+                          f"({df['date'].dt.date.min()} → {df['date'].dt.date.max()})")
+            else:
+                print(f"  [chunk {chunk_num}] no data for {cursor_start.date()} → {cursor_end.date()}")
+        except Exception as e:
+            print(f"  [chunk {chunk_num}] error: {e}")
+
+        cursor_end = cursor_start
+        fetched_days += days_this
+        time.sleep(0.5)
+
+    if not all_chunks:
+        return None
+
+    combined = pd.concat(all_chunks, ignore_index=True)
+    combined = combined.drop_duplicates(subset=["date"]).sort_values("date").reset_index(drop=True)
+    print(f"[Breeze] Intraday {stock_code} 5min TOTAL: {len(combined)} candles "
+          f"({combined['date'].dt.date.min()} → {combined['date'].dt.date.max()}), "
+          f"{combined['date'].dt.date.nunique()} trading days")
+    return combined
 
 
 # ─────────────────────────────────────────────────────────────────────────────
