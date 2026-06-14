@@ -246,10 +246,17 @@ def score_articles(articles: list[dict]) -> list[dict]:
 
     backend = _detect_backend()
     if backend == "none":
-        # No backend at all — return neutral
+        # No scoring backend — articles fetched but scores default to 0.0
+        # To fix: pip install vaderSentiment   (lightweight, always works)
+        #         pip install transformers torch  (for FinBERT, heavier)
+        print("[news] WARNING: No sentiment backend available. "
+              "Articles fetched but not scored. "
+              "Run: pip install vaderSentiment")
         for a in articles:
             a["sentiment"] = 0.0
             a["backend"]   = "none"
+            a["backend_error"] = ("No scoring model installed. "
+                                  "Run: pip install vaderSentiment")
         return articles
 
     texts = [
@@ -344,7 +351,8 @@ def aggregate(scored: list[dict]) -> dict:
     latest = sorted(scored, key=lambda a: a.get("publishedAt", ""), reverse=True)[:5]
     latest_headlines = [_fmt(t) for t in latest]
 
-    return {
+    backend_used = scored[0].get("backend", _detect_backend()) if scored else _detect_backend()
+    result = {
         "score":          round(score, 4),
         "label":          label,
         "n_articles":     n,
@@ -353,10 +361,15 @@ def aggregate(scored: list[dict]) -> dict:
         "n_neutral":      n_neu,
         "pct_positive":   round(n_pos / n * 100, 1) if n else 0.0,
         "pct_negative":   round(n_neg / n * 100, 1) if n else 0.0,
-        "backend":        scored[0].get("backend", _detect_backend()),
+        "backend":        backend_used,
         "top_headlines":  top_headlines,
         "latest_headlines": latest_headlines,
     }
+    if backend_used == "none":
+        result["error"] = ("Sentiment scoring unavailable — no model installed. "
+                           "Run: pip install vaderSentiment   "
+                           "Articles were fetched but all scores are 0.0.")
+    return result
 
 
 def get_market_sentiment(

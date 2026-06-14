@@ -76,8 +76,8 @@ def _breeze_single_request(breeze, stock_code: str, interval: str,
         try:
             resp = breeze.get_historical_data_v2(
                 interval=interval,
-                from_date=start.strftime("%Y-%m-%dT07:00:00.000Z"),
-                to_date=end.strftime("%Y-%m-%dT07:00:00.000Z"),
+                from_date=from_str,
+                to_date=to_str,
                 stock_code=stock_code,
                 exchange_code="NSE",
                 product_type="cash",
@@ -147,16 +147,29 @@ def fetch_nifty_breeze(breeze, days: int = 730) -> pd.DataFrame | None:
     df = _breeze_hist(breeze, "NIFTY", "1day", min(days, 730))
     if df is not None:
         print(f"[Breeze] Nifty daily: {len(df)} rows "
-              f"({df['date'].iloc[0].date()} → {df['date'].iloc[-1].date()})")
+              f"({df['date'].iloc[0].date()} to {df['date'].iloc[-1].date()})")
     return df
 
 
+# Last error per source — surfaced in the Data Sources tab for diagnosis
+LAST_FETCH_ERRORS = {}
+
 def fetch_vix_breeze(breeze, days: int = 730) -> pd.DataFrame | None:
-    df = _breeze_hist(breeze, "INDIAVIX", "1day", min(days, 730))
-    if df is not None:
-        out = df[["date","close"]].rename(columns={"close":"india_vix"})
-        print(f"[Breeze] VIX: {len(out)} rows")
-        return out
+    """India VIX history. Breeze security-master codes vary by version, so we
+    try the known aliases in order: INDVIX, INDIAVIX, INDIA VIX."""
+    for code in ("INDVIX", "INDIAVIX", "INDIA VIX", "INDIAVIX-INDEX"):
+        try:
+            df = _breeze_hist(breeze, code, "1day", min(days, 730))
+            if df is not None and len(df) > 0:
+                out = df[["date","close"]].rename(columns={"close":"india_vix"})
+                print(f"[Breeze] VIX via '{code}': {len(out)} rows")
+                LAST_FETCH_ERRORS.pop("vix", None)
+                return out
+        except Exception as e:
+            LAST_FETCH_ERRORS["vix"] = f"{code}: {e}"
+            continue
+    if "vix" not in LAST_FETCH_ERRORS:
+        LAST_FETCH_ERRORS["vix"] = "All VIX stock codes returned empty (INDVIX/INDIAVIX/INDIA VIX)"
     return None
 
 
@@ -306,6 +319,66 @@ def fetch_live_quote_breeze(breeze) -> dict | None:
             }
     except Exception as e:
         print(f"[Breeze] live quote failed: {e}")
+    return None
+
+
+def _next_monthly_futures_expiry() -> str:
+    """Last Tuesday of the current month (Nifty monthly F&O expiry).
+    If already past, roll to next month. Breeze ISO format."""
+    from datetime import date as _d, timedelta as _td
+    import calendar as _cal
+    today = _d.today()
+    def last_tuesday(year, month):
+        last_day = _cal.monthrange(year, month)[1]
+        d = _d(year, month, last_day)
+        while d.weekday() != 1:   # 1 = Tuesday
+            d -= _td(days=1)
+        return d
+    exp = last_tuesday(today.year, today.month)
+    if exp < today:
+        ny, nm = (today.year + 1, 1) if today.month == 12 else (today.year, today.month + 1)
+        exp = last_tuesday(ny, nm)
+    return exp.strftime("%Y-%m-%dT07:00:00.000Z")
+
+
+def fetch_gift_nifty_breeze(breeze) -> float | None:
+    """
+    Pre-market / live forward-looking Nifty level.
+
+    True GIFT Nifty trades on NSE-IX (GIFT City), which Breeze generally does
+    NOT carry. Attempt order:
+      1. GIFTNIFTY listings (in case the account has access)
+      2. NIFTY current-month futures on NFO — a near-equivalent lead indicator
+         during market hours (futures basis ≈ GIFT basis intraday).
+    Returns the LTP as a float, or None. Last error in LAST_FETCH_ERRORS["gift"].
+    """
+    expiry = _next_monthly_futures_expiry()
+    attempts = [
+        {"stock_code": "GIFTNIFTY", "exchange_code": "NSE", "product_type": "futures", "expiry_date": ""},
+        {"stock_code": "GIFTNIFTY", "exchange_code": "NFO", "product_type": "futures", "expiry_date": expiry},
+        {"stock_code": "NIFTY",     "exchange_code": "NFO", "product_type": "futures", "expiry_date": expiry},
+    ]
+    for params in attempts:
+        try:
+            resp = breeze.get_quotes(
+                stock_code=params["stock_code"],
+                exchange_code=params["exchange_code"],
+                product_type=params["product_type"],
+                expiry_date=params["expiry_date"], right="", strike_price="",
+            )
+            if resp.get("Status") == 200 and resp.get("Success"):
+                d   = resp["Success"][0]
+                ltp = float(d.get("ltp", 0) or 0)
+                if ltp > 0:
+                    LAST_FETCH_ERRORS.pop("gift", None)
+                    if params["stock_code"] == "NIFTY":
+                        LAST_FETCH_ERRORS["gift_note"] = "Using NIFTY futures as GIFT proxy"
+                    return ltp
+            else:
+                LAST_FETCH_ERRORS["gift"] = str(resp.get("Error") or resp.get("Status"))[:140]
+        except Exception as e:
+            LAST_FETCH_ERRORS["gift"] = f"{params['stock_code']}@{params['exchange_code']}: {e}"[:140]
+            continue
     return None
 
 
@@ -600,6 +673,66 @@ def load_gift_data(breeze=None, force_refresh: bool = False) -> pd.DataFrame | N
     if cache.exists():
         return pd.read_csv(cache, parse_dates=["date"])
     return None
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CHUNKED INTRADAY FETCH  (bypass 60-day cap)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _filter_market_hours(df: pd.DataFrame) -> pd.DataFrame:
+    """Keep only 09:15–15:30 IST candles."""
+    df = df[(df["date"].dt.hour > 9) | ((df["date"].dt.hour == 9) & (df["date"].dt.minute >= 15))]
+    df = df[(df["date"].dt.hour < 15) | ((df["date"].dt.hour == 15) & (df["date"].dt.minute <= 30))]
+    return df
+
+
+def fetch_intraday_chunked(breeze, stock_code: str = "NIFTY",
+                           total_days: int = 730, chunk_days: int = 55) -> pd.DataFrame:
+    """
+    Fetch 5-min intraday candles in 55-day windows to bypass Breeze's 60-day cap.
+    Loops backwards from today, deduplicates, returns combined DataFrame sorted by date.
+    """
+    import pytz
+    ist = pytz.timezone("Asia/Kolkata")
+    now_ist = datetime.now(ist)
+    all_chunks = []
+    cursor = now_ist
+    oldest = now_ist - timedelta(days=total_days)
+
+    while cursor > oldest:
+        end_dt = cursor + timedelta(days=1)
+        start_dt = cursor - timedelta(days=chunk_days)
+        if start_dt < oldest:
+            start_dt = oldest
+        from_str = start_dt.strftime("%Y-%m-%dT00:00:00.000Z")
+        to_str = end_dt.strftime("%Y-%m-%dT07:00:00.000Z")
+        try:
+            resp = breeze.get_historical_data_v2(
+                interval="5minute", from_date=from_str, to_date=to_str,
+                stock_code=stock_code, exchange_code="NSE", product_type="cash",
+            )
+            if resp.get("Status") == 200 and resp.get("Success"):
+                chunk = pd.DataFrame(resp["Success"])
+                chunk["date"] = pd.to_datetime(chunk["datetime"])
+                for col in ["open", "high", "low", "close"]:
+                    chunk[col] = pd.to_numeric(chunk[col], errors="coerce")
+                chunk["volume"] = pd.to_numeric(chunk.get("volume", 0), errors="coerce").fillna(0)
+                chunk = chunk[["date", "open", "high", "low", "close", "volume"]].dropna(subset=["open", "close"])
+                all_chunks.append(chunk)
+                print(f"[Chunked] {stock_code} {start_dt.date()} to {cursor.date()}: {len(chunk)} candles")
+        except Exception as e:
+            print(f"[Chunked] {stock_code} chunk error: {e}")
+        cursor = start_dt - timedelta(days=1)
+        time.sleep(0.5)
+
+    if not all_chunks:
+        return pd.DataFrame()
+    combined = pd.concat(all_chunks, ignore_index=True)
+    combined = combined.drop_duplicates(subset=["date"]).sort_values("date").reset_index(drop=True)
+    combined = _filter_market_hours(combined)
+    print(f"[Chunked] Total {stock_code}: {len(combined)} candles "
+          f"({combined['date'].dt.date.min()} to {combined['date'].dt.date.max()})")
+    return combined
 
 
 def load_pcr_data(force_refresh: bool = False) -> pd.DataFrame | None:
