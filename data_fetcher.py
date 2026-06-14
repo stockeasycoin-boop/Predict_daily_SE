@@ -114,7 +114,7 @@ def fetch_nifty_breeze(breeze, days: int = 730) -> pd.DataFrame | None:
     df = _breeze_hist(breeze, "NIFTY", "1day", min(days, 730))
     if df is not None:
         print(f"[Breeze] Nifty daily: {len(df)} rows "
-              f"({df['date'].iloc[0].date()} → {df['date'].iloc[-1].date()})")
+              f"({df['date'].iloc[0].date()} to {df['date'].iloc[-1].date()})")
     return df
 
 
@@ -163,7 +163,7 @@ def fetch_intraday_breeze(breeze, stock_code: str = "NIFTY",
             ((df["date"].dt.hour == 15) & (df["date"].dt.minute <= 30))
         ]
         print(f"[Breeze] Intraday {stock_code} 5min: {len(df)} candles "
-              f"({df['date'].dt.date.min()} → {df['date'].dt.date.max()})")
+              f"({df['date'].dt.date.min()} to {df['date'].dt.date.max()})")
     return df
 
 
@@ -621,7 +621,7 @@ def fetch_intraday_chunked(breeze, stock_code: str = "NIFTY",
                 chunk["volume"] = pd.to_numeric(chunk.get("volume", 0), errors="coerce").fillna(0)
                 chunk = chunk[["date", "open", "high", "low", "close", "volume"]].dropna(subset=["open", "close"])
                 all_chunks.append(chunk)
-                print(f"[Chunked] {stock_code} {start_dt.date()} → {cursor.date()}: {len(chunk)} candles")
+                print(f"[Chunked] {stock_code} {start_dt.date()} to {cursor.date()}: {len(chunk)} candles")
         except Exception as e:
             print(f"[Chunked] {stock_code} chunk error: {e}")
         cursor = start_dt - timedelta(days=1)
@@ -633,7 +633,7 @@ def fetch_intraday_chunked(breeze, stock_code: str = "NIFTY",
     combined = combined.drop_duplicates(subset=["date"]).sort_values("date").reset_index(drop=True)
     combined = _filter_market_hours(combined)
     print(f"[Chunked] Total {stock_code}: {len(combined)} candles "
-          f"({combined['date'].dt.date.min()} → {combined['date'].dt.date.max()})")
+          f"({combined['date'].dt.date.min()} to {combined['date'].dt.date.max()})")
     return combined
 
 

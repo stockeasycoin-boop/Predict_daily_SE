@@ -14,6 +14,10 @@ Usage:
   python train_intraday_full.py --cache-only       # train from cached data only
 """
 
+import sys
+sys.stdout.reconfigure(encoding="utf-8")
+sys.stderr.reconfigure(encoding="utf-8")
+
 import argparse
 import json
 import time
@@ -45,7 +49,7 @@ def _load_cache() -> pd.DataFrame | None:
     if CACHE_FILE.exists():
         df = pd.read_csv(CACHE_FILE, parse_dates=["date"])
         print(f"[Cache] Loaded {len(df)} existing candles "
-              f"({df['date'].dt.date.min()} → {df['date'].dt.date.max()})")
+              f"({df['date'].dt.date.min()} to {df['date'].dt.date.max()})")
         return df
     return None
 
@@ -79,7 +83,7 @@ def _incremental_fetch(breeze, total_days: int = 730) -> pd.DataFrame:
             combined = combined.drop_duplicates(subset=["date"]).sort_values("date").reset_index(drop=True)
             CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
             combined.to_csv(CACHE_FILE, index=False)
-            print(f"[Incremental] Appended {len(new_data)} candles → total {len(combined)}")
+            print(f"[Incremental] Appended {len(new_data)} candles, total {len(combined)}")
             return combined
         return existing
     else:
@@ -255,7 +259,7 @@ def main():
     try:
         from intraday_predictor import train_intraday_models
         intra_results = train_intraday_models(
-            intraday, model_dir="models", use_optuna=use_optuna
+            intraday, model_dir="models", verbose=True
         )
         if intra_results:
             print(f"\n[Training] Intraday models saved to models/")
