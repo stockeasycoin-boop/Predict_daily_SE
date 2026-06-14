@@ -506,10 +506,11 @@ with tab1:
                         model_vote = sa.vote_from_model(preds)
                         log_step(f"Model: {model_vote.reason}")
 
-                        # 2) GIFT Nifty vote (live → historical fallback)
+                        # 2) GIFT Nifty vote (live → gift_nifty.csv → 5min last resort)
                         gift_live    = None
                         gift_status  = "unavailable"
                         gift_gap_pct = 0.0
+                        # Tier 1: live quote from Breeze
                         if breeze:
                             try:
                                 gift_live = df_mod.fetch_gift_nifty_breeze(breeze)
@@ -517,35 +518,50 @@ with tab1:
                                     gift_status = "live"
                             except Exception:
                                 pass
+                        # Tier 2: gift_nifty.csv historical cache (try to populate if missing)
                         if gift_live is None or gift_live <= 0:
                             try:
                                 from pathlib import Path as _PG
                                 _gift_csv = _PG("data/gift_nifty.csv")
-                                if not _gift_csv.exists() and breeze:
+                                if breeze:
                                     try:
-                                        df_mod.load_gift_nifty_data(breeze, force_refresh=True)
+                                        _gift_df = df_mod.load_gift_data(breeze, force_refresh=not _gift_csv.exists())
                                     except Exception:
-                                        pass
-                                if _gift_csv.exists():
+                                        _gift_df = None
+                                    if _gift_df is not None and len(_gift_df) > 0:
+                                        gift_live = float(_gift_df["gift_close"].iloc[-1])
+                                        gift_status = "historical"
+                                        log_step(f"GIFT live unavailable — using cached history: ₹{gift_live:,.0f}")
+                                elif _gift_csv.exists():
                                     _gift_hist = pd.read_csv(_gift_csv, parse_dates=["date"])
                                     if len(_gift_hist) > 0:
                                         gift_live = float(_gift_hist["gift_close"].iloc[-1])
                                         gift_status = "historical"
-                                        log_step(f"GIFT live unavailable — using last cached: ₹{gift_live:,.0f} ({_gift_hist['date'].iloc[-1].date()})")
+                                        log_step(f"GIFT live unavailable — using cached: ₹{gift_live:,.0f}")
                             except Exception:
                                 pass
+                        # Tier 3: 5-min nifty cache ONLY if gift cache is truly empty
                         if gift_live is None or gift_live <= 0:
-                            try:
-                                _c5_gift = pd.read_csv("data/nifty_5min_2yr.csv", parse_dates=["date"])
-                                _dates_g = sorted(_c5_gift["date"].dt.date.unique())
-                                if len(_dates_g) >= 2:
-                                    _last_day = _c5_gift[_c5_gift["date"].dt.date == _dates_g[-1]]
-                                    _prev_day = _c5_gift[_c5_gift["date"].dt.date == _dates_g[-2]]
-                                    gift_live = float(_last_day["open"].iloc[0])
-                                    gift_status = "from_cache (today open vs prev close)"
-                                    log_step(f"GIFT proxy: today's open ₹{gift_live:,.0f} vs prev close ₹{float(_prev_day['close'].iloc[-1]):,.0f}")
-                            except Exception:
-                                pass
+                            _gift_csv_exists = Path("data/gift_nifty.csv").exists()
+                            _gift_csv_has_data = False
+                            if _gift_csv_exists:
+                                try:
+                                    _gc = pd.read_csv("data/gift_nifty.csv")
+                                    _gift_csv_has_data = len(_gc) > 0
+                                except Exception:
+                                    pass
+                            if not _gift_csv_has_data:
+                                try:
+                                    _c5_gift = pd.read_csv("data/nifty_5min_2yr.csv", parse_dates=["date"])
+                                    _dates_g = sorted(_c5_gift["date"].dt.date.unique())
+                                    if len(_dates_g) >= 2:
+                                        _last_day = _c5_gift[_c5_gift["date"].dt.date == _dates_g[-1]]
+                                        _prev_day = _c5_gift[_c5_gift["date"].dt.date == _dates_g[-2]]
+                                        gift_live = float(_last_day["open"].iloc[0])
+                                        gift_status = "from_5min_cache (last resort)"
+                                        log_step(f"GIFT proxy (last resort): today's open ₹{gift_live:,.0f} vs prev close ₹{float(_prev_day['close'].iloc[-1]):,.0f}")
+                                except Exception:
+                                    pass
                         prev_close = float(nifty_df["close"].iloc[-1]) if nifty_df is not None and len(nifty_df) > 0 else spot
                         gift_vote = sa.vote_from_gift(gift_live, prev_close)
                         if gift_live and gift_live > 0 and prev_close:

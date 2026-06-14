@@ -565,13 +565,45 @@ def load_gift_data(breeze=None, force_refresh: bool = False) -> pd.DataFrame | N
         if age < 8:
             return pd.read_csv(cache, parse_dates=["date"])
     if breeze is not None:
-        try:
-            raw = _breeze_hist(breeze, "GIFTNIFTY", "1day", 730)
-            if raw is not None:
-                df = raw[["date","close"]].rename(columns={"close":"gift_close"})
-                df.to_csv(cache, index=False)
-                return df
-        except Exception: pass
+        raw = None
+        for _code, _exch, _prod in [
+            ("GIFTNIFTY", "NSE", "cash"),
+            ("GIFTNIFTY", "NFO", "futures"),
+            ("NIFTY", "NFO", "futures"),
+        ]:
+            try:
+                expiry = _next_monthly_futures_expiry() if _prod == "futures" else ""
+                import pytz
+                _ist = pytz.timezone("Asia/Kolkata")
+                now_ist = datetime.now(_ist)
+                end = now_ist + timedelta(days=1)
+                start = now_ist - timedelta(days=730)
+                resp = breeze.get_historical_data_v2(
+                    interval="1day",
+                    from_date=start.strftime("%Y-%m-%dT07:00:00.000Z"),
+                    to_date=end.strftime("%Y-%m-%dT07:00:00.000Z"),
+                    stock_code=_code, exchange_code=_exch,
+                    product_type=_prod, expiry_date=expiry,
+                    right="", strike_price="",
+                )
+                if resp.get("Status") == 200 and resp.get("Success"):
+                    df = pd.DataFrame(resp["Success"])
+                    df["date"] = pd.to_datetime(df["datetime"]).dt.normalize()
+                    df["close"] = pd.to_numeric(df["close"], errors="coerce")
+                    df = df.dropna(subset=["close"])
+                    if len(df) > 0:
+                        raw = df[["date", "close"]].rename(columns={"close": "gift_close"})
+                        raw = raw.sort_values("date").drop_duplicates("date").reset_index(drop=True)
+                        LAST_FETCH_ERRORS.pop("gift_hist", None)
+                        if _code == "NIFTY":
+                            LAST_FETCH_ERRORS["gift_hist_note"] = "Using NIFTY futures daily as GIFT proxy"
+                        break
+            except Exception as e:
+                LAST_FETCH_ERRORS["gift_hist"] = f"{_code}@{_exch}: {e}"[:140]
+                continue
+        if raw is not None and len(raw) > 0:
+            raw.to_csv(cache, index=False)
+            return raw
     if cache.exists():
         return pd.read_csv(cache, parse_dates=["date"])
     return None
