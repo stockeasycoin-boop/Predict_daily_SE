@@ -20,7 +20,7 @@ import json
 import time
 import logging
 import warnings
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 from pathlib import Path
 from typing import Optional
 
