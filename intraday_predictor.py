@@ -235,6 +235,103 @@ def build_intraday_features(df_5min: pd.DataFrame) -> pd.DataFrame:
     df["is_monday"] = (df["day_of_week"] == 0).astype(int)
     df["is_friday"] = (df["day_of_week"] == 4).astype(int)
 
+    # ── BATCH 2: deeper signal features ─────────────────────────────────
+
+    # RSI on longer windows
+    for n in [26, 75]:
+        delta = c.diff()
+        g = delta.clip(lower=0).ewm(com=n-1, min_periods=n).mean()
+        ls2 = (-delta.clip(upper=0)).ewm(com=n-1, min_periods=n).mean()
+        df[f"rsi_{n}"] = 100 - 100 / (1 + g / (ls2 + 1e-9))
+
+    # Stochastic %K/%D (14-candle and 75-candle)
+    for n in [14, 75]:
+        _lo_n = l.rolling(n).min()
+        _hi_n = h.rolling(n).max()
+        df[f"stoch_k_{n}"] = (c - _lo_n) / (_hi_n - _lo_n + 1e-9) * 100
+        df[f"stoch_d_{n}"] = df[f"stoch_k_{n}"].rolling(3).mean()
+
+    # Volume imbalance (buy vs sell volume proxy)
+    _body = c - o
+    _range = h - l + 1e-9
+    _buy_frac = (_body / _range).clip(-1, 1) * 0.5 + 0.5
+    df["vol_imbalance"] = (_buy_frac * v).rolling(14).sum() / (v.rolling(14).sum() + 1e-9) - 0.5
+
+    # Cumulative volume delta (normalized)
+    _signed_vol = v * np.where(c >= o, 1, -1)
+    _cvd = _signed_vol.cumsum()
+    _cvd_ma = _cvd.rolling(75).mean()
+    df["cvd_norm"] = (_cvd - _cvd_ma) / (_cvd.rolling(75).std() + 1e-9)
+
+    # Volatility regime (short vs long ATR ratio)
+    df["vol_regime"] = df["atr_5c"] / (df["atr_75c"] + 1e-9)
+
+    # Parkinson volatility (high-low based, more efficient than close-close)
+    _hl_log = np.log(h / (l + 1e-9))
+    df["parkinson_vol"] = (_hl_log ** 2).rolling(20).mean() / (4 * np.log(2)) * 100
+
+    # Opening range breakout (first 6 candles = 30 min)
+    _or_high = df.groupby("trading_date")["high"].transform(
+        lambda x: x.iloc[:min(6, len(x))].max())
+    _or_low = df.groupby("trading_date")["low"].transform(
+        lambda x: x.iloc[:min(6, len(x))].min())
+    df["orb_break_up"] = (c > _or_high).astype(int)
+    df["orb_break_dn"] = (c < _or_low).astype(int)
+
+    # EMA crossover signals
+    df["ema_cross_5_13"] = ((df["ema_5"] > df["ema_13"]) &
+                            (df["ema_5"].shift(1) <= df["ema_13"].shift(1))).astype(int)
+    df["ema_cross_13_26"] = ((df["ema_13"] > df["ema_26"]) &
+                             (df["ema_13"].shift(1) <= df["ema_26"].shift(1))).astype(int)
+
+    # Support/resistance proximity (distance to recent high/low)
+    _roll_high = h.rolling(75).max()
+    _roll_low = l.rolling(75).min()
+    df["sr_prox_high"] = (c - _roll_high) / (c + 1e-9) * 100
+    df["sr_prox_low"] = (c - _roll_low) / (c + 1e-9) * 100
+
+    # Candle pattern rates (rolling 20-candle window)
+    _body_abs = (c - o).abs()
+    _upper_wick = h - pd.concat([c, o], axis=1).max(axis=1)
+    _lower_wick = pd.concat([c, o], axis=1).min(axis=1) - l
+    _is_doji = (_body_abs < (h - l) * 0.1).astype(float)
+    _is_hammer = ((_lower_wick > _body_abs * 2) & (_upper_wick < _body_abs * 0.5)).astype(float)
+    _is_shooting = ((_upper_wick > _body_abs * 2) & (_lower_wick < _body_abs * 0.5)).astype(float)
+    df["doji_rate"] = _is_doji.rolling(20).mean()
+    df["hammer_rate"] = _is_hammer.rolling(20).mean()
+    df["shooting_star_rate"] = _is_shooting.rolling(20).mean()
+
+    # Wick-to-body ratios
+    df["upper_wick_ratio"] = _upper_wick / (_body_abs + 1e-9)
+    df["lower_wick_ratio"] = _lower_wick / (_body_abs + 1e-9)
+    # Clip extreme wick ratios
+    df["upper_wick_ratio"] = df["upper_wick_ratio"].clip(0, 20)
+    df["lower_wick_ratio"] = df["lower_wick_ratio"].clip(0, 20)
+
+    # Momentum divergence (price up but RSI down, or vice versa)
+    _price_slope = c.rolling(14).apply(lambda x: np.polyfit(range(len(x)), x, 1)[0], raw=True)
+    _rsi_slope = df["rsi_14"].rolling(14).apply(lambda x: np.polyfit(range(len(x)), x, 1)[0], raw=True)
+    df["momentum_div"] = np.sign(_price_slope) * np.sign(_rsi_slope) * -1  # -1 = divergence
+
+    # Session half momentum (first half vs second half of day)
+    df["is_first_half"] = (df["time_of_day"] <= 187).astype(int)
+    _first_half_ret = df.groupby("trading_date").apply(
+        lambda g: g[g["time_of_day"] <= 187]["close"].iloc[-1] / g["close"].iloc[0] - 1
+        if len(g[g["time_of_day"] <= 187]) > 0 else 0
+    )
+    _fh_map = _first_half_ret.to_dict()
+    df["session_half_mom"] = df["trading_date"].map(_fh_map).fillna(0) * 100
+
+    # Gap fill detection (has today's price filled the opening gap?)
+    _prev_close_gf = df.groupby("trading_date")["close"].transform("first").shift(1)
+    _gap_filled = np.where(
+        df["day_open"] > _prev_close_gf,
+        (l <= _prev_close_gf).astype(int),
+        np.where(df["day_open"] < _prev_close_gf,
+                 (h >= _prev_close_gf).astype(int), 0)
+    )
+    df["gap_filled"] = _gap_filled
+
     # ── SANITIZE: replace inf/-inf/NaN and clip extremes ──────────────────
     # Division operations can produce inf when denominators are ~0 (low-volume
     # candles, flat prices). XGBoost rejects inf and float32-overflow values.
@@ -272,18 +369,37 @@ def get_feature_cols_intraday():
         "c_vs_ema75", "c_vs_ema150", "c_vs_ema375", "ema75_150",
         # MACD on 5-min
         "macd_line", "macd_signal", "macd_hist_5m", "macd_bull_5m",
-        # Oscillators
+        # Oscillators (short)
         "rsi_5", "rsi_9", "rsi_14",
+        # Oscillators (long)
+        "rsi_26", "rsi_75",
+        # Stochastic
+        "stoch_k_14", "stoch_d_14", "stoch_k_75", "stoch_d_75",
         # VWAP
         "vwap_dev",
         # Session position
         "vs_day_open", "day_range_pct", "intraday_pos", "open_30min_ret",
         # Volume
         "vol_time_ratio", "vol_surge_intra", "vol_cum_ratio",
+        "vol_imbalance", "cvd_norm",
         # Volatility
-        "atr_pct", "atr_pct_75c",
+        "atr_pct", "atr_pct_75c", "vol_regime", "parkinson_vol",
         # Bollinger (short + long)
         "bb_pct_b", "bb_squeeze", "bb75_pct_b", "bb75_width",
+        # Opening range breakout
+        "orb_break_up", "orb_break_dn",
+        # EMA crossovers
+        "ema_cross_5_13", "ema_cross_13_26",
+        # Support/resistance
+        "sr_prox_high", "sr_prox_low",
+        # Candle patterns
+        "doji_rate", "hammer_rate", "shooting_star_rate",
+        # Wick ratios
+        "upper_wick_ratio", "lower_wick_ratio",
+        # Momentum divergence
+        "momentum_div",
+        # Session dynamics
+        "session_half_mom", "gap_filled",
         # Consecutive candles
         "consec_up_5m", "consec_dn_5m",
         # Previous day context
