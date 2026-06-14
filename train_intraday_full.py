@@ -59,41 +59,77 @@ import data_fetcher as df_mod
 df_5min = None
 breeze = None
 
+def _connect_breeze():
+    """Connect to Breeze API. Returns client or exits."""
+    import json as _json
+    from breeze_connect import BreezeConnect
+    with open(cfg.SETTINGS_FILE) as _f:
+        s = _json.load(_f)
+    api_key = s.get("api_key", "")
+    api_secret = s.get("api_secret", "")
+    session_token = s.get("session_token", "")
+    if not (api_key and api_secret and session_token):
+        print("  ERROR: Breeze API credentials not found in settings.json")
+        sys.exit(1)
+    bz = BreezeConnect(api_key=api_key)
+    bz.generate_session(api_secret=api_secret, session_token=session_token)
+    print("  Breeze connected")
+    return bz
+
+
 if args.cache_only and CACHE_FILE.exists():
     df_5min = pd.read_csv(CACHE_FILE, parse_dates=["date"])
     print(f"  Loaded from cache: {len(df_5min)} candles")
+elif CACHE_FILE.exists():
+    # ── INCREMENTAL MODE: load cached data, fetch only the gap ──────────
+    cached = pd.read_csv(CACHE_FILE, parse_dates=["date"])
+    cached_last = cached["date"].max()
+    today = pd.Timestamp.now().normalize()
+    gap_days = (today - cached_last.normalize()).days
+
+    if gap_days <= 0:
+        print(f"  Cache is up-to-date (last candle: {cached_last})")
+        df_5min = cached
+    else:
+        print(f"  Cache has {len(cached)} candles up to {cached_last.date()}")
+        print(f"  Gap: {gap_days} days — fetching only the missing data...")
+        try:
+            breeze = _connect_breeze()
+            # Fetch the gap (max 60 days, which covers any practical gap)
+            fresh = df_mod.fetch_intraday_breeze(breeze, "NIFTY",
+                                                 days_back=min(gap_days + 2, 60))
+            if fresh is not None and len(fresh) > 0:
+                # Keep only candles newer than what we have
+                fresh = fresh[fresh["date"] > cached_last]
+                if len(fresh) > 0:
+                    df_5min = pd.concat([cached, fresh], ignore_index=True)
+                    df_5min = df_5min.drop_duplicates(subset=["date"]).sort_values("date").reset_index(drop=True)
+                    df_5min.to_csv(CACHE_FILE, index=False)
+                    print(f"  Appended {len(fresh)} new candles → total {len(df_5min)}")
+                else:
+                    print(f"  No new candles found (market closed?)")
+                    df_5min = cached
+            else:
+                print(f"  Fresh fetch returned nothing — using cache as-is")
+                df_5min = cached
+        except Exception as e:
+            print(f"  WARNING: Could not fetch fresh data ({e}), using cache")
+            df_5min = cached
 else:
-    # Connect to Breeze
-    breeze = None
+    # ── FULL FETCH: no cache exists, download everything ────────────────
     try:
-        import json as _json
-        from breeze_connect import BreezeConnect
-        with open(cfg.SETTINGS_FILE) as _f:
-            s = _json.load(_f)
-        api_key = s.get("api_key", "")
-        api_secret = s.get("api_secret", "")
-        session_token = s.get("session_token", "")
-        if api_key and api_secret and session_token:
-            breeze = BreezeConnect(api_key=api_key)
-            breeze.generate_session(api_secret=api_secret,
-                                   session_token=session_token)
-            print("  Breeze connected")
-        else:
-            print("  ERROR: Breeze API credentials not found in settings.json")
-            sys.exit(1)
+        breeze = _connect_breeze()
     except Exception as e:
         print(f"  ERROR connecting to Breeze: {e}")
         sys.exit(1)
 
-    # Fetch chunked
-    print(f"  Fetching {TOTAL_DAYS} days of 5-min data in chunks...")
+    print(f"  No cache found — fetching {TOTAL_DAYS} days of 5-min data in chunks...")
     df_5min = df_mod.fetch_intraday_chunked(breeze, "NIFTY", total_days=TOTAL_DAYS)
 
     if df_5min is None or len(df_5min) < 100:
         print("  ERROR: Not enough intraday data fetched")
         sys.exit(1)
 
-    # Cache for future runs
     df_5min.to_csv(CACHE_FILE, index=False)
     print(f"  Cached {len(df_5min)} candles to {CACHE_FILE}")
 
