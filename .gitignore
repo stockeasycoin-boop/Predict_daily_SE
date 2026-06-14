@@ -9,6 +9,7 @@ models/
 data/
 logs/
 trades/
+backtest_results/
 
 # Secrets — never commit API keys
 settings.json
