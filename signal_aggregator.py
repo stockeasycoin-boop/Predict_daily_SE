@@ -91,7 +91,11 @@ def vote_from_ofi(ofi_data: dict) -> SignalVote:
 
     direction = 1 if ofi > 0 else 0
     strength = min(abs(ofi) / 0.8, 1.0)
-    reason = f"OFI {ofi:+.2f} → {'buy' if direction == 1 else 'sell'} pressure"
+    src = ofi_data.get("source", "groww")
+    if src == "pcr":
+        reason = f"PCR {ofi_data.get('signal', '')} → {'buy' if direction == 1 else 'sell'} pressure"
+    else:
+        reason = f"OFI {ofi:+.2f} → {'buy' if direction == 1 else 'sell'} pressure"
 
     return SignalVote("ofi", direction, strength, reason)
 

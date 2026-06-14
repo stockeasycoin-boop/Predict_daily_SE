@@ -522,13 +522,28 @@ with tab1:
                                 from pathlib import Path as _PG
                                 _gift_csv = _PG("data/gift_nifty.csv")
                                 if not _gift_csv.exists() and breeze:
-                                    df_mod.load_gift_nifty_data(breeze, force_refresh=True)
+                                    try:
+                                        df_mod.load_gift_nifty_data(breeze, force_refresh=True)
+                                    except Exception:
+                                        pass
                                 if _gift_csv.exists():
                                     _gift_hist = pd.read_csv(_gift_csv, parse_dates=["date"])
                                     if len(_gift_hist) > 0:
                                         gift_live = float(_gift_hist["gift_close"].iloc[-1])
                                         gift_status = "historical"
                                         log_step(f"GIFT live unavailable — using last cached: ₹{gift_live:,.0f} ({_gift_hist['date'].iloc[-1].date()})")
+                            except Exception:
+                                pass
+                        if gift_live is None or gift_live <= 0:
+                            try:
+                                _c5_gift = pd.read_csv("data/nifty_5min_2yr.csv", parse_dates=["date"])
+                                _dates_g = sorted(_c5_gift["date"].dt.date.unique())
+                                if len(_dates_g) >= 2:
+                                    _last_day = _c5_gift[_c5_gift["date"].dt.date == _dates_g[-1]]
+                                    _prev_day = _c5_gift[_c5_gift["date"].dt.date == _dates_g[-2]]
+                                    gift_live = float(_last_day["open"].iloc[0])
+                                    gift_status = "from_cache (today open vs prev close)"
+                                    log_step(f"GIFT proxy: today's open ₹{gift_live:,.0f} vs prev close ₹{float(_prev_day['close'].iloc[-1]):,.0f}")
                             except Exception:
                                 pass
                         prev_close = float(nifty_df["close"].iloc[-1]) if nifty_df is not None and len(nifty_df) > 0 else spot
@@ -541,7 +556,7 @@ with tab1:
                         st.session_state["gift_gap_pct"] = gift_gap_pct
                         st.session_state["gift_status"]  = gift_status
 
-                        # 3) Groww OFI vote
+                        # 3) OFI vote (Groww live → PCR fallback from options chain)
                         ofi_data = {"ofi": 0.0, "available": False}
                         _groww_main = st.session_state.get("groww_obj")
                         if _groww_main:
@@ -550,6 +565,19 @@ with tab1:
                                 ofi_data = gc.get_live_ofi(_groww_main, "NIFTY")
                             except Exception:
                                 pass
+                        if not ofi_data.get("available") and live_pcr is not None:
+                            _pcr_val = float(live_pcr)
+                            if _pcr_val > 0:
+                                _pcr_ofi = (_pcr_val - 1.0) * 0.5
+                                _pcr_ofi = max(-1.0, min(1.0, _pcr_ofi))
+                                ofi_data = {
+                                    "ofi": _pcr_ofi,
+                                    "available": True,
+                                    "signal": f"PCR={_pcr_val:.2f} → {'bearish' if _pcr_val > 1.2 else 'bullish' if _pcr_val < 0.8 else 'neutral'}",
+                                    "bias": "bearish" if _pcr_ofi > 0.1 else "bullish" if _pcr_ofi < -0.1 else "neutral",
+                                    "source": "pcr",
+                                }
+                                log_step(f"Groww unavailable — using PCR {_pcr_val:.2f} as OFI proxy")
                         ofi_vote = sa.vote_from_ofi(ofi_data)
                         log_step(f"OFI: {ofi_vote.reason}")
 
@@ -2554,18 +2582,21 @@ with tab6:
             _mkt_open_ds = _le_ds.is_market_open()
         except Exception:
             _mkt_open_ds = False
+        _5min_exists = Path("data/nifty_5min_2yr.csv").exists()
         _ds_rows.append({
             "Source": "GIFT Nifty (live + history)", "Used for": "Pre-market direction override at 8:45 AM",
             "Status": ("🟢 Live quote OK" if _gift_live else
-                       ("🟡 Live quote only streams during market hours" if not _mkt_open_ds else
-                        ("🟡 History cached, live failed" if _age else "🔴 Unavailable"))),
+                       ("🟡 Using 5-min cache fallback" if _5min_exists else
+                        ("🟡 Live quote only streams during market hours" if not _mkt_open_ds else
+                         ("🟡 History cached, live failed" if _age else "🔴 Unavailable")))),
             "Detail": (f"Live: ₹{_gift_live:,.0f}" +
                        (" (NIFTY futures proxy)" if getattr(df_mod, "LAST_FETCH_ERRORS", {}).get("gift_note") else "")
                        if _gift_live else
-                       ("Fetch error: " + df_mod.LAST_FETCH_ERRORS.get("gift", "")[:90]
-                        if getattr(df_mod, "LAST_FETCH_ERRORS", {}).get("gift")
-                        else (f"History cached {_age}. Re-check during market hours." if _age and not _mkt_open_ds
-                              else "Live GIFT needs an active Breeze session during market hours"))),
+                       ("Falls back to today's open vs prev close from 5-min cache" if _5min_exists
+                        else ("Fetch error: " + df_mod.LAST_FETCH_ERRORS.get("gift", "")[:90]
+                              if getattr(df_mod, "LAST_FETCH_ERRORS", {}).get("gift")
+                              else (f"History cached {_age}. Re-check during market hours." if _age and not _mkt_open_ds
+                                    else "Live GIFT needs an active Breeze session during market hours")))),
         })
 
         # ── 6. FII/DII flows ───────────────────────────────────────────────
@@ -2631,12 +2662,15 @@ with tab6:
                 _ofi_ok = _ofi_res.get("available", False)
             except Exception:
                 pass
+        _pcr_fallback = _pcr_ok and not _ofi_ok
         _ds_rows.append({
-            "Source": "Groww API (Order Flow)", "Used for": "Order Flow Imbalance — buy/sell pressure",
-            "Status": "🟢 Live OFI" if _ofi_ok else ("🟡 Connected, no depth" if _groww_c else "⚪ Optional — not connected"),
+            "Source": "Order Flow / PCR", "Used for": "Order Flow Imbalance — buy/sell pressure",
+            "Status": ("🟢 Live OFI" if _ofi_ok else
+                       ("🟡 PCR fallback" if _pcr_fallback else
+                        ("🟡 Connected, no depth" if _groww_c else "🟡 Using PCR from options chain" if _pcr_ok else "⚪ Optional — not connected"))),
             "Detail": ("OFI feeding Live Monitor" if _ofi_ok else
-                       (_ofi_res.get("signal", "")[:110] if _groww_c and "_ofi_res" in dir()
-                        else "Boosts 5/15-min accuracy by 4-6%")),
+                       (f"PCR from Breeze options chain used as OFI proxy" if _pcr_fallback or _pcr_ok
+                        else "Connect Groww or ensure Breeze options chain is available")),
         })
 
         # ── 11. Intraday models ────────────────────────────────────────────
