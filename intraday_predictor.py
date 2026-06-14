@@ -911,8 +911,8 @@ def train_daily_models_from_5min(df_5min: pd.DataFrame,
         "n_samples": len(valid),
         "n_days": len(valid),
         "total_candles": int(len(df_5min)),
-        "cv_open": results.get("open", {}).get("cv_acc", 0),
-        "cv_close": results.get("close", {}).get("cv_acc", 0),
+        "cv_open": results.get("open_cv", 0),
+        "cv_close": results.get("close_cv", 0),
         "results": results,
     }
     with open(f"{model_dir}/metadata.json", "w") as f:
