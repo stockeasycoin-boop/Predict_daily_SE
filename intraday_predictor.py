@@ -653,19 +653,20 @@ def predict_all_horizons(df_5min: pd.DataFrame,
         except Exception:
             stale_data = False
 
+    # If market is closed, show all horizons (no timing filter)
+    _market_open = (minutes_elapsed >= 0 and minutes_remaining > 0)
+
     predictions = {}
     for horizon, n_candles in HORIZONS.items():
-        # ── MARKET TIMING FILTER ──────────────────────────────────────────
-        # Only show a horizon if it completes BEFORE market close (3:30 PM).
-        # At 3:00 PM (30 min left): show 5min, 15min, 30min, close — NOT 1hr/2hr/3hr.
-        if n_candles is not None:
-            minutes_ahead = n_candles * 5
-            if minutes_ahead > minutes_remaining:
-                continue   # this horizon would extend past 3:30 PM — skip it
-        else:
-            # 'close' horizon only meaningful if market is still open
-            if minutes_remaining <= 5:
-                continue   # too close to / past close to predict the close
+        # ── MARKET TIMING FILTER (only during live market hours) ─────────
+        if _market_open:
+            if n_candles is not None:
+                minutes_ahead = n_candles * 5
+                if minutes_ahead > minutes_remaining:
+                    continue
+            else:
+                if minutes_remaining <= 5:
+                    continue
 
         xgb_path = Path(f"{model_dir}/intraday_xgb_{horizon}.pkl")
         lgb_path = Path(f"{model_dir}/intraday_lgb_{horizon}.pkl")
