@@ -122,6 +122,8 @@ def estimate_premium(spot: float, strike: int, option_type: str,
     Simplified premium estimate using VIX as implied volatility proxy.
     Used only when Breeze options chain is not available.
     """
+    if np.isnan(india_vix) or india_vix <= 0:
+        india_vix = 16.0
     iv    = india_vix / 100
     t     = max(days_to_expiry, 1) / 252
     moneyness = abs(spot - strike) / spot

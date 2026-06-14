@@ -912,8 +912,8 @@ def predict_today_from_5min(df_5min: pd.DataFrame,
     ensemble_agree = open_agree and close_agree
 
     last_close = float(last_day["close"].iloc[-1])
-    atr_pct_val = float(row["atr_pct"].iloc[0]) if "atr_pct" in row.columns else 0.8
-    india_vix_val = float(row["india_vix"].iloc[0]) if "india_vix" in row.columns else 16.0
+    atr_pct_val = float(row["atr_pct"].iloc[0]) if "atr_pct" in row.columns and pd.notna(row["atr_pct"].iloc[0]) else 0.8
+    india_vix_val = float(row["india_vix"].iloc[0]) if "india_vix" in row.columns and pd.notna(row["india_vix"].iloc[0]) else 16.0
 
     open_mid = last_close * (1 + open_pred_pct / 100)
     open_range = (round(open_mid * (1 - atr_pct_val * 0.25 / 100)),
