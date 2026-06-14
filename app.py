@@ -499,108 +499,98 @@ with tab1:
                                 )
                             except Exception:
                                 pass
-                        # ── Live GIFT Nifty override ─────────────────────────
+                        # ── Gather all signal sources for consensus ─────────
+                        import signal_aggregator as sa
+
+                        # 1) Model vote (already computed)
+                        model_vote = sa.vote_from_model(preds)
+                        log_step(f"Model: {model_vote.reason}")
+
+                        # 2) GIFT Nifty vote
                         gift_live    = None
                         gift_status  = "unavailable"
                         gift_gap_pct = 0.0
-                        gift_err_msg = ""
-
                         if breeze:
                             try:
                                 gift_live = df_mod.fetch_gift_nifty_breeze(breeze)
                                 if gift_live and gift_live > 0:
                                     gift_status = "live"
-                                else:
-                                    gift_err_msg = "GIFT Nifty returned 0 or None from Breeze."
-                            except Exception as _ge:
-                                gift_err_msg = f"GIFT fetch failed: {_ge}"
-                        else:
-                            gift_err_msg = "No Breeze session — GIFT Nifty not available."
-
-                        if gift_status == "live" and spot and spot > 0:
-                            gift_gap_pct = (gift_live - spot) / spot * 100
-                            if gift_gap_pct > 0.3 and direction == 0:
-                                confidence = confidence * 0.70
-                                st.warning(
-                                    f"⚠️ GIFT Nifty {gift_live:,.0f} "
-                                    f"({gift_gap_pct:+.2f}% vs prev close) — "
-                                    f"gap-up contradicts bearish signal. "
-                                    f"Confidence cut to {confidence:.0%}."
-                                )
-                            elif gift_gap_pct < -0.3 and direction == 1:
-                                confidence = confidence * 0.70
-                                st.warning(
-                                    f"⚠️ GIFT Nifty {gift_live:,.0f} "
-                                    f"({gift_gap_pct:+.2f}% vs prev close) — "
-                                    f"gap-down contradicts bullish signal. "
-                                    f"Confidence cut to {confidence:.0%}."
-                                )
-                            elif abs(gift_gap_pct) <= 0.15:
-                                st.info(
-                                    f"GIFT Nifty {gift_live:,.0f} "
-                                    f"({gift_gap_pct:+.2f}%) — flat/neutral. No override."
-                                )
-                            else:
-                                dir_w = "bullish" if direction == 1 else "bearish"
-                                st.success(
-                                    f"GIFT Nifty {gift_live:,.0f} "
-                                    f"({gift_gap_pct:+.2f}%) — aligns with "
-                                    f"{dir_w} signal. Confidence unchanged."
-                                )
-                        else:
-                            st.caption(
-                                f"ℹ️ Live GIFT Nifty unavailable — {gift_err_msg} "
-                                f"Model confidence not adjusted. Check Breeze session token."
-                            )
+                            except Exception:
+                                pass
+                        prev_close = float(nifty_df["close"].iloc[-1]) if nifty_df is not None and len(nifty_df) > 0 else spot
+                        gift_vote = sa.vote_from_gift(gift_live, prev_close)
+                        if gift_status == "live" and spot:
+                            gift_gap_pct = (gift_live - prev_close) / prev_close * 100
+                        log_step(f"GIFT: {gift_vote.reason}")
 
                         st.session_state["gift_live"]    = gift_live
                         st.session_state["gift_gap_pct"] = gift_gap_pct
                         st.session_state["gift_status"]  = gift_status
-                        # ─────────────────────────────────────────────────────
 
-                        # ── News sentiment FIRST — so it can gate the trade ──
+                        # 3) Groww OFI vote
+                        ofi_data = {"ofi": 0.0, "available": False}
+                        _groww_main = st.session_state.get("groww_obj")
+                        if _groww_main:
+                            try:
+                                import groww_connector as gc
+                                ofi_data = gc.get_live_ofi(_groww_main, "NIFTY")
+                            except Exception:
+                                pass
+                        ofi_vote = sa.vote_from_ofi(ofi_data)
+                        log_step(f"OFI: {ofi_vote.reason}")
+
+                        # 4) News sentiment vote
                         log_step("Step 6/6 — fetching news sentiment…")
                         news = {"n_articles": 0}
-                        news_conf = confidence
-                        news_reason = ""
                         try:
                             import news_sentiment as ns
                             gnews_key = settings.get("gnews_api_key",
                                                     getattr(cfg, "GNEWS_API_KEY", ""))
                             news = ns.get_market_sentiment(gnews_key,
                                                            force_refresh=_force_news)
-                            if news.get("n_articles", 0) >= 3:
-                                news_conf, news_reason = ns.adjust_confidence(
-                                    direction,
-                                    confidence,
-                                    news,
-                                    max_boost   = getattr(cfg, "NEWS_MAX_BOOST",   0.08),
-                                    max_penalty = getattr(cfg, "NEWS_MAX_PENALTY", 0.15),
-                                )
-                                log_step(f"News {news.get('label','?')} ({news.get('score',0):+.2f}) "
-                                         f"→ confidence {confidence:.0%} → {news_conf:.0%}")
                         except Exception as ne:
                             log_step(f"News sentiment skipped: {ne}", "warning")
                             news = {"error": str(ne), "n_articles": 0}
+                        news_vote = sa.vote_from_news(news)
+                        log_step(f"News: {news_vote.reason}")
 
-                        # Generate suggestion using the NEWS-ADJUSTED confidence,
-                        # so strong adverse news can pull it below threshold
-                        # (BUY → NO_TRADE) and agreement can keep a trade alive.
+                        # ── CONSENSUS: weighted vote across all sources ──────
+                        consensus = sa.aggregate_signals(
+                            [model_vote, gift_vote, ofi_vote, news_vote]
+                        )
+                        direction  = consensus.direction
+                        confidence = consensus.confidence
+                        log_step(f"Consensus: {'BULLISH' if direction == 1 else 'BEARISH'} "
+                                 f"{confidence:.0%} (agreement: {consensus.agreement_ratio:.0%})")
+
+                        # Show vote breakdown
+                        _vote_parts = []
+                        for _v in consensus.votes:
+                            if not _v.available:
+                                _vote_parts.append(f"**{_v.source}**: ⚪ unavailable")
+                            elif _v.direction is None:
+                                _vote_parts.append(f"**{_v.source}**: ⚪ neutral")
+                            elif _v.direction == 1:
+                                _vote_parts.append(f"**{_v.source}**: 🟢 bullish ({_v.strength:.0%})")
+                            else:
+                                _vote_parts.append(f"**{_v.source}**: 🔴 bearish ({_v.strength:.0%})")
+                        st.info(f"**Signal consensus**: {' | '.join(_vote_parts)}")
+
+                        # Generate suggestion using CONSENSUS direction + confidence
                         log_step("Step 6/6 — generating trade suggestion…")
                         suggestion = oe.generate_suggestion(
-                            direction, news_conf, spot, atr_pct, vix, capital, opts_df
+                            direction, confidence, spot, atr_pct, vix, capital, opts_df
                         )
                         suggestion["news"] = news
-                        if news.get("n_articles", 0) >= 3:
-                            suggestion["confidence_original"] = confidence
-                            suggestion["news_adjustment"]     = news_reason
-                            if news_conf < confidence and suggestion.get("signal") == "NO_TRADE" \
-                                    and confidence >= getattr(cfg, "MIN_CONFIDENCE", 0.70):
-                                suggestion["reason"] = (
-                                    f"Model was {confidence:.0%} confident, but {news.get('label','adverse')} "
-                                    f"news ({news.get('score',0):+.2f}) cut it to {news_conf:.0%} — below "
-                                    f"threshold. Standing down. ({news_reason})"
-                                )
+                        suggestion["consensus"] = {
+                            "direction": direction,
+                            "confidence": confidence,
+                            "agreement_ratio": consensus.agreement_ratio,
+                            "summary": consensus.summary,
+                            "votes": {v.source: {"dir": v.direction, "strength": v.strength,
+                                                  "reason": v.reason, "available": v.available}
+                                      for v in consensus.votes},
+                        }
                         log_step(f"Step 6/6 — suggestion: {suggestion.get('signal', '?')} "
                                  f"(confidence={suggestion.get('confidence', 0):.2%})")
 
