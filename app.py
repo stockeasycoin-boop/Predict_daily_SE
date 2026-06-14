@@ -446,7 +446,7 @@ with tab1:
                         log_step(f"Step 2/6 — loaded {len(nifty_5min)} cached 5-min candles")
                     if (nifty_5min is None or len(nifty_5min) < 100) and breeze:
                         from data_fetcher import fetch_intraday_chunked
-                        nifty_5min = fetch_intraday_chunked(breeze, "NIFTY", total_days=60, chunk_days=55)
+                        nifty_5min = fetch_intraday_chunked(breeze, "NIFTY", total_days=60, chunk_days=12)
                         log_step(f"Step 2/6 — fetched {len(nifty_5min) if nifty_5min is not None else 0} candles from API")
 
                     nifty_df = df_mod.load_nifty_data(breeze, force_refresh=run_btn)
@@ -1298,14 +1298,14 @@ with tab2:
                                     _ld = _ist2.localize(_ld)
                                 _gd = (datetime.now(_ist2) - _ld).days
                                 if _gd > 1:
-                                    _nd = df_mod.fetch_intraday_chunked(_breeze_lm, "NIFTY", total_days=_gd + 2, chunk_days=55)
+                                    _nd = df_mod.fetch_intraday_chunked(_breeze_lm, "NIFTY", total_days=_gd + 2, chunk_days=12)
                                     if _nd is not None and len(_nd) > 0:
                                         _df5 = pd.concat([_df5, _nd], ignore_index=True)
                                         _df5 = _df5.drop_duplicates(subset=["date"]).sort_values("date").reset_index(drop=True)
                                         _c5.parent.mkdir(parents=True, exist_ok=True)
                                         _df5.to_csv(_c5, index=False)
                         elif _breeze_lm is not None:
-                            _df5 = df_mod.fetch_intraday_chunked(_breeze_lm, "NIFTY", total_days=730, chunk_days=55)
+                            _df5 = df_mod.fetch_intraday_chunked(_breeze_lm, "NIFTY", total_days=730, chunk_days=12)
                             if _df5 is not None and len(_df5) > 0:
                                 _c5.parent.mkdir(parents=True, exist_ok=True)
                                 _df5.to_csv(_c5, index=False)
@@ -2186,7 +2186,7 @@ with tab4:
                     log_step(f"Step 2/7 -- cache up to date, {len(_existing_5min)} candles")
                 else:
                     status_box.info(f"Step 2/7 -- Cache has {len(_existing_5min):,} candles, gap: {_gap} days. Fetching missing data...")
-                    _new_5min = df_mod.fetch_intraday_chunked(breeze3, "NIFTY", total_days=_gap + 2, chunk_days=55)
+                    _new_5min = df_mod.fetch_intraday_chunked(breeze3, "NIFTY", total_days=_gap + 2, chunk_days=12)
                     if _new_5min is not None and len(_new_5min) > 0:
                         _existing_5min = pd.concat([_existing_5min, _new_5min], ignore_index=True)
                         _existing_5min = _existing_5min.drop_duplicates(subset=["date"]).sort_values("date").reset_index(drop=True)
@@ -2194,7 +2194,7 @@ with tab4:
                         log_step(f"Step 2/7 -- appended {len(_new_5min)} candles, total {len(_existing_5min)}")
             else:
                 status_box.info("Step 2/7 -- No cache found. Full 2-year fetch (this takes a few minutes on first run)...")
-                _existing_5min = df_mod.fetch_intraday_chunked(breeze3, "NIFTY", total_days=730, chunk_days=55)
+                _existing_5min = df_mod.fetch_intraday_chunked(breeze3, "NIFTY", total_days=730, chunk_days=12)
                 if _existing_5min is not None and len(_existing_5min) > 0:
                     _existing_5min.to_csv(_cache_file, index=False)
                     log_step(f"Step 2/7 -- fetched {len(_existing_5min)} candles")
