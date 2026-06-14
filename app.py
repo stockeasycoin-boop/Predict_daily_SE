@@ -506,7 +506,7 @@ with tab1:
                         model_vote = sa.vote_from_model(preds)
                         log_step(f"Model: {model_vote.reason}")
 
-                        # 2) GIFT Nifty vote
+                        # 2) GIFT Nifty vote (live → historical fallback)
                         gift_live    = None
                         gift_status  = "unavailable"
                         gift_gap_pct = 0.0
@@ -517,11 +517,25 @@ with tab1:
                                     gift_status = "live"
                             except Exception:
                                 pass
+                        if gift_live is None or gift_live <= 0:
+                            try:
+                                from pathlib import Path as _PG
+                                _gift_csv = _PG("data/gift_nifty.csv")
+                                if not _gift_csv.exists() and breeze:
+                                    df_mod.load_gift_nifty_data(breeze, force_refresh=True)
+                                if _gift_csv.exists():
+                                    _gift_hist = pd.read_csv(_gift_csv, parse_dates=["date"])
+                                    if len(_gift_hist) > 0:
+                                        gift_live = float(_gift_hist["gift_close"].iloc[-1])
+                                        gift_status = "historical"
+                                        log_step(f"GIFT live unavailable — using last cached: ₹{gift_live:,.0f} ({_gift_hist['date'].iloc[-1].date()})")
+                            except Exception:
+                                pass
                         prev_close = float(nifty_df["close"].iloc[-1]) if nifty_df is not None and len(nifty_df) > 0 else spot
                         gift_vote = sa.vote_from_gift(gift_live, prev_close)
-                        if gift_status == "live" and spot:
+                        if gift_live and gift_live > 0 and prev_close:
                             gift_gap_pct = (gift_live - prev_close) / prev_close * 100
-                        log_step(f"GIFT: {gift_vote.reason}")
+                        log_step(f"GIFT ({gift_status}): {gift_vote.reason}")
 
                         st.session_state["gift_live"]    = gift_live
                         st.session_state["gift_gap_pct"] = gift_gap_pct
