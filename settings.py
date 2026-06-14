@@ -84,7 +84,7 @@ for _d in [DATA_DIR, MODEL_DIR, BASE_DIR / "trades"]:
 # How many calendar days of history to fetch for model training.
 # 5475 ≈ 15 years ≈ ~3750 trading days (removing weekends + holidays).
 # Stooq and tvDatafeed support up to 20+ years for Nifty.
-# Breeze API is limited to ~2 years — used only for live top-up.
+# Breeze API: ~2 years daily, ~2 years intraday (chunked 1000 candles/request).
 # Increase this freely; more data = better model on longer market cycles.
 TRAINING_DAYS      = 5475   # ~15 years
 TRAINING_DAYS_VIX  = 5475   # VIX data available since 2008 (~17 years)
@@ -102,7 +102,7 @@ OPTUNA_TRIALS         = 60      # Hyperparameter search trials (more = better, s
 # INTRADAY FEATURE SETTINGS
 # ─────────────────────────────────────────────────────────────────────────────
 INTRADAY_INTERVAL     = "5minute"   # Breeze interval for intraday candles
-INTRADAY_DAYS_BACK    = 5           # How many past days of intraday to fetch for features
+INTRADAY_DAYS_BACK    = 730         # Calendar days of intraday to cache (incrementally updated)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # INSTRUMENTS TO FETCH FROM BREEZE

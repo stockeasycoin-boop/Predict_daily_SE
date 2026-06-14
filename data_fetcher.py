@@ -50,15 +50,28 @@ def init_breeze(api_key: str, api_secret: str, session_token: str):
 # INTERNAL — raw historical fetch with retry
 # ─────────────────────────────────────────────────────────────────────────────
 
-def _breeze_hist(breeze, stock_code: str, interval: str = "1day",
-                 days: int = 730, retries: int = 2) -> pd.DataFrame | None:
-    """
-    Generic Breeze historical data fetch.
-    Breeze caps at ~730 days for daily data, ~60 days for intraday.
-    """
-    days  = min(days, 730) if interval == "1day" else min(days, 60)
-    end   = datetime.now()
-    start = end - timedelta(days=days)
+_BREEZE_MAX_CANDLES = 1000
+
+def _parse_breeze_response(resp: dict, interval: str) -> pd.DataFrame | None:
+    if resp.get("Status") == 200 and resp.get("Success"):
+        df = pd.DataFrame(resp["Success"])
+        df["datetime_raw"] = pd.to_datetime(df["datetime"])
+        if interval == "1day":
+            df["date"] = df["datetime_raw"].dt.normalize()
+        else:
+            df["date"] = df["datetime_raw"]
+        for col in ["open", "high", "low", "close"]:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+        df["volume"] = pd.to_numeric(
+            df.get("volume", 0), errors="coerce").fillna(0)
+        cols = ["date", "open", "high", "low", "close", "volume"]
+        return df[cols].dropna(subset=["open", "close"])
+    return None
+
+
+def _breeze_single_request(breeze, stock_code: str, interval: str,
+                           start: datetime, end: datetime,
+                           retries: int = 2) -> pd.DataFrame | None:
     for attempt in range(retries + 1):
         try:
             resp = breeze.get_historical_data_v2(
@@ -69,26 +82,61 @@ def _breeze_hist(breeze, stock_code: str, interval: str = "1day",
                 exchange_code="NSE",
                 product_type="cash",
             )
-            if resp.get("Status") == 200 and resp.get("Success"):
-                df = pd.DataFrame(resp["Success"])
-                df["datetime_raw"] = pd.to_datetime(df["datetime"])
-                if interval == "1day":
-                    df["date"] = df["datetime_raw"].dt.normalize()
-                else:
-                    df["date"] = df["datetime_raw"]   # keep full timestamp for intraday
-                for col in ["open", "high", "low", "close"]:
-                    df[col] = pd.to_numeric(df[col], errors="coerce")
-                df["volume"] = pd.to_numeric(
-                    df.get("volume", 0), errors="coerce").fillna(0)
-                cols = ["date","open","high","low","close","volume"]
-                df = df[cols].dropna(subset=["open","close"])
-                return df.sort_values("date").reset_index(drop=True)
+            df = _parse_breeze_response(resp, interval)
+            if df is not None:
+                return df
         except Exception as e:
             if attempt < retries:
                 time.sleep(1)
             else:
                 print(f"[Breeze] {stock_code} ({interval}) failed: {e}")
     return None
+
+
+def _breeze_hist(breeze, stock_code: str, interval: str = "1day",
+                 days: int = 730, retries: int = 2) -> pd.DataFrame | None:
+    """
+    Generic Breeze historical data fetch.
+    Daily data uses a single request (API returns up to 730 days).
+    Intraday uses chunked requests (API caps at 1000 candles/request).
+    """
+    end = datetime.now()
+    start = end - timedelta(days=min(days, 730))
+
+    if interval == "1day":
+        return _breeze_single_request(breeze, stock_code, interval,
+                                      start, end, retries)
+
+    return _breeze_hist_chunked(breeze, stock_code, interval,
+                                start, end, retries)
+
+
+def _breeze_hist_chunked(breeze, stock_code: str, interval: str,
+                         start: datetime, end: datetime,
+                         retries: int = 2) -> pd.DataFrame | None:
+    """
+    Fetch intraday data in small chunks to stay under the 1000-candle
+    per-request limit.  15 calendar days ~ 10 trading days ~ 750 candles.
+    """
+    chunk_days = 15
+    all_chunks = []
+    current = start
+
+    while current < end:
+        chunk_end = min(current + timedelta(days=chunk_days), end)
+        df = _breeze_single_request(breeze, stock_code, interval,
+                                    current, chunk_end, retries)
+        if df is not None and len(df) > 0:
+            all_chunks.append(df)
+        current = chunk_end
+        time.sleep(0.5)
+
+    if not all_chunks:
+        return None
+
+    merged = pd.concat(all_chunks, ignore_index=True)
+    merged = merged.drop_duplicates(subset=["date"]).sort_values("date")
+    return merged.reset_index(drop=True)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -116,26 +164,29 @@ def fetch_vix_breeze(breeze, days: int = 730) -> pd.DataFrame | None:
 # 2. INTRADAY 5-MIN CANDLES  (last N trading days)
 # ─────────────────────────────────────────────────────────────────────────────
 
+def _filter_market_hours(df: pd.DataFrame) -> pd.DataFrame:
+    """Keep only 9:15 AM - 15:30 PM IST candles."""
+    mask = (
+        ((df["date"].dt.hour > 9) |
+         ((df["date"].dt.hour == 9) & (df["date"].dt.minute >= 15))) &
+        ((df["date"].dt.hour < 15) |
+         ((df["date"].dt.hour == 15) & (df["date"].dt.minute <= 30)))
+    )
+    return df[mask].reset_index(drop=True)
+
+
 def fetch_intraday_breeze(breeze, stock_code: str = "NIFTY",
-                          days_back: int = 60) -> pd.DataFrame | None:
+                          days_back: int = 730) -> pd.DataFrame | None:
     """
     Fetch 5-minute intraday candles for the past `days_back` calendar days.
-    Breeze caps at 60 days for intraday data.
-    Returns DataFrame with columns: date (timestamp), open, high, low, close, volume
+    Uses chunked requests to fetch up to 2 years of data.
     """
-    df = _breeze_hist(breeze, stock_code, "5minute", min(days_back, 60))
-    if df is not None:
-        # Keep only market hours: 9:15 to 15:30 IST
-        df = df[
-            (df["date"].dt.hour > 9) |
-            ((df["date"].dt.hour == 9) & (df["date"].dt.minute >= 15))
-        ]
-        df = df[
-            (df["date"].dt.hour < 15) |
-            ((df["date"].dt.hour == 15) & (df["date"].dt.minute <= 30))
-        ]
-        print(f"[Breeze] Intraday {stock_code} 5min: {len(df)} candles "
-              f"({df['date'].dt.date.min()} → {df['date'].dt.date.max()})")
+    df = _breeze_hist(breeze, stock_code, "5minute", days_back)
+    if df is not None and len(df) > 0:
+        df = _filter_market_hours(df)
+        if len(df) > 0:
+            print(f"[Breeze] Intraday {stock_code} 5min: {len(df)} candles "
+                  f"({df['date'].dt.date.min()} -> {df['date'].dt.date.max()})")
     return df
 
 
@@ -303,21 +354,38 @@ def load_nifty_data(breeze=None, force_refresh: bool = False,
     if days is None: days = TRAINING_DAYS
     cache = DATA_DIR / "nifty_ohlcv.csv"
 
-    if cache.exists() and not force_refresh:
-        age = (datetime.now().timestamp() - cache.stat().st_mtime) / 3600
-        if age < 8:
-            df = pd.read_csv(cache, parse_dates=["date"])
-            print(f"[Cache] Nifty: {len(df)} rows")
-            return df.sort_values("date").reset_index(drop=True)
+    cached_df = None
+    if cache.exists():
+        cached_df = pd.read_csv(cache, parse_dates=["date"])
+        if not force_refresh:
+            last_cached = cached_df["date"].max()
+            hours_since = (datetime.now() - last_cached).total_seconds() / 3600
+            if hours_since < 8:
+                print(f"[Cache] Nifty: {len(cached_df)} rows (fresh)")
+                return cached_df.sort_values("date").reset_index(drop=True)
 
     if breeze is None:
-        print("[Nifty] No Breeze session — cannot fetch data without API connection.")
-        # Return from cache even if stale
-        if cache.exists():
-            df = pd.read_csv(cache, parse_dates=["date"])
-            print(f"[Cache] Using stale cache: {len(df)} rows")
-            return df.sort_values("date").reset_index(drop=True)
+        if cached_df is not None:
+            print(f"[Cache] Using stale cache: {len(cached_df)} rows")
+            return cached_df.sort_values("date").reset_index(drop=True)
+        print("[Nifty] No Breeze session and no cache.")
         return None
+
+    if cached_df is not None and not force_refresh and len(cached_df) > 0:
+        last_date = cached_df["date"].max()
+        gap_days = (datetime.now() - last_date).days + 1
+        if gap_days <= 1:
+            return cached_df.sort_values("date").reset_index(drop=True)
+        print(f"[Breeze] Nifty incremental: {gap_days} days since {last_date.date()}")
+        new_df = fetch_nifty_breeze(breeze, gap_days)
+        if new_df is not None and len(new_df) > 0:
+            merged = pd.concat([cached_df, new_df], ignore_index=True)
+            merged = merged.drop_duplicates(subset=["date"]).sort_values("date")
+            merged = merged.reset_index(drop=True)
+            merged.to_csv(cache, index=False)
+            print(f"[Cache] Nifty: updated {len(cached_df)} -> {len(merged)} rows")
+            return merged
+        return cached_df.sort_values("date").reset_index(drop=True)
 
     df = fetch_nifty_breeze(breeze, days)
     if df is not None:
@@ -329,15 +397,33 @@ def load_vix_data(breeze=None, force_refresh: bool = False) -> pd.DataFrame | No
     from settings import DATA_DIR, TRAINING_DAYS
     cache = DATA_DIR / "india_vix.csv"
 
-    if cache.exists() and not force_refresh:
-        age = (datetime.now().timestamp() - cache.stat().st_mtime) / 3600
-        if age < 8:
-            return pd.read_csv(cache, parse_dates=["date"])
+    cached_df = None
+    if cache.exists():
+        cached_df = pd.read_csv(cache, parse_dates=["date"])
+        if not force_refresh:
+            last_cached = cached_df["date"].max()
+            hours_since = (datetime.now() - last_cached).total_seconds() / 3600
+            if hours_since < 8:
+                return cached_df.sort_values("date").reset_index(drop=True)
 
     if breeze is None:
-        if cache.exists():
-            return pd.read_csv(cache, parse_dates=["date"])
+        if cached_df is not None:
+            return cached_df.sort_values("date").reset_index(drop=True)
         return None
+
+    if cached_df is not None and not force_refresh and len(cached_df) > 0:
+        last_date = cached_df["date"].max()
+        gap_days = (datetime.now() - last_date).days + 1
+        if gap_days <= 1:
+            return cached_df.sort_values("date").reset_index(drop=True)
+        new_df = fetch_vix_breeze(breeze, gap_days)
+        if new_df is not None and len(new_df) > 0:
+            merged = pd.concat([cached_df, new_df], ignore_index=True)
+            merged = merged.drop_duplicates(subset=["date"]).sort_values("date")
+            merged = merged.reset_index(drop=True)
+            merged.to_csv(cache, index=False)
+            return merged
+        return cached_df.sort_values("date").reset_index(drop=True)
 
     df = fetch_vix_breeze(breeze, TRAINING_DAYS)
     if df is not None:
@@ -346,50 +432,101 @@ def load_vix_data(breeze=None, force_refresh: bool = False) -> pd.DataFrame | No
 
 
 def load_intraday_data(breeze=None, force_refresh: bool = False,
-                       stock_code: str = "NIFTY") -> pd.DataFrame | None:
-    """Load intraday 5-min candles. Re-fetched daily (stale after 8hrs)."""
-    from settings import DATA_DIR, INTRADAY_DAYS_BACK
+                       stock_code: str = "NIFTY",
+                       days_back: int = 730) -> pd.DataFrame | None:
+    """
+    Load intraday 5-min candles with incremental caching.
+
+    First call fetches the full history (up to `days_back` calendar days).
+    Subsequent calls only fetch the gap since the last cached date and
+    append to the existing cache file, avoiding redundant API calls.
+    """
+    from settings import DATA_DIR
     cache = DATA_DIR / f"intraday_{stock_code.lower()}.csv"
 
-    if cache.exists() and not force_refresh:
-        age = (datetime.now().timestamp() - cache.stat().st_mtime) / 3600
-        if age < 8:
-            df = pd.read_csv(cache, parse_dates=["date"])
-            return df
+    cached_df = None
+    if cache.exists():
+        cached_df = pd.read_csv(cache, parse_dates=["date"])
+        if not force_refresh:
+            last_cached = cached_df["date"].max()
+            hours_since = (datetime.now() - last_cached).total_seconds() / 3600
+            if hours_since < 8:
+                print(f"[Cache] Intraday {stock_code}: {len(cached_df)} candles "
+                      f"(fresh, last={last_cached.date()})")
+                return cached_df.sort_values("date").reset_index(drop=True)
 
     if breeze is None:
-        if cache.exists():
-            return pd.read_csv(cache, parse_dates=["date"])
+        if cached_df is not None:
+            return cached_df.sort_values("date").reset_index(drop=True)
         return None
 
-    df = fetch_intraday_breeze(breeze, stock_code, days_back=60)
-    if df is not None:
+    if cached_df is not None and not force_refresh and len(cached_df) > 0:
+        last_date = cached_df["date"].max()
+        gap_days = (datetime.now() - last_date).days + 1
+        if gap_days <= 1:
+            return cached_df.sort_values("date").reset_index(drop=True)
+        print(f"[Breeze] Incremental fetch: {gap_days} days since {last_date.date()}")
+        new_df = fetch_intraday_breeze(breeze, stock_code, days_back=gap_days)
+        if new_df is not None and len(new_df) > 0:
+            merged = pd.concat([cached_df, new_df], ignore_index=True)
+            merged = merged.drop_duplicates(subset=["date"]).sort_values("date")
+            merged = merged.reset_index(drop=True)
+            merged.to_csv(cache, index=False)
+            print(f"[Cache] Intraday {stock_code}: updated {len(cached_df)} -> "
+                  f"{len(merged)} candles")
+            return merged
+        return cached_df.sort_values("date").reset_index(drop=True)
+
+    df = fetch_intraday_breeze(breeze, stock_code, days_back=days_back)
+    if df is not None and len(df) > 0:
         df.to_csv(cache, index=False)
+        print(f"[Cache] Intraday {stock_code}: saved {len(df)} candles")
     return df
 
 
 def load_correlated_data(breeze=None,
                          force_refresh: bool = False) -> dict[str, pd.DataFrame]:
-    """Load Bank Nifty + sector indices. Returns dict {symbol: df}."""
+    """Load Bank Nifty + sector indices with incremental caching."""
     from settings import DATA_DIR, TRAINING_DAYS, CORRELATED_INSTRUMENTS
     result = {}
 
     for sym in CORRELATED_INSTRUMENTS:
         cache = DATA_DIR / f"corr_{sym.lower()}.csv"
 
-        if cache.exists() and not force_refresh:
-            age = (datetime.now().timestamp() - cache.stat().st_mtime) / 3600
-            if age < 8:
-                result[sym] = pd.read_csv(cache, parse_dates=["date"])
-                continue
+        cached_df = None
+        if cache.exists():
+            cached_df = pd.read_csv(cache, parse_dates=["date"])
+            if not force_refresh:
+                last_cached = cached_df["date"].max()
+                hours_since = (datetime.now() - last_cached).total_seconds() / 3600
+                if hours_since < 8:
+                    result[sym] = cached_df.sort_values("date").reset_index(drop=True)
+                    continue
 
         if breeze is not None:
+            if cached_df is not None and not force_refresh and len(cached_df) > 0:
+                last_date = cached_df["date"].max()
+                gap_days = (datetime.now() - last_date).days + 1
+                if gap_days <= 1:
+                    result[sym] = cached_df.sort_values("date").reset_index(drop=True)
+                    continue
+                new_df = _breeze_hist(breeze, sym, "1day", gap_days)
+                if new_df is not None and len(new_df) > 0:
+                    merged = pd.concat([cached_df, new_df], ignore_index=True)
+                    merged = merged.drop_duplicates(subset=["date"]).sort_values("date")
+                    merged = merged.reset_index(drop=True)
+                    merged.to_csv(cache, index=False)
+                    result[sym] = merged
+                    continue
+                result[sym] = cached_df.sort_values("date").reset_index(drop=True)
+                continue
+
             df = _breeze_hist(breeze, sym, "1day", min(TRAINING_DAYS, 730))
             if df is not None and len(df) > 30:
                 df.to_csv(cache, index=False)
                 result[sym] = df
-        elif cache.exists():
-            result[sym] = pd.read_csv(cache, parse_dates=["date"])
+        elif cached_df is not None:
+            result[sym] = cached_df.sort_values("date").reset_index(drop=True)
 
     return result
 
