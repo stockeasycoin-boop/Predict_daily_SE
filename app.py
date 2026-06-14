@@ -1399,10 +1399,54 @@ with tab2:
 
                             if _n_flat > 0:
                                 st.caption(f"{_n_flat} prediction(s) were flat (move < 5 pts, not counted in accuracy).")
-                            st.info("Market is closed. Predictions will resume on the next trading day.")
-                            return
-                    # No history at all — show a simple message
-                    st.info("Market is closed. No prediction history to show yet. Train the model and run during market hours to see predictions.")
+
+                    # ── Show predictions on last available cached data ────────
+                    st.markdown("---")
+                    st.markdown("### 🔮 Model predictions (last available data)")
+                    from pathlib import Path as _PLM
+                    _c5_closed = _PLM("data/nifty_5min_2yr.csv")
+                    if _c5_closed.exists() and ip.intraday_models_exist(str(cfg.MODEL_DIR)):
+                        _df5_closed = pd.read_csv(_c5_closed, parse_dates=["date"])
+                        _last_date_closed = _df5_closed["date"].dt.date.max()
+                        _preds_closed = ip.predict_all_horizons(_df5_closed, str(cfg.MODEL_DIR))
+                        _err_closed = _preds_closed.pop("error", None)
+                        _anchor_closed = _preds_closed.pop("_anchor_price", 0)
+                        _preds_closed.pop("_last_candle_time", None)
+                        _preds_closed.pop("_last_candle_date", None)
+                        _preds_closed.pop("_minutes_elapsed", None)
+                        _preds_closed.pop("_minutes_remaining", None)
+                        _preds_closed.pop("_candle_close", None)
+                        _preds_closed.pop("_stale_data", None)
+
+                        if _err_closed:
+                            st.warning(f"Could not generate predictions: {_err_closed}")
+                        else:
+                            st.caption(f"Based on cached data up to **{_last_date_closed}** | "
+                                       f"Anchor price: ₹{_anchor_closed:,.2f}")
+                            _hz_order_closed = ["5min","15min","30min","60min","120min","180min","close"]
+                            for _hz_c in _hz_order_closed:
+                                if _hz_c not in _preds_closed:
+                                    continue
+                                _p = _preds_closed[_hz_c]
+                                _dir_c = _p.get("direction", 0)
+                                _conf_c = _p.get("confidence", 0)
+                                _target_c = _p.get("target_price", 0)
+                                _move_c = _p.get("predicted_move_pct", 0)
+                                _dir_icon = "🟢 Bullish" if _dir_c == 1 else "🔴 Bearish"
+                                _border = "#27500A" if _dir_c == 1 else "#A32D2D"
+                                _hz_lbl = _hz_labels.get(_hz_c, _hz_c)
+                                st.markdown(
+                                    f"<div style='border:1px solid var(--color-border-tertiary);border-left:4px solid {_border};"
+                                    f"border-radius:10px;padding:12px 16px;margin-bottom:8px;background:var(--color-background-primary)'>"
+                                    f"<div style='display:flex;align-items:center;gap:14px;flex-wrap:wrap'>"
+                                    f"<span style='font-size:14px;font-weight:600;min-width:80px'>{_hz_lbl}</span>"
+                                    f"<span style='font-size:13px'>{_dir_icon}</span>"
+                                    f"<span style='font-size:13px;color:var(--color-text-secondary)'>{_conf_c:.0%} conf</span>"
+                                    f"<span style='font-size:13px'>Target: ₹{_target_c:,.0f}</span>"
+                                    f"<span style='margin-left:auto;font-size:12px;color:var(--color-text-secondary)'>{_move_c:+.2f}%</span>"
+                                    f"</div></div>", unsafe_allow_html=True)
+                    else:
+                        st.info("No cached data or models not trained yet. Train the model to see predictions.")
                     return
 
                 # ── LIVE MARKET FLOW ──────────────────────────────────────────
