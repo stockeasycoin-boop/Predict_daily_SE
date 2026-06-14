@@ -1263,14 +1263,43 @@ with tab2:
         if not ip.intraday_models_exist(str(cfg.MODEL_DIR)):
             st.warning("⚠️ Intraday models not trained yet.")
             if st.button("🚀 Train intraday models now", type="primary"):
-                with st.spinner("Fetching 60 days of 5-min candles + training 7 calibrated models… (~3 min)"):
+                with st.spinner("Loading 2-year 5-min data (incremental) + training 7 calibrated models..."):
                     try:
-                        _df5 = df_mod.load_intraday_data(_breeze_lm, force_refresh=True)
+                        from pathlib import Path as _P
+                        _c5 = _P("data/nifty_5min_2yr.csv")
+                        _df5 = None
+                        if _c5.exists():
+                            _df5 = pd.read_csv(_c5, parse_dates=["date"])
+                            # Incremental: fetch gap days and append
+                            if _breeze_lm is not None:
+                                import pytz as _pz
+                                _ist2 = _pz.timezone("Asia/Kolkata")
+                                _ld = _df5["date"].max()
+                                if hasattr(_ld, 'to_pydatetime'):
+                                    _ld = _ld.to_pydatetime()
+                                if _ld.tzinfo is None:
+                                    _ld = _ist2.localize(_ld)
+                                _gd = (datetime.now(_ist2) - _ld).days
+                                if _gd > 1:
+                                    _nd = df_mod.fetch_intraday_chunked(_breeze_lm, "NIFTY", total_days=_gd + 2, chunk_days=55)
+                                    if _nd is not None and len(_nd) > 0:
+                                        _df5 = pd.concat([_df5, _nd], ignore_index=True)
+                                        _df5 = _df5.drop_duplicates(subset=["date"]).sort_values("date").reset_index(drop=True)
+                                        _c5.parent.mkdir(parents=True, exist_ok=True)
+                                        _df5.to_csv(_c5, index=False)
+                        elif _breeze_lm is not None:
+                            _df5 = df_mod.fetch_intraday_chunked(_breeze_lm, "NIFTY", total_days=730, chunk_days=55)
+                            if _df5 is not None and len(_df5) > 0:
+                                _c5.parent.mkdir(parents=True, exist_ok=True)
+                                _df5.to_csv(_c5, index=False)
+                        else:
+                            _df5 = df_mod.load_intraday_data(_breeze_lm, force_refresh=True)
+
                         if _df5 is None or len(_df5) < 200:
                             st.error("Not enough 5-min data. Connect Breeze session token and retry.")
                         else:
                             _res = ip.train_intraday_models(_df5, str(cfg.MODEL_DIR), verbose=False)
-                            st.success(f"Trained {len(_res)} calibrated horizon models! Refresh to see predictions.")
+                            st.success(f"Trained {len(_res)} calibrated horizon models on {len(_df5):,} candles! Refresh to see predictions.")
                             st.rerun()
                     except Exception as _te:
                         st.error(f"Training failed: {_te}")
@@ -2002,14 +2031,15 @@ with tab4:
 
     # ── Training execution ─────────────────────────────────────────────────
     if train_btn:
-        log_step("🚂 Train model — clicked")
-        progress_bar = st.progress(0, text="Starting…")
+        log_step("Train model -- clicked (2-year 5-min intraday pipeline)")
+        progress_bar = st.progress(0, text="Starting...")
         status_box   = st.empty()
 
         try:
-            status_box.info("Step 1/5 — Reading credentials…")
-            progress_bar.progress(10, text="Reading credentials…")
-            log_step("Step 1/5 — reading credentials…")
+            # Step 1: Connect to Breeze
+            status_box.info("Step 1/7 -- Reading credentials...")
+            progress_bar.progress(5, text="Reading credentials...")
+            log_step("Step 1/7 -- reading credentials...")
 
             saved_s   = load_settings()
             api_key3  = saved_s.get("api_key", getattr(cfg, "BREEZE_API_KEY", ""))
@@ -2019,88 +2049,190 @@ with tab4:
             breeze3 = None
             if ses_tok3 and api_key3 and api_key3 not in ("", "YOUR_API_KEY_HERE"):
                 try:
-                    log_step("Step 1/5 — connecting to Breeze API…")
                     breeze3 = df_mod.init_breeze(api_key3, api_sec3, ses_tok3)
-                    log_step("Step 1/5 — Breeze API connected ✅")
-                    status_box.info("Step 1/5 — Breeze API connected ✅")
+                    status_box.info("Step 1/7 -- Breeze API connected")
+                    log_step("Step 1/7 -- Breeze connected")
                 except Exception as be:
-                    log_step(f"Breeze unavailable ({be}), using Stooq backup", "warning")
-                    status_box.warning(f"Breeze unavailable ({be}), using Stooq backup…")
+                    progress_bar.empty()
+                    status_box.error(f"Breeze connection failed: {be}. A valid session token is required for 2-year intraday training.")
+                    st.stop()
             else:
-                log_step("Step 1/5 — no Breeze token, using Stooq for data")
-                status_box.info("Step 1/5 — No Breeze session token. Using Stooq for data…")
-
-            progress_bar.progress(20, text="Downloading Nifty data…")
-            status_box.info("Step 2/5 — Downloading Nifty OHLCV data…")
-            log_step("Step 2/5 — downloading Nifty OHLCV data…")
-            nifty3 = df_mod.load_nifty_data(breeze3, force_refresh=True)  # uses TRAINING_DAYS from settings
-
-            if nifty3 is None or len(nifty3) < 100:
-                log_step("Step 2/5 — could not load Nifty data", "error")
                 progress_bar.empty()
-                status_box.error(
-                    "❌ Could not load Nifty data. "
-                    "Check your internet connection. "
-                    "If Breeze is not configured, Stooq is used as fallback — "
-                    "make sure you have an internet connection."
-                )
+                status_box.error("Breeze API key and session token are required for 2-year intraday training. Configure them in Settings.")
+                st.stop()
+
+            # Step 2: Incremental 5-min data fetch (2 years)
+            from pathlib import Path as _Path
+            _cache_file = _Path("data/nifty_5min_2yr.csv")
+            _cache_file.parent.mkdir(parents=True, exist_ok=True)
+
+            progress_bar.progress(10, text="Fetching 2-year 5-min intraday data...")
+            status_box.info("Step 2/7 -- Fetching 2-year 5-min intraday candles (incremental, cached data preserved)...")
+            log_step("Step 2/7 -- incremental 5-min fetch starting...")
+
+            import pytz as _pytz
+            _ist = _pytz.timezone("Asia/Kolkata")
+            _now_ist = datetime.now(_ist)
+            _existing_5min = None
+
+            if _cache_file.exists():
+                _existing_5min = pd.read_csv(_cache_file, parse_dates=["date"])
+                _last_dt = _existing_5min["date"].max()
+                if hasattr(_last_dt, 'to_pydatetime'):
+                    _last_dt = _last_dt.to_pydatetime()
+                if _last_dt.tzinfo is None:
+                    _last_dt = _ist.localize(_last_dt)
+                _gap = (_now_ist - _last_dt).days
+                if _gap <= 1:
+                    status_box.info(f"Step 2/7 -- Cache up to date ({len(_existing_5min):,} candles). Skipping fetch.")
+                    log_step(f"Step 2/7 -- cache up to date, {len(_existing_5min)} candles")
+                else:
+                    status_box.info(f"Step 2/7 -- Cache has {len(_existing_5min):,} candles, gap: {_gap} days. Fetching missing data...")
+                    _new_5min = df_mod.fetch_intraday_chunked(breeze3, "NIFTY", total_days=_gap + 2, chunk_days=55)
+                    if _new_5min is not None and len(_new_5min) > 0:
+                        _existing_5min = pd.concat([_existing_5min, _new_5min], ignore_index=True)
+                        _existing_5min = _existing_5min.drop_duplicates(subset=["date"]).sort_values("date").reset_index(drop=True)
+                        _existing_5min.to_csv(_cache_file, index=False)
+                        log_step(f"Step 2/7 -- appended {len(_new_5min)} candles, total {len(_existing_5min)}")
             else:
-                log_step(f"Step 2/5 — Nifty data loaded ({len(nifty3)} rows)")
-                progress_bar.progress(40, text="Downloading VIX & global data…")
-                status_box.info("Step 3/5 — Downloading India VIX and global cues…")
-                log_step("Step 3/5 — downloading VIX, global, FII/DII, GIFT, PCR…")
-                vix3    = df_mod.load_vix_data(breeze3, force_refresh=True)
-                global3 = df_mod.load_global_data(force_refresh=True)
-                fii3    = df_mod.load_fii_dii_data(force_refresh=True)
-                gift3   = df_mod.load_gift_data(force_refresh=True)
-                pcr3    = df_mod.load_pcr_data(force_refresh=True)
+                status_box.info("Step 2/7 -- No cache found. Full 2-year fetch (this takes a few minutes on first run)...")
+                _existing_5min = df_mod.fetch_intraday_chunked(breeze3, "NIFTY", total_days=730, chunk_days=55)
+                if _existing_5min is not None and len(_existing_5min) > 0:
+                    _existing_5min.to_csv(_cache_file, index=False)
+                    log_step(f"Step 2/7 -- fetched {len(_existing_5min)} candles")
 
-                progress_bar.progress(60, text="Building features...")
-                status_box.info("Step 4/5 — Computing 50+ technical indicators...")
-                log_step("Step 4/5 — building features…")
-                feat3 = fe.build_features(nifty3, vix3, global3, fii3, gift3, pcr3)
-                log_step(f"Step 4/5 — features built ({feat3.shape[0]}x{feat3.shape[1]})")
+            if _existing_5min is None or len(_existing_5min) < 200:
+                progress_bar.empty()
+                status_box.error("Not enough 5-min data. Check Breeze session token and retry.")
+                st.stop()
 
-                progress_bar.progress(75, text="Training XGBoost model…")
-                status_box.info(
-                    f"Step 5/5 — Training XGBoost on {len(feat3)} days of data… "
-                    f"(5-fold walk-forward CV)"
+            status_box.info(f"Step 2/7 -- {len(_existing_5min):,} five-minute candles ready")
+
+            # Step 3: Aggregate to daily
+            progress_bar.progress(25, text="Aggregating to daily bars...")
+            status_box.info("Step 3/7 -- Aggregating 5-min candles to daily OHLCV...")
+            log_step("Step 3/7 -- aggregating to daily...")
+
+            _intra_df = _existing_5min.copy()
+            _intra_df["trade_date"] = _intra_df["date"].dt.date
+            nifty3 = _intra_df.groupby("trade_date").agg(
+                open=("open", "first"), high=("high", "max"),
+                low=("low", "min"), close=("close", "last"),
+                volume=("volume", "sum"),
+            ).reset_index()
+            nifty3.rename(columns={"trade_date": "date"}, inplace=True)
+            nifty3["date"] = pd.to_datetime(nifty3["date"])
+            nifty3 = nifty3.sort_values("date").reset_index(drop=True)
+            log_step(f"Step 3/7 -- {len(nifty3)} trading days")
+
+            # Step 4: Download supplementary data (VIX, FII, sectors, etc.)
+            progress_bar.progress(35, text="Downloading VIX & supplementary data...")
+            status_box.info("Step 4/7 -- Downloading VIX, sectors, FII, GIFT, PCR...")
+            log_step("Step 4/7 -- supplementary data...")
+            vix3    = df_mod.load_vix_data(breeze3, force_refresh=True)
+            global3 = df_mod.load_global_data(force_refresh=True)
+            fii3    = df_mod.load_fii_dii_data(force_refresh=True)
+            gift3   = df_mod.load_gift_data(force_refresh=True)
+            pcr3    = df_mod.load_pcr_data(force_refresh=True)
+
+            _corr = {}
+            try:
+                _corr = df_mod.load_correlated_data(breeze3, force_refresh=True)
+            except Exception:
+                pass
+
+            # Step 5: Build features (daily + intraday patterns)
+            progress_bar.progress(50, text="Building features...")
+            status_box.info("Step 5/7 -- Building daily + intraday pattern features...")
+            log_step("Step 5/7 -- building features...")
+
+            feat3 = fe.build_features(nifty3, vix3, global3, fii3, gift3, pcr3,
+                                      intraday_df=df_mod.load_intraday_data(breeze3),
+                                      corr_dict=_corr)
+
+            # Add intraday pattern features from 5-min data
+            _df5 = _existing_5min.copy()
+            _df5["trade_date"] = _df5["date"].dt.date
+            _df5["hour"] = _df5["date"].dt.hour
+            for td, grp in _df5.groupby("trade_date"):
+                if len(grp) < 10:
+                    continue
+                _idx = feat3.index[feat3["date"].dt.date == td]
+                if len(_idx) == 0:
+                    continue
+                ix = _idx[0]
+                o, c = grp["open"].iloc[0], grp["close"].iloc[-1]
+                h, l = grp["high"].max(), grp["low"].min()
+                rng = max(h - l, 1)
+                fh = grp[(grp["hour"] == 9) | (grp["hour"] == 10)]
+                pw = grp[grp["hour"] >= 14]
+                if len(fh) > 0:
+                    feat3.loc[ix, "intra_first_hour_ret"] = (fh["close"].iloc[-1] / o - 1) * 100
+                if len(pw) > 0:
+                    feat3.loc[ix, "intra_power_hour_ret"] = (pw["close"].iloc[-1] / pw["open"].iloc[0] - 1) * 100
+                    feat3.loc[ix, "intra_power_vol_ratio"] = pw["volume"].sum() / max(grp["volume"].sum(), 1)
+                feat3.loc[ix, "intra_body_ratio"] = abs(c - o) / rng * 100
+                feat3.loc[ix, "intra_volatility"] = grp["close"].pct_change().dropna().std() * 100
+
+            for _ic in ["intra_first_hour_ret", "intra_power_hour_ret", "intra_power_vol_ratio",
+                        "intra_body_ratio", "intra_volatility"]:
+                if _ic in feat3.columns:
+                    feat3[_ic] = feat3[_ic].fillna(0)
+
+            log_step(f"Step 5/7 -- features built ({feat3.shape[0]}x{feat3.shape[1]})")
+
+            # Step 6: Train daily models
+            progress_bar.progress(65, text="Training daily models (XGB + LGB)...")
+            status_box.info(f"Step 6/7 -- Training XGBoost + LightGBM on {len(feat3)} days (Optuna + walk-forward CV)...")
+            log_step(f"Step 6/7 -- training daily models on {len(feat3)} rows...")
+            _, _, _, _, results = mt.train_model(feat3, model_dir_str, verbose=True, use_optuna=True)
+            log_step("Step 6/7 -- daily models trained")
+
+            # Step 7: Train intraday horizon models
+            progress_bar.progress(85, text="Training 7 intraday horizon models...")
+            status_box.info("Step 7/7 -- Training 7 intraday horizon models (5m/15m/30m/1h/2h/3h/close)...")
+            log_step("Step 7/7 -- training intraday horizon models...")
+            try:
+                _intra_res = ip.train_intraday_models(_existing_5min, str(cfg.MODEL_DIR), verbose=False)
+                _n_intra = len(_intra_res) if _intra_res else 0
+                log_step(f"Step 7/7 -- {_n_intra} intraday models trained")
+            except Exception as _ie:
+                _n_intra = 0
+                log_step(f"Step 7/7 -- intraday models skipped: {_ie}", "warning")
+
+            progress_bar.progress(100, text="Done!")
+
+            _td   = results.get("n_samples",  0)
+            _yrs  = round(_td / 252, 1)
+            _cv_o = results.get("cv_open",    results.get("cv_accuracy", 0))
+            _cv_c = results.get("cv_close",   results.get("cv_accuracy", 0))
+            _ens  = "XGB + LGB" if results.get("lgb_available") else "XGB only"
+            _opt  = results.get("optuna_trials", 0)
+            _candles = len(_existing_5min)
+            status_box.success(
+                f"Trained on **{_candles:,} five-min candles** ({_td:,} days / {_yrs} yrs) -- "
+                f"Open CV: **{_cv_o*100:.1f}%** | Close CV: **{_cv_c*100:.1f}%** | "
+                f"Ensemble: {_ens} | Optuna: {_opt} trials | "
+                f"Intraday models: {_n_intra}"
+            )
+
+            _best = max(_cv_o, _cv_c)
+            if _best < 0.52:
+                st.warning(
+                    "Accuracy below 52%. Markets may be in a choppy regime. "
+                    "Paper-trade first and monitor the 7-day rolling accuracy."
                 )
-                log_step(f"Step 5/5 — training models on {len(feat3)} rows (Optuna + walk-forward CV)…")
-                _, _, _, _, results = mt.train_model(feat3, model_dir_str, verbose=True, use_optuna=True)
-                log_step("Step 5/5 — training complete")
+            elif _best >= 0.60:
+                st.success("Accuracy above 60% -- model is ready for paper trading!")
 
-                progress_bar.progress(100, text="Done!")
-                # results is the metadata dict returned by train_model
-                _td   = results.get("n_samples",  0)
-                _yrs  = round(_td / 252, 1)
-                _cv_o = results.get("cv_open",    results.get("cv_accuracy", 0))
-                _cv_c = results.get("cv_close",   results.get("cv_accuracy", 0))
-                _ens  = "XGB + LGB" if results.get("lgb_available") else "XGB only"
-                _opt  = results.get("optuna_trials", 0)
-                status_box.success(
-                    f"✅ Trained on **{_td:,} days ({_yrs} yrs)** — "
-                    f"Open CV: **{_cv_o*100:.1f}%** | Close CV: **{_cv_c*100:.1f}%** | "
-                    f"Ensemble: {_ens} | Optuna: {_opt} trials"
-                )
-
-                _best = max(_cv_o, _cv_c)
-                if _best < 0.52:
-                    st.warning(
-                        "⚠️ Accuracy below 52%. Markets may be in a choppy regime. "
-                        "Paper-trade first and monitor the 7-day rolling accuracy."
-                    )
-                elif _best >= 0.60:
-                    st.success("🎯 Accuracy above 60% — model is ready for paper trading!")
-
-                st.cache_resource.clear()
-                st.rerun()
+            st.cache_resource.clear()
+            st.rerun()
 
         except Exception as e:
-            log.exception("❌ Training failed")
+            log.exception("Training failed")
             progress_bar.empty()
-            status_box.error(f"❌ Training failed: {e}")
-            st.exception(e)   # shows full traceback to help debug
+            status_box.error(f"Training failed: {e}")
+            st.exception(e)
 
     # ── Feature importance chart ───────────────────────────────────────────
     try:
