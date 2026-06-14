@@ -80,7 +80,7 @@ def _incremental_fetch(breeze, total_days: int = 730) -> pd.DataFrame:
             print(f"[Cache] Already up to date (last candle: {last_date.date()})")
             return existing
         print(f"[Incremental] Gap: {gap_days} days — fetching only missing data")
-        new_data = fetch_intraday_chunked(breeze, "NIFTY", total_days=gap_days + 2, chunk_days=55)
+        new_data = fetch_intraday_chunked(breeze, "NIFTY", total_days=gap_days + 2, chunk_days=12)
         if new_data is not None and len(new_data) > 0:
             combined = pd.concat([existing, new_data], ignore_index=True)
             combined = combined.drop_duplicates(subset=["date"]).sort_values("date").reset_index(drop=True)
@@ -91,7 +91,7 @@ def _incremental_fetch(breeze, total_days: int = 730) -> pd.DataFrame:
         return existing
     else:
         print(f"[Full Fetch] No cache found — fetching {total_days} days of 5-min data")
-        df = fetch_intraday_chunked(breeze, "NIFTY", total_days=total_days, chunk_days=55)
+        df = fetch_intraday_chunked(breeze, "NIFTY", total_days=total_days, chunk_days=12)
         if df is not None and len(df) > 0:
             CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
             df.to_csv(CACHE_FILE, index=False)
