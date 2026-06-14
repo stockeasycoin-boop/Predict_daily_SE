@@ -1310,6 +1310,83 @@ with tab2:
             def _render_live_predictions():
                 _breeze_f = st.session_state.get("breeze_obj")
 
+                # ── NON-TRADING DAY RECAP ─────────────────────────────────────
+                if not le.is_trading_day() or (not le.is_market_open() and datetime.now(le.IST).time() > le.MARKET_CLOSE):
+                    _hist_dates_recap = le.list_history_dates()
+                    _last_td = None
+                    for _hd in _hist_dates_recap:
+                        _last_td = _hd
+                        break
+                    if _last_td:
+                        _recap_df = le.get_daily_history(_last_td)
+                        if not _recap_df.empty:
+                            _verified = _recap_df[_recap_df["status"] != "Pending"]
+                            _n_correct = len(_verified[_verified["status"].str.contains("Correct", na=False)])
+                            _n_wrong = len(_verified[_verified["status"].str.contains("Wrong", na=False)])
+                            _n_flat = len(_verified[_verified["status"].str.contains("Flat", na=False)])
+                            _n_total = _n_correct + _n_wrong + _n_flat
+                            _acc_pct = (_n_correct / max(_n_correct + _n_wrong, 1)) * 100
+
+                            st.markdown(f"### Last trading day recap ({_last_td})")
+
+                            _rc1, _rc2, _rc3, _rc4 = st.columns(4)
+                            with _rc1:
+                                st.metric("Predictions", _n_total)
+                            with _rc2:
+                                st.metric("Correct", _n_correct)
+                            with _rc3:
+                                st.metric("Wrong", _n_wrong)
+                            with _rc4:
+                                st.metric("Accuracy", f"{_acc_pct:.0f}%" if _n_total > 0 else "--")
+
+                            st.markdown("#### How each prediction performed")
+                            _hz_order_recap = ["5min","15min","30min","60min","120min","180min","close"]
+                            for _hz_r in _hz_order_recap:
+                                _hz_rows = _recap_df[_recap_df.get("horizon", pd.Series(dtype=str)) == _hz_r] if "horizon" in _recap_df.columns else pd.DataFrame()
+                                if _hz_rows.empty:
+                                    continue
+                                for _, _rr in _hz_rows.iterrows():
+                                    _pred_dir = _rr.get("pred_dir", "?")
+                                    _status_r = _rr.get("status", "?")
+                                    _entry_r = _rr.get("entry_price", 0)
+                                    _target_r = _rr.get("target_price", 0)
+                                    _actual_r = _rr.get("actual_price", 0)
+                                    _conf_r = _rr.get("confidence", 0)
+                                    _time_r = _rr.get("time", "")
+                                    _move_r = (_actual_r - _entry_r) if _actual_r and _entry_r else 0
+
+                                    _is_correct = "Correct" in str(_status_r)
+                                    _is_wrong = "Wrong" in str(_status_r)
+                                    _border_clr = "#27500A" if _is_correct else "#A32D2D" if _is_wrong else "#888888"
+                                    _bg_clr = "#EAF3DE" if _is_correct else "#FCEBEB" if _is_wrong else "#F5F5F5"
+
+                                    _hz_label = _hz_labels.get(_hz_r, _hz_r)
+                                    st.markdown(
+                                        f"<div style='border:1px solid var(--color-border-tertiary);border-left:4px solid {_border_clr};"
+                                        f"border-radius:10px;padding:12px 16px;margin-bottom:8px;background:var(--color-background-primary)'>"
+                                        f"<div style='display:flex;align-items:center;gap:14px;flex-wrap:wrap'>"
+                                        f"<span style='font-size:14px;font-weight:600;min-width:80px'>{_hz_label}</span>"
+                                        f"<span style='font-size:13px'>{_pred_dir}</span>"
+                                        f"<span style='font-size:13px;color:var(--color-text-secondary)'>{_conf_r:.0%} conf</span>"
+                                        f"<span style='font-size:13px;font-weight:600;color:{_border_clr}'>{_status_r}</span>"
+                                        f"<span style='margin-left:auto;font-size:12px;color:var(--color-text-secondary)'>at {_time_r}</span>"
+                                        f"</div>"
+                                        f"<div style='display:flex;gap:20px;margin-top:8px;font-size:12px;color:var(--color-text-secondary)'>"
+                                        f"<span>Entry: <b>₹{_entry_r:,.0f}</b></span>"
+                                        f"<span>Target: <b>₹{_target_r:,.0f}</b></span>"
+                                        f"<span>Actual: <b style='color:{_border_clr}'>₹{_actual_r:,.0f}</b> ({_move_r:+.0f} pts)</span>"
+                                        f"</div>"
+                                        f"</div>", unsafe_allow_html=True)
+
+                            if _n_flat > 0:
+                                st.caption(f"{_n_flat} prediction(s) were flat (move < 5 pts, not counted in accuracy).")
+                            st.info("Market is closed. Predictions will resume on the next trading day.")
+                            return
+                    # No history at all — show a simple message
+                    st.info("Market is closed. No prediction history to show yet. Train the model and run during market hours to see predictions.")
+                    return
+
+                # ── LIVE MARKET FLOW ──────────────────────────────────────────
                 # Live spot
                 _live_spot = None
                 _lq = None
@@ -1328,16 +1405,16 @@ with tab2:
                         _prev = _lq.get("prev_close", 0) if _lq else 0
                         _chg  = (_live_spot - _prev) if _prev else 0
                         _chgp = (_chg / _prev * 100) if _prev else 0
-                        st.metric("🔴 Live Nifty", f"₹{_live_spot:,.2f}",
+                        st.metric("Live Nifty", f"₹{_live_spot:,.2f}",
                                   delta=f"{_chg:+.2f} ({_chgp:+.2f}%)" if _prev else None)
                     else:
-                        st.metric("Live Nifty", "—", help="Connect Breeze for live price")
+                        st.metric("Live Nifty", "--", help="Connect Breeze for live price")
                 with _h2:
                     st.metric("Updated", datetime.now(le.IST).strftime("%I:%M:%S %p"))
                 with _h3:
                     _mins_left = int((datetime.now(le.IST).replace(hour=15,minute=30,second=0) -
                                       datetime.now(le.IST)).total_seconds() / 60)
-                    st.metric("Min to close", max(_mins_left, 0) if le.is_market_open() else "—")
+                    st.metric("Min to close", max(_mins_left, 0) if le.is_market_open() else "--")
 
                 # Fetch candles + predict
                 _df5_live = df_mod.load_intraday_data(_breeze_f,
