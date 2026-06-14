@@ -1278,10 +1278,15 @@ with tab2:
             if _live_spot:
                 _newly_verified = le.verify_due_predictions(_live_spot)
                 if _newly_verified:
-                    _n_correct = sum(r["correct"] for r in _newly_verified)
+                    _n_correct = sum(1 for r in _newly_verified if r.get("correct") == 1)
+                    _n_flat = sum(1 for r in _newly_verified if r.get("flat"))
+                    _n_wrong = len(_newly_verified) - _n_correct - _n_flat
+                    _parts = [f"{_n_correct} correct", f"{_n_wrong} wrong"]
+                    if _n_flat:
+                        _parts.append(f"{_n_flat} flat")
                     st.success(
                         f"✅ Auto-verified {len(_newly_verified)} prediction(s): "
-                        f"{_n_correct} correct, {len(_newly_verified)-_n_correct} wrong."
+                        f"{', '.join(_parts)}."
                     )
 
             if _df5_live is None or len(_df5_live) < 20:
