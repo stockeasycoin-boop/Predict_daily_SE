@@ -235,6 +235,125 @@ def build_intraday_features(df_5min: pd.DataFrame) -> pd.DataFrame:
     df["is_monday"] = (df["day_of_week"] == 0).astype(int)
     df["is_friday"] = (df["day_of_week"] == 4).astype(int)
 
+    # ── EXTENDED BATCH 2: deeper features for 600+ day datasets ───────────
+
+    # Multi-timeframe RSI (longer windows on 5-min candles)
+    _delta = c.diff()
+    _gain = _delta.clip(lower=0)
+    _loss = (-_delta.clip(upper=0))
+    for _rsi_w in [26, 75]:
+        _avg_gain = _gain.rolling(_rsi_w).mean()
+        _avg_loss = _loss.rolling(_rsi_w).mean()
+        _rs = _avg_gain / _avg_loss.replace(0, np.nan)
+        df[f"rsi_{_rsi_w}"] = 100 - (100 / (1 + _rs))
+
+    # Stochastic %K and %D (14-candle)
+    _low14 = df["low"].rolling(14).min()
+    _high14 = df["high"].rolling(14).max()
+    df["stoch_k"] = (c - _low14) / (_high14 - _low14 + 1e-9) * 100
+    df["stoch_d"] = df["stoch_k"].rolling(3).mean()
+
+    # Stochastic on longer window (75-candle ~ 1 day)
+    _low75 = df["low"].rolling(75).min()
+    _high75 = df["high"].rolling(75).max()
+    df["stoch_k_75"] = (c - _low75) / (_high75 - _low75 + 1e-9) * 100
+    df["stoch_d_75"] = df["stoch_k_75"].rolling(3).mean()
+
+    # Volume imbalance (buy vs sell pressure proxy)
+    _candle_dir = np.sign(c - df["open"])
+    df["vol_imbalance"] = (_candle_dir * v).rolling(12).sum() / v.rolling(12).sum().replace(0, np.nan)
+    df["vol_imbalance_75"] = (_candle_dir * v).rolling(75).sum() / v.rolling(75).sum().replace(0, np.nan)
+
+    # Cumulative volume delta
+    _buy_vol = v * ((c - df["low"]) / (df["high"] - df["low"] + 1e-9))
+    _sell_vol = v - _buy_vol
+    df["cvd_12"] = (_buy_vol - _sell_vol).rolling(12).sum()
+    df["cvd_75"] = (_buy_vol - _sell_vol).rolling(75).sum()
+    # Normalize CVD relative to average volume
+    _avg_vol_75 = v.rolling(75).mean().replace(0, np.nan)
+    df["cvd_12_norm"] = df["cvd_12"] / (_avg_vol_75 * 12 + 1e-9)
+    df["cvd_75_norm"] = df["cvd_75"] / (_avg_vol_75 * 75 + 1e-9)
+
+    # Volatility regime: short/long stddev ratio
+    _std_12 = c.pct_change().rolling(12).std()
+    _std_75 = c.pct_change().rolling(75).std()
+    _std_150 = c.pct_change().rolling(150).std()
+    df["vol_regime"] = _std_12 / _std_75.replace(0, np.nan)
+    df["vol_regime_long"] = _std_75 / _std_150.replace(0, np.nan)
+
+    # Parkinson volatility (uses high-low range, more efficient estimator)
+    _hl_ratio = np.log(df["high"] / df["low"].replace(0, np.nan))
+    df["parkinson_vol_12"] = np.sqrt((_hl_ratio ** 2).rolling(12).mean() / (4 * np.log(2))) * 100
+    df["parkinson_vol_75"] = np.sqrt((_hl_ratio ** 2).rolling(75).mean() / (4 * np.log(2))) * 100
+
+    # Wick-to-body ratios (average over windows)
+    _body = (c - df["open"]).abs()
+    _upper_wick = df["high"] - pd.concat([c, df["open"]], axis=1).max(axis=1)
+    _lower_wick = pd.concat([c, df["open"]], axis=1).min(axis=1) - df["low"]
+    _total_range = (df["high"] - df["low"]).replace(0, np.nan)
+    df["avg_wick_ratio_12"] = ((_upper_wick + _lower_wick) / _total_range).rolling(12).mean()
+    df["avg_body_ratio_12"] = (_body / _total_range).rolling(12).mean()
+
+    # Opening range breakout (first 6 candles = 30 min)
+    _first_6_high = df.groupby("trading_date")["high"].transform(
+        lambda x: x.iloc[:6].max() if len(x) >= 6 else x.max()
+    )
+    _first_6_low = df.groupby("trading_date")["low"].transform(
+        lambda x: x.iloc[:6].min() if len(x) >= 6 else x.min()
+    )
+    df["or_breakout_up"] = (c > _first_6_high).astype(int)
+    df["or_breakout_dn"] = (c < _first_6_low).astype(int)
+    df["or_width_pct"] = (_first_6_high - _first_6_low) / c * 100
+
+    # Gap fill rate (has today's gap been filled?)
+    df["gap_filled"] = 0
+    if "gap_pct" in df.columns:
+        _gap_up = df["gap_pct"] > 0
+        _gap_dn = df["gap_pct"] < 0
+        df.loc[_gap_up & (df["low"] <= df.groupby("trading_date")["close"].transform("first").shift(1)),
+               "gap_filled"] = 1
+        df.loc[_gap_dn & (df["high"] >= df.groupby("trading_date")["close"].transform("first").shift(1)),
+               "gap_filled"] = 1
+
+    # Price momentum divergence proxy: price slope vs RSI slope (12-candle windows)
+    _price_slope = c.rolling(12).apply(lambda x: np.polyfit(range(len(x)), x, 1)[0] if len(x) == 12 else 0, raw=True)
+    _rsi_slope = df["rsi_14"].rolling(12).apply(lambda x: np.polyfit(range(len(x)), x, 1)[0] if len(x) == 12 else 0, raw=True)
+    df["momentum_div"] = np.sign(_price_slope) * np.sign(_rsi_slope) * -1  # -1 when diverging
+
+    # EMA crossover signals
+    df["ema5_cross_13"] = ((df["ema_5"] > df["ema_13"]) & (df["ema_5"].shift(1) <= df["ema_13"].shift(1))).astype(int)
+    df["ema13_cross_26"] = ((df["ema_13"] > df["ema_26"]) & (df["ema_13"].shift(1) <= df["ema_26"].shift(1))).astype(int)
+    # Distance since last crossover
+    _cross5_13 = (df["ema_5"] > df["ema_13"]).astype(int).diff().abs()
+    df["bars_since_ema_cross"] = _cross5_13.groupby(_cross5_13.cumsum()).cumcount().clip(0, 200)
+
+    # Support/Resistance proximity (rolling high/low over multi-day windows)
+    _roll_high_375 = df["high"].rolling(375, min_periods=75).max()
+    _roll_low_375 = df["low"].rolling(375, min_periods=75).min()
+    df["dist_to_resistance"] = (_roll_high_375 - c) / c * 100
+    df["dist_to_support"] = (c - _roll_low_375) / c * 100
+    df["sr_position"] = (c - _roll_low_375) / (_roll_high_375 - _roll_low_375 + 1e-9)
+
+    # Candle pattern scores (averaged over window)
+    _doji = (_body / _total_range < 0.1).astype(float)
+    _hammer = ((_lower_wick > 2 * _body) & (_upper_wick < _body)).astype(float)
+    _shooting_star = ((_upper_wick > 2 * _body) & (_lower_wick < _body)).astype(float)
+    df["doji_rate_12"] = _doji.rolling(12).mean()
+    df["hammer_rate_12"] = _hammer.rolling(12).mean()
+    df["star_rate_12"] = _shooting_star.rolling(12).mean()
+
+    # Session half momentum (compare first vs second half of day)
+    _candle_idx = df.groupby("trading_date").cumcount()
+    _day_len = df.groupby("trading_date")["close"].transform("count")
+    _half = _day_len / 2
+    _first_half = _candle_idx < _half
+    _second_half = _candle_idx >= _half
+    _first_half_ret = df.groupby("trading_date").apply(
+        lambda g: (g["close"].iloc[len(g)//2] / g["open"].iloc[0] - 1) * 100
+        if len(g) > 2 else 0
+    ).reindex(df["trading_date"]).values
+    df["first_half_ret"] = _first_half_ret
+
     # ── SANITIZE: replace inf/-inf/NaN and clip extremes ──────────────────
     # Division operations can produce inf when denominators are ~0 (low-volume
     # candles, flat prices). XGBoost rejects inf and float32-overflow values.
@@ -242,20 +361,32 @@ def build_intraday_features(df_5min: pd.DataFrame) -> pd.DataFrame:
     for col in feat_cols:
         if col in df.columns:
             df[col] = df[col].replace([np.inf, -np.inf], np.nan)
-            # Percentage features: clip to ±50% (anything beyond is bad data)
+            # Percentage features: clip to ±50%
             if col.startswith(("ret_", "vwap_dev", "vs_day_open", "c_vs_ema",
                                "ema5_13", "ema75_150", "body_pct", "gap_pct",
                                "day_range_pct", "open_30min_ret",
                                "prev_day_range_pct", "prev_day_body_pct",
-                               "bb75_width", "macd_")):
+                               "bb75_width", "macd_", "or_width_pct",
+                               "dist_to_resistance", "dist_to_support",
+                               "first_half_ret", "parkinson_vol")):
                 df[col] = df[col].clip(-50, 50)
+            # 0-100 range features
+            elif col.startswith(("rsi_", "stoch_", "sr_position",
+                                 "bb_pct_b", "bb75_pct_b",
+                                 "avg_wick_ratio", "avg_body_ratio",
+                                 "doji_rate", "hammer_rate", "star_rate")):
+                df[col] = df[col].clip(0, 100)
             # Ratio features: clip to reasonable range
             elif col in ("vol_time_ratio", "vol_cum_ratio"):
                 df[col] = df[col].clip(0, 20)
             elif col.startswith("atr_pct"):
                 df[col] = df[col].clip(0, 20)
-            elif col in ("consec_up_5m", "consec_dn_5m"):
-                df[col] = df[col].clip(0, 20)
+            elif col.startswith(("vol_regime", "vol_imbalance")):
+                df[col] = df[col].clip(-10, 10)
+            elif col.startswith("cvd_"):
+                df[col] = df[col].clip(-5, 5)
+            elif col in ("consec_up_5m", "consec_dn_5m", "bars_since_ema_cross"):
+                df[col] = df[col].clip(0, 200)
             # Fill remaining NaN with 0 (neutral)
             df[col] = df[col].fillna(0)
 
@@ -274,26 +405,45 @@ def get_feature_cols_intraday():
         "c_vs_ema5", "c_vs_ema13", "ema5_13",
         # Trend (long EMAs)
         "c_vs_ema75", "c_vs_ema150", "c_vs_ema375", "ema75_150",
+        # EMA crossovers
+        "ema5_cross_13", "ema13_cross_26", "bars_since_ema_cross",
         # MACD on 5-min
         "macd_line", "macd_signal", "macd_hist_5m", "macd_bull_5m",
         # Oscillators
-        "rsi_5", "rsi_9", "rsi_14",
+        "rsi_5", "rsi_9", "rsi_14", "rsi_26", "rsi_75",
+        # Stochastic
+        "stoch_k", "stoch_d", "stoch_k_75", "stoch_d_75",
+        # Momentum divergence
+        "momentum_div",
         # VWAP
         "vwap_dev",
         # Session position
         "vs_day_open", "day_range_pct", "intraday_pos", "open_30min_ret",
+        "first_half_ret",
+        # Opening range breakout
+        "or_breakout_up", "or_breakout_dn", "or_width_pct",
         # Volume
         "vol_time_ratio", "vol_surge_intra", "vol_cum_ratio",
+        # Volume imbalance / order flow
+        "vol_imbalance", "vol_imbalance_75",
+        "cvd_12_norm", "cvd_75_norm",
         # Volatility
         "atr_pct", "atr_pct_75c",
+        "vol_regime", "vol_regime_long",
+        "parkinson_vol_12", "parkinson_vol_75",
         # Bollinger (short + long)
         "bb_pct_b", "bb_squeeze", "bb75_pct_b", "bb75_width",
+        # Candle patterns
+        "avg_wick_ratio_12", "avg_body_ratio_12",
+        "doji_rate_12", "hammer_rate_12", "star_rate_12",
         # Consecutive candles
         "consec_up_5m", "consec_dn_5m",
+        # Support / Resistance
+        "dist_to_resistance", "dist_to_support", "sr_position",
         # Previous day context
         "prev_day_range_pct", "prev_day_body_pct",
         # Gap
-        "gap_pct",
+        "gap_pct", "gap_filled",
         # Calendar
         "day_of_week", "month", "is_monday", "is_friday",
     ]
