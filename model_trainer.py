@@ -627,7 +627,12 @@ def reasoning_for_prediction(feature_df: pd.DataFrame,
     pop_mean = feature_df[avail].mean().values.astype(np.float32)
     pop_std  = feature_df[avail].std().values.astype(np.float32)  + 1e-9
     norm_dev = (vals - pop_mean) / pop_std
-    imp      = model.feature_importances_
+    if hasattr(model, "feature_importances_"):
+        imp = model.feature_importances_
+    elif hasattr(model, "calibrated_classifiers_"):
+        imp = np.mean([c.estimator.feature_importances_ for c in model.calibrated_classifiers_], axis=0)
+    else:
+        imp = np.ones(len(avail)) / len(avail)
     contrib  = norm_dev * imp
 
     rows = []
