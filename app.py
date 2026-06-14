@@ -437,31 +437,47 @@ with tab1:
                     else:
                         log_step("Step 1/6 — no Breeze credentials, using cached/Stooq data")
 
-                    log_step("Step 2/6 — loading Nifty / VIX / global data…")
-                    nifty_df  = df_mod.load_nifty_data(breeze, force_refresh=run_btn)
-                    vix_df    = df_mod.load_vix_data(breeze)
-                    global_df = df_mod.load_global_data()
+                    log_step("Step 2/6 — loading 5-min intraday data…")
+                    from pathlib import Path as _Path
+                    _cache = _Path("data/nifty_5min_2yr.csv")
+                    nifty_5min = None
+                    if _cache.exists():
+                        nifty_5min = pd.read_csv(_cache, parse_dates=["date"])
+                        log_step(f"Step 2/6 — loaded {len(nifty_5min)} cached 5-min candles")
+                    if (nifty_5min is None or len(nifty_5min) < 100) and breeze:
+                        from data_fetcher import fetch_intraday_chunked
+                        nifty_5min = fetch_intraday_chunked(breeze, "NIFTY", total_days=60, chunk_days=55)
+                        log_step(f"Step 2/6 — fetched {len(nifty_5min) if nifty_5min is not None else 0} candles from API")
 
-                    if nifty_df is None or len(nifty_df) < 50:
-                        log_step("Step 2/6 — insufficient Nifty data", "error")
-                        st.error("Not enough market data. Check your internet connection.")
+                    nifty_df = df_mod.load_nifty_data(breeze, force_refresh=run_btn)
+                    vix_df = df_mod.load_vix_data(breeze)
+
+                    if nifty_5min is None or len(nifty_5min) < 100:
+                        log_step("Step 2/6 — insufficient 5-min data", "error")
+                        st.error("Not enough 5-min candle data. Train models first or check API.")
                         _tab1_ready = False
                     else:
-                        log_step(f"Step 2/6 — Nifty data loaded ({len(nifty_df)} rows)")
-                        log_step("Step 3/6 — loading FII/DII, GIFT, PCR, intraday, correlated data…")
-                        fii_df     = df_mod.load_fii_dii_data()
-                        gift_df    = df_mod.load_gift_data(breeze)
-                        pcr_df     = df_mod.load_pcr_data()
-                        intra_df   = df_mod.load_intraday_data(breeze)
-                        corr_dict  = df_mod.load_correlated_data(breeze)
-                        log_step("Step 4/6 — building features…")
-                        feat_df = fe.build_features(
-                            nifty_df, vix_df, global_df, fii_df, gift_df, pcr_df,
-                            intraday_df=intra_df, corr_dict=corr_dict
+                        log_step("Step 3/6 — loading supplementary context (VIX, FII)…")
+                        daily_context = pd.DataFrame()
+                        try:
+                            fii_df = df_mod.load_fii_dii_data()
+                            if vix_df is not None and "india_vix" in vix_df.columns:
+                                daily_context = vix_df[["date", "india_vix"]].copy()
+                            if fii_df is not None and "fii_net" in fii_df.columns:
+                                if len(daily_context) > 0:
+                                    daily_context = daily_context.merge(
+                                        fii_df[["date", "fii_net"]], on="date", how="outer"
+                                    )
+                                else:
+                                    daily_context = fii_df[["date", "fii_net"]].copy()
+                        except Exception:
+                            pass
+                        log_step("Step 4/6 — building 5-min features…")
+                        from intraday_predictor import predict_today_from_5min
+                        log_step("Step 5/6 — running model inference (5-min pipeline)…")
+                        preds = predict_today_from_5min(
+                            nifty_5min, str(cfg.MODEL_DIR), daily_context=daily_context
                         )
-                        log_step(f"Step 4/6 — features built ({feat_df.shape[0]}x{feat_df.shape[1]})")
-                        log_step("Step 5/6 — running model inference…")
-                        preds = mt.predict_today(feat_df, str(cfg.MODEL_DIR))
                         direction  = preds.get("close_direction", preds.get("direction", 0))
                         confidence = preds.get("close_confidence", preds.get("confidence", 0.5))
                         atr_pct    = preds.get("atr_pct", 0.8)
@@ -1298,8 +1314,10 @@ with tab2:
                         if _df5 is None or len(_df5) < 200:
                             st.error("Not enough 5-min data. Connect Breeze session token and retry.")
                         else:
+                            from intraday_predictor import train_daily_models_from_5min
+                            train_daily_models_from_5min(_df5, str(cfg.MODEL_DIR), verbose=False)
                             _res = ip.train_intraday_models(_df5, str(cfg.MODEL_DIR), verbose=False)
-                            st.success(f"Trained {len(_res)} calibrated horizon models on {len(_df5):,} candles! Refresh to see predictions.")
+                            st.success(f"Trained daily + {len(_res)} intraday models on {len(_df5):,} candles (unified 5-min pipeline)! Refresh to see predictions.")
                             st.rerun()
                     except Exception as _te:
                         st.error(f"Training failed: {_te}")
@@ -2084,11 +2102,11 @@ with tab4:
     # Show what data sources will be used
     with st.expander("ℹ️ What happens when you click Train"):
         st.markdown("""
-        1. **Downloads ~2 years of Nifty OHLCV** from Breeze API (or Stooq as backup)
-        2. **Downloads India VIX** and global cues (Dow, S&P 500, Dollar Index)
-        3. **Computes 35+ technical indicators** — RSI, MACD, Bollinger Bands, ATR, etc.
-        4. **Trains XGBoost** using 5-fold walk-forward cross-validation (no data leakage)
-        5. **Saves the model** to the `models/` folder
+        1. **Fetches ~2 years of 5-min intraday candles** from Breeze API (incremental, cached data preserved)
+        2. **Fetches VIX & FII** context data
+        3. **Builds 45+ features from 5-min candles** — multi-scale EMAs, MACD, RSI, VWAP, Bollinger, ATR, volume profiles, session patterns, calendar
+        4. **Trains daily Open/Close/High/Low models** from end-of-day 5-min feature snapshots (XGB + LGB with calibration)
+        5. **Trains 7 intraday horizon models** (5m/15m/30m/1h/2h/3h/close) on raw 5-min candles
         6. The dashboard auto-refreshes once training is complete
         """)
 
@@ -2183,114 +2201,59 @@ with tab4:
                 status_box.error("Not enough 5-min data. Check Breeze session token and retry.")
                 st.stop()
 
-            status_box.info(f"Step 2/7 -- {len(_existing_5min):,} five-minute candles ready")
+            status_box.info(f"Step 2/5 -- {len(_existing_5min):,} five-minute candles ready")
 
-            # Step 3: Aggregate to daily
-            progress_bar.progress(25, text="Aggregating to daily bars...")
-            status_box.info("Step 3/7 -- Aggregating 5-min candles to daily OHLCV...")
-            log_step("Step 3/7 -- aggregating to daily...")
-
-            _intra_df = _existing_5min.copy()
-            _intra_df["trade_date"] = _intra_df["date"].dt.date
-            nifty3 = _intra_df.groupby("trade_date").agg(
-                open=("open", "first"), high=("high", "max"),
-                low=("low", "min"), close=("close", "last"),
-                volume=("volume", "sum"),
-            ).reset_index()
-            nifty3.rename(columns={"trade_date": "date"}, inplace=True)
-            nifty3["date"] = pd.to_datetime(nifty3["date"])
-            nifty3 = nifty3.sort_values("date").reset_index(drop=True)
-            log_step(f"Step 3/7 -- {len(nifty3)} trading days")
-
-            # Step 4: Download supplementary data (VIX, FII, sectors, etc.)
-            progress_bar.progress(35, text="Downloading VIX & supplementary data...")
-            status_box.info("Step 4/7 -- Downloading VIX, sectors, FII, GIFT, PCR...")
-            log_step("Step 4/7 -- supplementary data...")
-            vix3    = df_mod.load_vix_data(breeze3, force_refresh=True)
-            global3 = df_mod.load_global_data(force_refresh=True)
-            fii3    = df_mod.load_fii_dii_data(force_refresh=True)
-            gift3   = df_mod.load_gift_data(force_refresh=True)
-            pcr3    = df_mod.load_pcr_data(force_refresh=True)
-
-            _corr = {}
+            # Step 3: Fetch daily context (VIX, FII)
+            progress_bar.progress(30, text="Fetching VIX & FII context...")
+            status_box.info("Step 3/5 -- Downloading VIX, FII context data...")
+            log_step("Step 3/5 -- supplementary context...")
+            _daily_ctx = pd.DataFrame()
             try:
-                _corr = df_mod.load_correlated_data(breeze3, force_refresh=True)
-            except Exception:
-                pass
+                _vix3 = df_mod.load_vix_data(breeze3, force_refresh=True)
+                _fii3 = df_mod.load_fii_dii_data(force_refresh=True)
+                if _vix3 is not None and "india_vix" in _vix3.columns:
+                    _daily_ctx = _vix3[["date", "india_vix"]].copy()
+                if _fii3 is not None and "fii_net" in _fii3.columns:
+                    if len(_daily_ctx) > 0:
+                        _daily_ctx = _daily_ctx.merge(_fii3[["date", "fii_net"]], on="date", how="outer")
+                    else:
+                        _daily_ctx = _fii3[["date", "fii_net"]].copy()
+            except Exception as _ctx_e:
+                log_step(f"Step 3/5 -- context data partial: {_ctx_e}", "warning")
 
-            # Step 5: Build features (daily + intraday patterns)
-            progress_bar.progress(50, text="Building features...")
-            status_box.info("Step 5/7 -- Building daily + intraday pattern features...")
-            log_step("Step 5/7 -- building features...")
+            # Step 4: Train daily models from 5-min EOD snapshots
+            progress_bar.progress(50, text="Training daily models (5-min features)...")
+            status_box.info("Step 4/5 -- Training daily Open/Close/High/Low from 5-min EOD features...")
+            log_step("Step 4/5 -- training daily models (unified 5-min pipeline)...")
+            from intraday_predictor import train_daily_models_from_5min
+            results = train_daily_models_from_5min(
+                _existing_5min, model_dir_str, daily_context=_daily_ctx, verbose=True
+            )
+            log_step("Step 4/5 -- daily models trained")
 
-            feat3 = fe.build_features(nifty3, vix3, global3, fii3, gift3, pcr3,
-                                      intraday_df=df_mod.load_intraday_data(breeze3),
-                                      corr_dict=_corr)
-
-            # Add intraday pattern features from 5-min data
-            _df5 = _existing_5min.copy()
-            _df5["trade_date"] = _df5["date"].dt.date
-            _df5["hour"] = _df5["date"].dt.hour
-            for td, grp in _df5.groupby("trade_date"):
-                if len(grp) < 10:
-                    continue
-                _idx = feat3.index[feat3["date"].dt.date == td]
-                if len(_idx) == 0:
-                    continue
-                ix = _idx[0]
-                o, c = grp["open"].iloc[0], grp["close"].iloc[-1]
-                h, l = grp["high"].max(), grp["low"].min()
-                rng = max(h - l, 1)
-                fh = grp[(grp["hour"] == 9) | (grp["hour"] == 10)]
-                pw = grp[grp["hour"] >= 14]
-                if len(fh) > 0:
-                    feat3.loc[ix, "intra_first_hour_ret"] = (fh["close"].iloc[-1] / o - 1) * 100
-                if len(pw) > 0:
-                    feat3.loc[ix, "intra_power_hour_ret"] = (pw["close"].iloc[-1] / pw["open"].iloc[0] - 1) * 100
-                    feat3.loc[ix, "intra_power_vol_ratio"] = pw["volume"].sum() / max(grp["volume"].sum(), 1)
-                feat3.loc[ix, "intra_body_ratio"] = abs(c - o) / rng * 100
-                feat3.loc[ix, "intra_volatility"] = grp["close"].pct_change().dropna().std() * 100
-
-            for _ic in ["intra_first_hour_ret", "intra_power_hour_ret", "intra_power_vol_ratio",
-                        "intra_body_ratio", "intra_volatility"]:
-                if _ic in feat3.columns:
-                    feat3[_ic] = feat3[_ic].fillna(0)
-
-            log_step(f"Step 5/7 -- features built ({feat3.shape[0]}x{feat3.shape[1]})")
-
-            # Step 6: Train daily models
-            progress_bar.progress(65, text="Training daily models (XGB + LGB)...")
-            status_box.info(f"Step 6/7 -- Training XGBoost + LightGBM on {len(feat3)} days (Optuna + walk-forward CV)...")
-            log_step(f"Step 6/7 -- training daily models on {len(feat3)} rows...")
-            _, _, _, _, results = mt.train_model(feat3, model_dir_str, verbose=True, use_optuna=True)
-            log_step("Step 6/7 -- daily models trained")
-
-            # Step 7: Train intraday horizon models
-            progress_bar.progress(85, text="Training 7 intraday horizon models...")
-            status_box.info("Step 7/7 -- Training 7 intraday horizon models (5m/15m/30m/1h/2h/3h/close)...")
-            log_step("Step 7/7 -- training intraday horizon models...")
+            # Step 5: Train intraday horizon models
+            progress_bar.progress(80, text="Training 7 intraday horizon models...")
+            status_box.info("Step 5/5 -- Training 7 intraday horizon models (5m/15m/30m/1h/2h/3h/close)...")
+            log_step("Step 5/5 -- training intraday horizon models...")
             try:
                 _intra_res = ip.train_intraday_models(_existing_5min, str(cfg.MODEL_DIR), verbose=False)
                 _n_intra = len(_intra_res) if _intra_res else 0
-                log_step(f"Step 7/7 -- {_n_intra} intraday models trained")
+                log_step(f"Step 5/5 -- {_n_intra} intraday models trained")
             except Exception as _ie:
                 _n_intra = 0
-                log_step(f"Step 7/7 -- intraday models skipped: {_ie}", "warning")
+                log_step(f"Step 5/5 -- intraday models skipped: {_ie}", "warning")
 
             progress_bar.progress(100, text="Done!")
 
-            _td   = results.get("n_samples",  0)
-            _yrs  = round(_td / 252, 1)
-            _cv_o = results.get("cv_open",    results.get("cv_accuracy", 0))
-            _cv_c = results.get("cv_close",   results.get("cv_accuracy", 0))
-            _ens  = "XGB + LGB" if results.get("lgb_available") else "XGB only"
-            _opt  = results.get("optuna_trials", 0)
+            _n_days = _existing_5min["date"].dt.date.nunique()
+            _yrs = round(_n_days / 252, 1)
+            _cv_o = results.get("open_cv", 0)
+            _cv_c = results.get("close_cv", 0)
             _candles = len(_existing_5min)
             status_box.success(
-                f"Trained on **{_candles:,} five-min candles** ({_td:,} days / {_yrs} yrs) -- "
+                f"Trained on **{_candles:,} five-min candles** ({_n_days:,} days / {_yrs} yrs) -- "
                 f"Open CV: **{_cv_o*100:.1f}%** | Close CV: **{_cv_c*100:.1f}%** | "
-                f"Ensemble: {_ens} | Optuna: {_opt} trials | "
-                f"Intraday models: {_n_intra}"
+                f"Intraday models: {_n_intra} | Pipeline: unified 5-min"
             )
 
             _best = max(_cv_o, _cv_c)
