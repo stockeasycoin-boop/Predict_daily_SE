@@ -131,6 +131,12 @@ def _default_xgb_reg(**kw):
 
 
 def _cv_score(model_fn, X, y, n_splits=5, test_size=50):
+    n = len(X)
+    # Adapt splits for small datasets: need n_splits * test_size + min_train < n
+    while n_splits > 2 and n_splits * test_size >= n * 0.8:
+        test_size = max(10, n // (n_splits + 2))
+    while n_splits > 2 and n_splits * test_size >= n * 0.8:
+        n_splits -= 1
     tscv = TimeSeriesSplit(n_splits=n_splits, test_size=test_size)
     scores = []
     for tr, te in tscv.split(X):
