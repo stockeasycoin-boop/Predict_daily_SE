@@ -436,7 +436,68 @@ def get_market_sentiment(
     except Exception as e:
         print(f"[news] Cache write failed: {e}")
 
+    _archive_daily(result, cache_dir)
     return result
+
+
+def _archive_daily(result: dict, cache_dir: Path):
+    """
+    Append today's sentiment to a persistent daily archive.
+    File: data/news_history.json — NEVER deleted, grows over time.
+    Each day gets the latest fetch; older entries preserved.
+    """
+    archive_path = Path(cache_dir) / "news_history.json"
+    today_str = date.today().isoformat()
+
+    archive = {}
+    if archive_path.exists():
+        try:
+            with open(archive_path) as f:
+                archive = json.load(f)
+        except Exception:
+            archive = {}
+
+    archive[today_str] = {
+        "score": result.get("score", 0),
+        "label": result.get("label", "neutral"),
+        "n_articles": result.get("n_articles", 0),
+        "backend": result.get("backend", "none"),
+        "fetched_at": result.get("fetched_at", ""),
+        "top_headlines": [
+            {"title": a.get("title", ""), "score": a.get("score", 0),
+             "source": a.get("source", {}).get("name", ""),
+             "published": a.get("publishedAt", "")}
+            for a in result.get("top_headlines", [])[:20]
+        ],
+    }
+
+    try:
+        with open(archive_path, "w") as f:
+            json.dump(archive, f, indent=2, default=str)
+    except Exception as e:
+        print(f"[news] Archive write failed: {e}")
+
+
+def load_news_history(cache_dir: Path = None, last_n_days: int = 30) -> dict:
+    """Load archived news history. Returns {date_str: sentiment_dict}."""
+    if cache_dir is None:
+        try:
+            from settings import DATA_DIR
+            cache_dir = DATA_DIR
+        except Exception:
+            cache_dir = Path("data")
+    archive_path = Path(cache_dir) / "news_history.json"
+    if not archive_path.exists():
+        return {}
+    try:
+        with open(archive_path) as f:
+            archive = json.load(f)
+        if last_n_days:
+            cutoff = (date.today() - timedelta(days=last_n_days)).isoformat()
+            archive = {k: v for k, v in archive.items() if k >= cutoff}
+        return archive
+    except Exception:
+        return {}
 
 
 # ─────────────────────────────────────────────────────────────────────────────
