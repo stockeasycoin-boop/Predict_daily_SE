@@ -257,6 +257,12 @@ def build_features(
     df["consec_down"] = (
         (1 - df["prev_oc_bull"]).rolling(3).sum().fillna(0).astype(int)
     )
+    # Pattern-aware context features — explicit signals for mean-reversion scenarios
+    df["monday_after_3down"] = (
+        (df["date"].dt.dayofweek == 0).astype(int) *
+        (df["consec_down"] >= 2).astype(int)
+    ).astype(int)
+    df["oversold_bounce_setup"] = 0    # computed after Bollinger features below
 
     # Trend — EMAs
     for n in [9, 21, 50, 200]:
@@ -298,6 +304,17 @@ def build_features(
     df["bb_squeeze"]   = (df["bb_width"] < df["bb_width"].rolling(20).mean()).astype(int)
     df["bb_upper_touch"]= (c > bb_up * 0.998).astype(int)
     df["bb_lower_touch"]= (c < bb_dn * 1.002).astype(int)
+    # Oversold bounce: price near lower BB + squeeze + 3 down days
+    df["oversold_bounce_setup"] = (
+        (df["bb_pct_b"] < 0.20) &
+        (df["bb_squeeze"] == 1) &
+        (df["consec_down"] >= 2)
+    ).astype(int)
+    # Overbought reversal: price near upper BB + 3 up days
+    df["overbought_reversal_setup"] = (
+        (df["bb_pct_b"] > 0.80) &
+        (df["consec_up"] >= 2)
+    ).astype(int)
 
     # ATR / volatility
     df["atr_14"]       = _atr(h, l, c, 14)
@@ -466,6 +483,7 @@ FEATURE_COLS = [
     "atr_pct","vol_5d","vol_regime","vol_ratio","vol_surge",
     # S/R
     "near_52w_high","near_52w_low",
+    "monday_after_3down","oversold_bounce_setup","overbought_reversal_setup",
     # Intraday (yesterday's pattern)
     "prev_intra_morning_ret","prev_intra_afternoon_ret",
     "prev_intra_reversal","prev_intra_breakout",
@@ -480,7 +498,7 @@ FEATURE_COLS = [
     "gift_vs_prev","gift_bull","gift_bear",
     # PCR
     "pcr","pcr_high","pcr_low",
-    # Calendar
+    # Calendar (note: these reflect the LAST AVAILABLE trading day, not today's date)
     "day_of_week","month","is_monday","is_tuesday","is_friday",
     "days_to_expiry","expiry_week","month_end","month_start",
 ]
@@ -521,6 +539,9 @@ FEATURE_LABELS = {
     "vol_surge":                  "Unusual volume spike",
     "near_52w_high":              "Near 52-week high",
     "near_52w_low":               "Near 52-week low",
+    "monday_after_3down":         "Monday after 3 down days (reversal setup)",
+    "oversold_bounce_setup":      "Oversold bounce setup (BB+squeeze+3d down)",
+    "overbought_reversal_setup":  "Overbought reversal setup (BB upper + 3d up)",
     "prev_intra_morning_ret":     "Yesterday morning session return",
     "prev_intra_afternoon_ret":   "Yesterday afternoon session return",
     "prev_intra_reversal":        "Yesterday had morning-afternoon reversal",
@@ -541,7 +562,7 @@ FEATURE_LABELS = {
     "pcr":                        "Put-Call Ratio",
     "pcr_high":                   "High PCR — contrarian bullish",
     "pcr_low":                    "Low PCR — contrarian bearish",
-    "is_tuesday":                 "Tuesday (expiry day)",
+    "is_tuesday":                 "Previous session was Tuesday (expiry day)",
     "days_to_expiry":             "Days until weekly expiry",
     "expiry_week":                "Near expiry (≤2 days)",
 }

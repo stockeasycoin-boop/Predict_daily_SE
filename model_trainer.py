@@ -131,6 +131,11 @@ def _default_xgb_reg(**kw):
 
 
 def _cv_score(model_fn, X, y, n_splits=5, test_size=50):
+    n = len(X)
+    while n_splits > 2 and n_splits * test_size >= n * 0.8:
+        test_size = max(10, n // (n_splits + 2))
+    while n_splits > 2 and n_splits * test_size >= n * 0.8:
+        n_splits -= 1
     tscv = TimeSeriesSplit(n_splits=n_splits, test_size=test_size)
     scores = []
     for tr, te in tscv.split(X):
@@ -462,6 +467,18 @@ def predict_today(feature_df: pd.DataFrame, model_dir: str = "models") -> dict:
     else:
         close_pred_pct = 0.0
 
+
+    # ── Enforce classifier/regressor consistency ──────────────────────────
+    # Classifier (direction) and regressor (%) are trained separately.
+    # At boundary cases they can disagree: e.g. dir=bearish but pct=+0.09%.
+    # Rule: trust the classifier for direction; force regressor sign to match.
+    if close_pred_pct > 0 and close_dir == 0:    # regressor bullish, classifier bearish
+        close_pred_pct = -abs(close_pred_pct)     # flip to bearish
+    elif close_pred_pct < 0 and close_dir == 1:  # regressor bearish, classifier bullish
+        close_pred_pct = abs(close_pred_pct)      # flip to bullish
+    # Flag flat predictions (|pct| < 0.20% = model has very low conviction)
+    flat_prediction = abs(close_pred_pct) < 0.20
+
     # High regressor chained on predicted open + close
     if xgb_high_r:
         X_high = np.hstack([X, np.array([[open_pred_pct, close_pred_pct]], dtype=np.float32)])
@@ -502,7 +519,9 @@ def predict_today(feature_df: pd.DataFrame, model_dir: str = "models") -> dict:
     daily_range    = (predicted_low, predicted_high)
 
     # ── Trade signal logic ────────────────────────────────────────────────
-    is_tuesday  = feature_df["date"].iloc[-1].weekday() == 1 if "date" in feature_df.columns else False
+    # Use today's ACTUAL calendar date — feature_df's last row is yesterday's data
+    from datetime import date as _date
+    is_tuesday = (_date.today().weekday() == 1)   # 1 = Tuesday
     above_ema21 = float(feature_df.get("above_ema21", pd.Series([1])).iloc[-1]) > 0.5
 
     trade_signal  = "NO_TRADE"
@@ -517,8 +536,28 @@ def predict_today(feature_df: pd.DataFrame, model_dir: str = "models") -> dict:
     elif india_vix > 25:
         signal_reason = f"India VIX = {india_vix:.1f} — options premiums too expensive."
     else:
-        # Regime filter: only take trades in trend direction
-        if close_dir == 1 and not above_ema21:
+        # Mean-reversion override: don't take bearish signals in oversold+compressed market
+        bb_pct_b   = float(feature_df["bb_pct_b"].iloc[-1])   if "bb_pct_b"   in feature_df.columns else 0.5
+        bb_squeeze = float(feature_df["bb_squeeze"].iloc[-1])  if "bb_squeeze"  in feature_df.columns else 0
+        mom_3d     = float(feature_df["ret_3d"].iloc[-1])      if "ret_3d"      in feature_df.columns else 0
+        is_monday  = float(feature_df["is_monday"].iloc[-1])   if "is_monday"   in feature_df.columns else 0
+
+        oversold_setup  = (bb_pct_b < 0.20 and bb_squeeze > 0.5 and mom_3d < -1.5)
+        monday_reversal = (is_monday > 0.5 and mom_3d < -1.5)
+
+        if close_dir == 0 and oversold_setup:
+            signal_reason = (
+                f"Mean-reversion override: BB%B={bb_pct_b:.2f} (oversold) + BB squeeze + "
+                f"3-day momentum {mom_3d:.2f}% — bearish signal in oversold compressed "
+                f"market has poor win rate. Skipping."
+            )
+        elif close_dir == 0 and monday_reversal:
+            signal_reason = (
+                f"Monday reversal filter: market down {mom_3d:.2f}% over 3 days. "
+                f"Monday bounce probability elevated — bearish PE entry is high-risk."
+            )
+        # Regime filter: only trade in trend direction
+        elif close_dir == 1 and not above_ema21:
             signal_reason = "Bullish signal but price below 21-EMA (downtrend) — skipping."
         elif close_dir == 0 and above_ema21:
             signal_reason = "Bearish signal but price above 21-EMA (uptrend) — skipping."
@@ -533,6 +572,7 @@ def predict_today(feature_df: pd.DataFrame, model_dir: str = "models") -> dict:
         "open_agree":       open_agree,
 
         "close_direction":  close_dir,
+        "flat_prediction":   flat_prediction,  # True when |pct|<0.2% — low conviction
         "close_confidence": round(close_conf,  4),
         "close_pred_pct":   round(close_pred_pct, 3),
         "close_range":      close_range,
@@ -605,7 +645,9 @@ def reasoning_for_prediction(feature_df: pd.DataFrame,
     X  = scaler.transform(row.values.astype(np.float32))
     d  = int(model.predict(X)[0])
     dw = "bullish" if d == 1 else "bearish"
-    top = (bullish[0][0].lower() if bullish else (bearish[0][0].lower() if bearish else "mixed signals"))
+    # Pick primary driver that MATCHES the signal direction (not just highest abs score)
+    top = (bearish[0][0].lower() if (d == 0 and bearish) else
+           bullish[0][0].lower() if (d == 1 and bullish) else "mixed signals")
     summary = f"Signal is {dw} — primarily driven by {top}."
 
     return {"bullish_factors": bullish, "bearish_factors": bearish, "summary_text": summary}

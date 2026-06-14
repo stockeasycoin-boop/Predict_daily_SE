@@ -1,4 +1,4 @@
-"""
+r"""
 train_local.py — Retrain models locally (mirrors the app's Model Health → Train flow).
 Run:  .venv\Scripts\python.exe train_local.py
 """
@@ -22,7 +22,9 @@ gift   = df_mod.load_gift_data(force_refresh=True)
 pcr    = df_mod.load_pcr_data(force_refresh=True)
 
 print("Step 3/4 - building features...")
-feat = fe.build_features(nifty, vix, glob, fii, gift, pcr)
+# Note: intraday and corr_dict require a live Breeze session — skipped for local train
+feat = fe.build_features(nifty, vix, glob, fii, gift, pcr,
+                         intraday_df=None, corr_dict=None)
 print(f"  Feature matrix: {feat.shape[0]} rows x {feat.shape[1]} cols")
 
 print("Step 4/4 - training models (chained open->close->high->low)...")

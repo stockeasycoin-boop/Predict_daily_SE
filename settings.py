@@ -48,7 +48,6 @@ MAX_LOSS_PCT    = 0.10      # 10% max daily loss
 # ─────────────────────────────────────────────────────────────────────
 # SIGNAL THRESHOLDS
 # ─────────────────────────────────────────────────────────────────────
-MIN_CONFIDENCE        = 0.65   # Only suggest trade if confidence ≥ 65%
 RETRAIN_THRESHOLD     = 0.50   # Auto-flag retraining if 7-day accuracy < 50%
 MAX_VIX_FOR_TRADE     = 25.0   # Skip trading if India VIX > 25 (options too expensive)
 

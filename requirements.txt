@@ -21,3 +21,10 @@ torch>=2.0.0
 
 # VADER (lightweight fallback)
 vaderSentiment>=3.3.2
+
+# Optional: hands-free auto-refresh for Live Monitor
+streamlit-autorefresh>=1.0.1
+
+# Groww API (optional — Order Flow Imbalance feature)
+pyotp>=2.9.0
+growwapi>=0.1.0  # optional — for Order Flow Imbalance
