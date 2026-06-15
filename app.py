@@ -612,13 +612,28 @@ with tab1:
                         news_vote = sa.vote_from_news(news)
                         log_step(f"News: {news_vote.reason}")
 
-                        # ── CONSENSUS: weighted vote across all sources ──────
-                        consensus = sa.aggregate_signals(
-                            [model_vote, gift_vote, ofi_vote, news_vote]
+                        # ── CONSENSUS: LLM-powered signal aggregation (Groq) ──
+                        import llm_signal
+                        _market_ctx = {
+                            "spot": spot,
+                            "prev_close": prev_close,
+                            "vix": vix,
+                            "atr_pct": atr_pct,
+                            "gift_gap_pct": round(gift_gap_pct, 2),
+                            "live_pcr": float(live_pcr) if live_pcr else None,
+                            "news_score": news.get("score", 0),
+                            "news_count": news.get("n_articles", 0),
+                        }
+                        _groq_key = settings.get("groq_api_key", "")
+                        consensus = llm_signal.aggregate_with_llm(
+                            [model_vote, gift_vote, ofi_vote, news_vote],
+                            _market_ctx, _groq_key,
                         )
                         direction  = consensus.direction
                         confidence = consensus.confidence
-                        log_step(f"Consensus: {'BULLISH' if direction == 1 else 'BEARISH'} "
+                        _used_llm = "LLM" in consensus.summary
+                        log_step(f"{'LLM' if _used_llm else 'Math'} Consensus: "
+                                 f"{'BULLISH' if direction == 1 else 'BEARISH'} "
                                  f"{confidence:.0%} (agreement: {consensus.agreement_ratio:.0%})")
 
                         # Show vote breakdown
@@ -632,7 +647,12 @@ with tab1:
                                 _vote_parts.append(f"**{_v.source}**: 🟢 bullish ({_v.strength:.0%})")
                             else:
                                 _vote_parts.append(f"**{_v.source}**: 🔴 bearish ({_v.strength:.0%})")
-                        st.info(f"**Signal consensus**: {' | '.join(_vote_parts)}")
+                        _method = "LLM (Groq)" if _used_llm else "Weighted math"
+                        st.info(f"**Signal consensus** ({_method}): {' | '.join(_vote_parts)}")
+                        if _used_llm and "LLM Consensus:" in consensus.summary:
+                            _llm_reason = consensus.summary.split("—", 1)[-1].split("|")[0].strip()
+                            if _llm_reason:
+                                st.caption(f"LLM reasoning: {_llm_reason}")
 
                         # Generate suggestion using CONSENSUS direction + confidence
                         log_step("Step 6/6 — generating trade suggestion…")
@@ -645,6 +665,7 @@ with tab1:
                             "confidence": confidence,
                             "agreement_ratio": consensus.agreement_ratio,
                             "summary": consensus.summary,
+                            "method": "llm" if _used_llm else "weighted_math",
                             "votes": {v.source: {"dir": v.direction, "strength": v.strength,
                                                   "reason": v.reason, "available": v.available}
                                       for v in consensus.votes},
