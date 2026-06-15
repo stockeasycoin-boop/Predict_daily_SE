@@ -431,6 +431,11 @@ with tab1:
                             log_step("Step 1/6 — Breeze API connected ✅")
                             st.session_state["breeze_obj"] = breeze
                             st.toast("✅ Breeze API connected", icon="✅")
+                            # Start WebSocket live stream for GIFT + Nifty
+                            import live_feeds
+                            if not live_feeds.is_streaming():
+                                live_feeds.start(breeze)
+                                log_step("WebSocket live feed started (GIFT + Nifty)")
                         except Exception as e:
                             log_step(f"Breeze connection failed: {e}. Using cached/Stooq data.", "warning")
                             st.warning(f"Breeze connection failed: {e}. Using cached/Stooq data.")
@@ -483,7 +488,15 @@ with tab1:
                         atr_pct    = preds.get("atr_pct", 0.8)
                         vix        = preds.get("india_vix", 16.0)
                         spot = None
-                        if breeze:
+                        # Try WebSocket stream first (instant)
+                        import live_feeds as _lf2
+                        _nifty_tick = _lf2.get_latest("nifty")
+                        if _nifty_tick and _nifty_tick.get("ltp", 0) > 0:
+                            _n_age = _lf2.age_seconds("nifty")
+                            if _n_age is not None and _n_age < 300:
+                                spot = _nifty_tick["ltp"]
+                        # Fallback to REST poll
+                        if not spot and breeze:
                             live = df_mod.fetch_live_quote_breeze(breeze)
                             if live:
                                 spot = live["ltp"]
@@ -506,16 +519,26 @@ with tab1:
                         model_vote = sa.vote_from_model(preds)
                         log_step(f"Model: {model_vote.reason}")
 
-                        # 2) GIFT Nifty vote (live → gift_nifty.csv → 5min last resort)
+                        # 2) GIFT Nifty vote (stream → REST → gift_nifty.csv → 5min last resort)
                         gift_live    = None
                         gift_status  = "unavailable"
                         gift_gap_pct = 0.0
-                        # Tier 1: live quote from Breeze
-                        if breeze:
+                        # Tier 0: WebSocket live stream tick (instant, no API call)
+                        import live_feeds as _lf
+                        _gift_tick = _lf.get_latest("gift")
+                        if _gift_tick and _gift_tick.get("ltp", 0) > 0:
+                            _age = _lf.age_seconds("gift")
+                            if _age is not None and _age < 300:
+                                gift_live = _gift_tick["ltp"]
+                                _src = _gift_tick.get("stock", "")
+                                gift_status = f"live stream ({_src})"
+                                log_step(f"GIFT from WebSocket stream: ₹{gift_live:,.0f} ({_age:.0f}s ago)")
+                        # Tier 1: REST poll from Breeze (if stream didn't have it)
+                        if (gift_live is None or gift_live <= 0) and breeze:
                             try:
                                 gift_live = df_mod.fetch_gift_nifty_breeze(breeze)
                                 if gift_live and gift_live > 0:
-                                    gift_status = "live"
+                                    gift_status = "live (REST)"
                             except Exception:
                                 pass
                         # Tier 2: gift_nifty.csv historical cache (try to populate if missing)
@@ -2706,9 +2729,20 @@ with tab6:
 
         # ── 5. GIFT Nifty ──────────────────────────────────────────────────
         _gift_live = None
-        if _ds_breeze:
+        _gift_src = ""
+        # Check WebSocket stream first
+        import live_feeds as _lf_ds
+        _gift_tick_ds = _lf_ds.get_latest("gift")
+        if _gift_tick_ds and _gift_tick_ds.get("ltp", 0) > 0:
+            _gift_live = _gift_tick_ds["ltp"]
+            _g_age = _lf_ds.age_seconds("gift")
+            _gift_src = f"WebSocket stream ({_gift_tick_ds.get('stock', '')}), {_g_age:.0f}s ago" if _g_age else "WebSocket stream"
+        # Fallback to REST
+        if not _gift_live and _ds_breeze:
             try:
                 _gift_live = df_mod.fetch_gift_nifty_breeze(_ds_breeze)
+                if _gift_live:
+                    _gift_src = "REST poll"
             except Exception:
                 pass
         _age = _cache_age_str("*gift*.csv")
@@ -2718,20 +2752,17 @@ with tab6:
         except Exception:
             _mkt_open_ds = False
         _5min_exists = Path("data/nifty_5min_2yr.csv").exists()
+        _is_streaming = _lf_ds.is_streaming()
         _ds_rows.append({
-            "Source": "GIFT Nifty (live + history)", "Used for": "Pre-market direction override at 8:45 AM",
-            "Status": ("🟢 Live quote OK" if _gift_live else
-                       ("🟡 Using 5-min cache fallback" if _5min_exists else
-                        ("🟡 Live quote only streams during market hours" if not _mkt_open_ds else
-                         ("🟡 History cached, live failed" if _age else "🔴 Unavailable")))),
-            "Detail": (f"Live: ₹{_gift_live:,.0f}" +
-                       (" (NIFTY futures proxy)" if getattr(df_mod, "LAST_FETCH_ERRORS", {}).get("gift_note") else "")
-                       if _gift_live else
-                       ("Falls back to today's open vs prev close from 5-min cache" if _5min_exists
-                        else ("Fetch error: " + df_mod.LAST_FETCH_ERRORS.get("gift", "")[:90]
-                              if getattr(df_mod, "LAST_FETCH_ERRORS", {}).get("gift")
-                              else (f"History cached {_age}. Re-check during market hours." if _age and not _mkt_open_ds
-                                    else "Live GIFT needs an active Breeze session during market hours")))),
+            "Source": "GIFT Nifty (live stream + history)", "Used for": "Pre-market direction signal",
+            "Status": ("🟢 Live stream" if _gift_live and "stream" in _gift_src else
+                       ("🟢 Live REST" if _gift_live else
+                        ("🟡 Stream connected, no ticks yet" if _is_streaming else
+                         ("🟡 History cached" if _age else
+                          ("🟡 5-min cache fallback" if _5min_exists else "🔴 Unavailable"))))),
+            "Detail": ((f"₹{_gift_live:,.0f} via {_gift_src}") if _gift_live else
+                       ("WebSocket connected, waiting for market ticks" if _is_streaming
+                        else (f"History cached {_age}" if _age else "Start Breeze session to enable live stream"))),
         })
 
         # ── 6. FII/DII flows ───────────────────────────────────────────────
