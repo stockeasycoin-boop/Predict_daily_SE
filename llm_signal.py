@@ -128,11 +128,42 @@ def _build_prompt(market_context: dict) -> str:
 - Negative articles: {np_.get("n_negative", 0)} ({np_.get("pct_negative", 0)}%)
 - Neutral articles: {np_.get("n_neutral", 0)}
 - Scoring backend: {np_.get("backend", "N/A")} (finbert = high accuracy, vader = basic)
+
+### Breakdown by impact type (macro news matters most for index direction):
+- Macro/policy news: {np_.get("n_macro", 0)} articles, avg sentiment: {np_.get("macro_sentiment", "N/A")}
+- Market events: {np_.get("n_market_events", 0)} articles, avg sentiment: {np_.get("market_sentiment", "N/A")}
+- General news: {np_.get("n_general", 0)} articles, avg sentiment: {np_.get("general_sentiment", "N/A")}
 """
+        # Category breakdown
+        cat_breakdown = np_.get("category_breakdown", {})
+        if cat_breakdown:
+            news_section += "\n### Sentiment by category:\n"
+            for cat, data in list(cat_breakdown.items())[:12]:
+                news_section += f"  - {cat}: {data.get('count', 0)} articles, avg: {data.get('avg_sentiment', 0):+.3f} ({data.get('label', 'neutral')})\n"
+
+        # Macro/market-event headlines (most impactful)
+        macro_hl = np_.get("macro_headlines", [])
+        if macro_hl:
+            news_section += "\n### Key macro/market-event headlines (highest market impact):\n"
+            for i, h in enumerate(macro_hl[:7], 1):
+                s = h.get("sentiment", 0)
+                tag = "BULLISH" if s > 0.15 else "BEARISH" if s < -0.15 else "NEUTRAL"
+                news_section += f"  {i}. [{tag} {s:+.2f}] [{h.get('impact_type', '')}] {h.get('title', 'N/A')} — {h.get('source', '')} ({h.get('publishedIST', '')})\n"
+
+        # Top sentiment headlines
         headlines = np_.get("top_headlines", [])
         if headlines:
-            news_section += "\nTop market-moving headlines (by sentiment strength):\n"
-            for i, h in enumerate(headlines[:5], 1):
+            news_section += "\n### Top sentiment-moving headlines (by strength):\n"
+            for i, h in enumerate(headlines[:7], 1):
+                s = h.get("sentiment", 0)
+                tag = "BULLISH" if s > 0.15 else "BEARISH" if s < -0.15 else "NEUTRAL"
+                news_section += f"  {i}. [{tag} {s:+.2f}] {h.get('title', 'N/A')} — {h.get('source', '')} ({h.get('publishedIST', '')})\n"
+
+        # Latest breaking headlines
+        latest_hl = np_.get("latest_headlines", [])
+        if latest_hl:
+            news_section += "\n### Latest breaking headlines (most recent first):\n"
+            for i, h in enumerate(latest_hl[:5], 1):
                 s = h.get("sentiment", 0)
                 tag = "BULLISH" if s > 0.15 else "BEARISH" if s < -0.15 else "NEUTRAL"
                 news_section += f"  {i}. [{tag} {s:+.2f}] {h.get('title', 'N/A')} — {h.get('source', '')} ({h.get('publishedIST', '')})\n"
@@ -303,8 +334,17 @@ def build_market_context(
             "n_neutral": news.get("n_neutral", 0),
             "pct_positive": news.get("pct_positive", 0),
             "pct_negative": news.get("pct_negative", 0),
+            "n_macro": news.get("n_macro", 0),
+            "n_market_events": news.get("n_market_events", 0),
+            "n_general": news.get("n_general", 0),
+            "macro_sentiment": news.get("macro_sentiment", 0),
+            "market_sentiment": news.get("market_sentiment", 0),
+            "general_sentiment": news.get("general_sentiment", 0),
             "backend": news.get("backend", "none"),
             "top_headlines": news.get("top_headlines", []),
+            "latest_headlines": news.get("latest_headlines", []),
+            "macro_headlines": news.get("macro_headlines", []),
+            "category_breakdown": news.get("category_breakdown", {}),
             "error": news.get("error", ""),
         },
     }

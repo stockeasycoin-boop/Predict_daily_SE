@@ -20,19 +20,18 @@ BREEZE_API_SECRET  = os.getenv("BREEZE_API_SECRET",  "YOUR_API_SECRET_HERE")
 BREEZE_SESSION_TOKEN = os.getenv("BREEZE_SESSION_TOKEN", "")  # Refresh daily
 
 # ─────────────────────────────────────────────────────────────────────
-# GNEWS API (news sentiment enrichment) — free 100 req/day at gnews.io
+# GNEWS API (news sentiment enrichment) — 1000 req/day premium plan
 # Paste key into Settings tab; saved to settings.json
 # ─────────────────────────────────────────────────────────────────────
 GNEWS_API_KEY = os.getenv("GNEWS_API_KEY", "")
 
-# ── GNews PREMIUM / realtime tuning ──────────────────────────────────────
-# These are sized for a PAID GNews plan (higher rate limits, up to 100
-# articles/request, near-realtime indexing). On the free tier, lower
-# GNEWS_MAX_PER_QUERY back to 10 and raise GNEWS_CACHE_MINUTES to ~240.
-GNEWS_CACHE_MINUTES = int(os.getenv("GNEWS_CACHE_MINUTES", "5"))   # cache TTL; 5 ≈ realtime
-GNEWS_MAX_PER_QUERY = int(os.getenv("GNEWS_MAX_PER_QUERY", "50"))  # premium allows up to 100
-GNEWS_LOOKBACK_DAYS = int(os.getenv("GNEWS_LOOKBACK_DAYS", "3"))   # days of news to analyse
-GNEWS_QUERY_PAUSE   = float(os.getenv("GNEWS_QUERY_PAUSE", "0.0")) # premium: no throttle needed
+# ── GNews PREMIUM tuning (1000 req/day plan) ─────────────────────────────
+# 22 queries per refresh × 100 articles each = ~2200 articles, ~22 API calls.
+# At 1000 req/day → ~45 refreshes/day → every ~20 min during market hours.
+GNEWS_CACHE_MINUTES = int(os.getenv("GNEWS_CACHE_MINUTES", "5"))    # short cache for near-realtime
+GNEWS_MAX_PER_QUERY = int(os.getenv("GNEWS_MAX_PER_QUERY", "100")) # max allowed by GNews API
+GNEWS_LOOKBACK_DAYS = int(os.getenv("GNEWS_LOOKBACK_DAYS", "3"))   # 3 days of news context
+GNEWS_QUERY_PAUSE   = float(os.getenv("GNEWS_QUERY_PAUSE", "0.0")) # no throttle needed on premium
 
 # News-sentiment adjustment caps (used by news_sentiment.adjust_confidence)
 NEWS_MAX_BOOST   = 0.08   # max upward adjustment when news agrees with model

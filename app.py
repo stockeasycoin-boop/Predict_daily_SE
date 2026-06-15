@@ -711,13 +711,16 @@ with tab1:
                         _n_dir_str = "Bullish" if news_vote.direction == 1 else "Bearish" if news_vote.direction == 0 else "Neutral/N/A"
                         _n_score = news.get("score", 0)
                         _n_count = news.get("n_articles", 0)
+                        _n_macro = news.get("n_macro", 0)
+                        _n_mkt = news.get("n_market_events", 0)
+                        _macro_s = news.get("macro_sentiment", 0)
                         _sig_rows.append({
                             "Signal": f"News ({news.get('backend', 'N/A')})",
                             "Status": f"{_n_icon} {_n_dir_str}",
                             "Value": f"Score: {_n_score:+.3f} ({_n_count} articles)",
                             "Confidence": f"{news_vote.strength:.0%}" if news_vote.available else "—",
                             "Strength": f"{news_vote.strength:.0%}",
-                            "Detail": f"{news.get('label', 'N/A')} | +{news.get('n_positive', 0)} / -{news.get('n_negative', 0)} / ~{news.get('n_neutral', 0)}",
+                            "Detail": f"{news.get('label', 'N/A')} | +{news.get('n_positive', 0)} / -{news.get('n_negative', 0)} / ~{news.get('n_neutral', 0)} | Macro: {_n_macro} ({_macro_s:+.2f}) | Events: {_n_mkt}",
                         })
 
                         # Options chain (info only, not a vote)

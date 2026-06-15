@@ -2,7 +2,7 @@
 news_sentiment.py — News sentiment enrichment for Nifty predictions.
 
 Pipeline:
-  1. GNews API     → fetch recent India/Nifty/market news headlines
+  1. GNews API     → fetch India/Nifty/market/macro/global news (1000 req/day plan)
   2. FinBERT       → financial-domain sentiment scoring (primary)
   3. VADER         → lexicon-based fallback when transformers/torch missing
 
@@ -10,8 +10,7 @@ Returns a sentiment score in [-1, +1] aggregated across articles, plus per-artic
 breakdown. Designed to ENRICH (not replace) model predictions — it adjusts
 confidence based on news/model alignment.
 
-Cached to data/news_sentiment.json (4-hour TTL) to respect GNews free-tier
-limits (100 requests/day).
+Cached to data/news_sentiment.json (short TTL for premium plan).
 """
 
 from __future__ import annotations
@@ -28,7 +27,6 @@ import requests
 
 warnings.filterwarnings("ignore")
 
-# ── Silence noisy transformers / HF deprecation chatter ──────────────────────
 os.environ.setdefault("TRANSFORMERS_VERBOSITY", "error")
 os.environ.setdefault("TRANSFORMERS_NO_ADVISORY_WARNINGS", "1")
 os.environ.setdefault("HF_HUB_DISABLE_TELEMETRY", "1")
@@ -37,14 +35,12 @@ for _noisy in ("transformers", "transformers.modeling_utils",
                "transformers.configuration_utils", "huggingface_hub"):
     logging.getLogger(_noisy).setLevel(logging.ERROR)
 
-# ── Lazy backend detection ───────────────────────────────────────────────────
-_FINBERT = None      # cached pipeline (loaded once)
-_VADER   = None      # cached analyzer (loaded once)
-_BACKEND = None      # "finbert" | "vader" | "none"
+_FINBERT = None
+_VADER   = None
+_BACKEND = None
 
 
 def _load_finbert():
-    """Lazy-load FinBERT. Returns the pipeline or None if unavailable."""
     global _FINBERT
     if _FINBERT is not None:
         return _FINBERT
@@ -70,7 +66,6 @@ def _load_finbert():
 
 
 def _load_vader():
-    """Lazy-load VADER. Returns the analyzer or None if unavailable."""
     global _VADER
     if _VADER is not None:
         return _VADER
@@ -85,7 +80,6 @@ def _load_vader():
 
 
 def _detect_backend() -> str:
-    """Pick the best available backend, lazy-loading it."""
     global _BACKEND
     if _BACKEND is not None:
         return _BACKEND
@@ -99,49 +93,60 @@ def _detect_backend() -> str:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# GNEWS FETCH
+# GNEWS FETCH — PREMIUM PLAN (1000 req/day)
 # ─────────────────────────────────────────────────────────────────────────────
 
-GNEWS_URL = "https://gnews.io/api/v4/search"
+GNEWS_SEARCH_URL = "https://gnews.io/api/v4/search"
+GNEWS_TOP_URL    = "https://gnews.io/api/v4/top-headlines"
 
-# India/Nifty-focused search queries (combined with OR via comma-quote trick)
+# Comprehensive query set covering all market-moving categories
+# Each query costs 1 API call, returns up to 100 articles
 NIFTY_QUERIES = [
+    # Direct index
     "Nifty 50",
-    "Indian stock market",
-    "Sensex",
-    "RBI India",
-    "FII India",
+    "Sensex BSE",
+    "Indian stock market today",
+    # Institutional flows
+    "FII India investment",
+    "DII mutual fund India",
+    # Central bank / monetary policy
+    "RBI monetary policy",
+    "RBI interest rate India",
+    # Government / fiscal
+    "India GDP growth",
+    "India budget fiscal policy",
+    # Global macro that impacts Indian markets
+    "US Federal Reserve rate",
+    "crude oil price India",
+    "dollar rupee exchange",
+    # Sector heavyweights (top Nifty weight)
+    "Reliance Industries",
+    "HDFC Bank results",
+    "Infosys TCS IT sector",
+    # Volatility / risk
+    "India VIX volatility",
+    "global recession risk",
+    # Geopolitical
+    "India trade export",
+    "Asia markets today",
 ]
+
+# Top-headlines categories to also fetch (no query needed, just category)
+TOP_HEADLINE_CATEGORIES = ["business", "world"]
 
 
 def _gnews_cfg():
-    """Read GNews premium tuning from settings (with safe fallbacks)."""
     try:
         from settings import (GNEWS_MAX_PER_QUERY, GNEWS_LOOKBACK_DAYS,
                               GNEWS_QUERY_PAUSE, GNEWS_CACHE_MINUTES)
         return (int(GNEWS_MAX_PER_QUERY), int(GNEWS_LOOKBACK_DAYS),
                 float(GNEWS_QUERY_PAUSE), int(GNEWS_CACHE_MINUTES))
     except Exception:
-        return (10, 2, 0.3, 240)   # free-tier-safe defaults
+        return (100, 3, 0.0, 5)
 
 
 def fetch_gnews(api_key: str, query: str, days: int = None,
                 max_results: int = None) -> list[dict]:
-    """
-    Fetch news articles from GNews API for a given query.
-
-    Parameters
-    ----------
-    api_key      : Your GNews API key
-    query        : Search query (e.g. "Nifty 50")
-    days         : Look back this many days (defaults to GNEWS_LOOKBACK_DAYS)
-    max_results  : Articles per query (defaults to GNEWS_MAX_PER_QUERY;
-                   premium plans allow up to 100)
-
-    Returns
-    -------
-    List of article dicts with keys: title, description, publishedAt, source, url
-    """
     if not api_key or api_key in ("YOUR_GNEWS_API_KEY", ""):
         return []
 
@@ -155,22 +160,16 @@ def fetch_gnews(api_key: str, query: str, days: int = None,
     params = {
         "q":        query,
         "lang":     "en",
-        "country":  "in",                           # India-focused
-        "max":      max(1, min(max_results, 100)),  # premium allows up to 100
+        "country":  "in",
+        "max":      max(1, min(max_results, 100)),
         "from":     from_dt,
-        "sortby":   "publishedAt",                  # newest first -> realtime
+        "sortby":   "publishedAt",
         "apikey":   api_key,
     }
     try:
-        resp = requests.get(GNEWS_URL, params=params, timeout=10)
-        if resp.status_code == 401:
-            print("[news] GNews 401 - API key invalid.")
-            return []
-        if resp.status_code == 403:
-            print("[news] GNews 403 - quota exhausted or plan limit reached.")
-            return []
-        if resp.status_code == 429:
-            print("[news] GNews 429 - rate limited; slow down requests.")
+        resp = requests.get(GNEWS_SEARCH_URL, params=params, timeout=10)
+        if resp.status_code in (401, 403, 429):
+            print(f"[news] GNews {resp.status_code} for '{query}'")
             return []
         resp.raise_for_status()
         data = resp.json()
@@ -180,11 +179,33 @@ def fetch_gnews(api_key: str, query: str, days: int = None,
         return []
 
 
+def fetch_top_headlines(api_key: str, category: str = "business",
+                        max_results: int = 100) -> list[dict]:
+    if not api_key:
+        return []
+    params = {
+        "category": category,
+        "lang":     "en",
+        "country":  "in",
+        "max":      max(1, min(max_results, 100)),
+        "apikey":   api_key,
+    }
+    try:
+        resp = requests.get(GNEWS_TOP_URL, params=params, timeout=10)
+        if resp.status_code in (401, 403, 429):
+            return []
+        resp.raise_for_status()
+        return resp.json().get("articles", [])
+    except Exception as e:
+        print(f"[news] Top headlines fetch failed ({category}): {e}")
+        return []
+
+
 def fetch_all_news(api_key: str, days: int = None) -> list[dict]:
     """
-    Fetch news for all Nifty-related queries and dedupe by URL.
-    Costs ~len(NIFTY_QUERIES) GNews calls. On a premium plan each call can
-    return up to 100 fresh articles, so this yields a deep realtime snapshot.
+    Fetch news across all queries + top headlines. Dedupes by URL.
+    With 20 queries + 2 top-headline categories = ~22 API calls per refresh.
+    At 1000 req/day, can refresh ~45 times/day (every ~20 min during market hours).
     """
     cfg_max, cfg_days, pause, _ = _gnews_cfg()
     if days is None:
@@ -192,14 +213,30 @@ def fetch_all_news(api_key: str, days: int = None) -> list[dict]:
 
     seen = set()
     articles = []
+
+    # Search queries
     for q in NIFTY_QUERIES:
         for art in fetch_gnews(api_key, q, days=days, max_results=cfg_max):
             url = art.get("url")
             if url and url not in seen:
                 seen.add(url)
+                art["_query"] = q
                 articles.append(art)
         if pause > 0:
             time.sleep(pause)
+
+    # Top headlines (business + world for India)
+    for cat in TOP_HEADLINE_CATEGORIES:
+        for art in fetch_top_headlines(api_key, cat, max_results=cfg_max):
+            url = art.get("url")
+            if url and url not in seen:
+                seen.add(url)
+                art["_query"] = f"top:{cat}"
+                articles.append(art)
+        if pause > 0:
+            time.sleep(pause)
+
+    print(f"[news] Fetched {len(articles)} unique articles from {len(NIFTY_QUERIES) + len(TOP_HEADLINE_CATEGORIES)} sources")
     return articles
 
 
@@ -207,21 +244,40 @@ def fetch_all_news(api_key: str, days: int = None) -> list[dict]:
 # SENTIMENT SCORING
 # ─────────────────────────────────────────────────────────────────────────────
 
+# Market-impact keywords that boost/dampen sentiment weight
+BULLISH_AMPLIFIERS = {
+    "record high", "all-time high", "rally", "surge", "breakout", "upgrade",
+    "rate cut", "stimulus", "reform", "inflows", "buying spree", "outperform",
+    "strong earnings", "beat estimates", "GDP growth", "bull run",
+}
+BEARISH_AMPLIFIERS = {
+    "crash", "plunge", "selloff", "sell-off", "panic", "recession", "downgrade",
+    "rate hike", "outflows", "sanctions", "war", "crisis", "default", "bear market",
+    "weak earnings", "miss estimates", "slowdown", "correction", "collapse",
+}
+MACRO_KEYWORDS = {
+    "RBI", "Federal Reserve", "Fed", "GDP", "inflation", "CPI", "interest rate",
+    "monetary policy", "fiscal deficit", "crude oil", "rupee", "dollar",
+    "FII", "DII", "institutional", "budget", "trade war", "tariff",
+}
+
+
 def _score_finbert(texts: list[str]) -> list[float]:
-    """Score texts with FinBERT. Returns list of compound scores in [-1, +1]."""
     pipe = _load_finbert()
     if pipe is None:
         return [0.0] * len(texts)
     scores = []
     try:
-        # FinBERT returns [{label: 'positive'|'negative'|'neutral', score: 0..1}, ...]
-        results = pipe(texts)
-        for r in results:
-            label = r["label"].lower()
-            conf  = float(r["score"])
-            if   label == "positive": scores.append(+conf)
-            elif label == "negative": scores.append(-conf)
-            else:                     scores.append(0.0)        # neutral
+        # Batch in chunks of 32 for memory efficiency
+        for i in range(0, len(texts), 32):
+            batch = texts[i:i+32]
+            results = pipe(batch)
+            for r in results:
+                label = r["label"].lower()
+                conf  = float(r["score"])
+                if   label == "positive": scores.append(+conf)
+                elif label == "negative": scores.append(-conf)
+                else:                     scores.append(0.0)
     except Exception as e:
         print(f"[news] FinBERT scoring failed: {e}. Returning zeros.")
         scores = [0.0] * len(texts)
@@ -229,34 +285,53 @@ def _score_finbert(texts: list[str]) -> list[float]:
 
 
 def _score_vader(texts: list[str]) -> list[float]:
-    """Score texts with VADER. Returns list of compound scores in [-1, +1]."""
     analyzer = _load_vader()
     if analyzer is None:
         return [0.0] * len(texts)
     return [float(analyzer.polarity_scores(t)["compound"]) for t in texts]
 
 
+def _classify_impact(text: str) -> dict:
+    """Classify article's market impact type and amplification."""
+    text_lower = text.lower()
+    is_macro = any(kw.lower() in text_lower for kw in MACRO_KEYWORDS)
+    bull_hits = sum(1 for kw in BULLISH_AMPLIFIERS if kw in text_lower)
+    bear_hits = sum(1 for kw in BEARISH_AMPLIFIERS if kw in text_lower)
+
+    if is_macro:
+        impact_type = "macro"
+        weight_mult = 1.5
+    elif bull_hits > 0 or bear_hits > 0:
+        impact_type = "market_event"
+        weight_mult = 1.3
+    else:
+        impact_type = "general"
+        weight_mult = 1.0
+
+    return {
+        "impact_type": impact_type,
+        "weight_multiplier": weight_mult,
+        "bull_keywords": bull_hits,
+        "bear_keywords": bear_hits,
+        "is_macro": is_macro,
+    }
+
+
 def score_articles(articles: list[dict]) -> list[dict]:
     """
-    Score a list of GNews articles, returning enriched dicts with 'sentiment' field.
-    Uses FinBERT if available, else VADER. Combines title + description for context.
+    Score articles with FinBERT/VADER + classify market impact.
     """
     if not articles:
         return []
 
     backend = _detect_backend()
     if backend == "none":
-        # No scoring backend — articles fetched but scores default to 0.0
-        # To fix: pip install vaderSentiment   (lightweight, always works)
-        #         pip install transformers torch  (for FinBERT, heavier)
         print("[news] WARNING: No sentiment backend available. "
-              "Articles fetched but not scored. "
               "Run: pip install vaderSentiment")
         for a in articles:
             a["sentiment"] = 0.0
             a["backend"]   = "none"
-            a["backend_error"] = ("No scoring model installed. "
-                                  "Run: pip install vaderSentiment")
+            a["impact"] = _classify_impact(a.get("title", ""))
         return articles
 
     texts = [
@@ -268,6 +343,9 @@ def score_articles(articles: list[dict]) -> list[dict]:
     for a, s in zip(articles, scores):
         a["sentiment"] = round(float(s), 4)
         a["backend"]   = backend
+        a["impact"] = _classify_impact(
+            a.get("title", "") + " " + (a.get("description") or "")
+        )
     return articles
 
 
@@ -278,7 +356,8 @@ def score_articles(articles: list[dict]) -> list[dict]:
 def aggregate(scored: list[dict]) -> dict:
     """
     Aggregate per-article scores into a single market sentiment snapshot.
-    Recent articles weighted slightly higher (linear decay over `days` window).
+    Impact-weighted: macro news and market events count more than general articles.
+    Recent articles weighted higher (linear decay over lookback window).
     """
     if not scored:
         return {
@@ -292,26 +371,56 @@ def aggregate(scored: list[dict]) -> dict:
             "pct_negative":   0.0,
             "backend":        _detect_backend(),
             "top_headlines":  [],
+            "latest_headlines": [],
+            "macro_headlines": [],
+            "category_breakdown": {},
         }
 
-    # Recency-weighted mean
     now = datetime.utcnow()
     weighted_sum, weight_total = 0.0, 0.0
     n_pos = n_neg = n_neu = 0
+    n_macro = n_market = n_general = 0
+    macro_sum = market_sum = general_sum = 0.0
+    query_scores = {}
+
     for a in scored:
         s = a.get("sentiment", 0.0)
-        # Parse publishedAt for recency weight
+        impact = a.get("impact", {})
+        w_mult = impact.get("weight_multiplier", 1.0)
+
+        # Recency weight
         try:
             published = datetime.strptime(a["publishedAt"], "%Y-%m-%dT%H:%M:%SZ")
             hours_old = max(0, (now - published).total_seconds() / 3600)
-            w = max(0.3, 1.0 - hours_old / 72)   # 3-day half-decay, floor 0.3
+            w = max(0.3, 1.0 - hours_old / 72)
         except Exception:
             w = 0.7
-        weighted_sum += s * w
-        weight_total += w
+
+        # Combined weight = recency × impact
+        combined_w = w * w_mult
+        weighted_sum += s * combined_w
+        weight_total += combined_w
+
         if   s >  0.15: n_pos += 1
         elif s < -0.15: n_neg += 1
         else:           n_neu += 1
+
+        impact_type = impact.get("impact_type", "general")
+        if impact_type == "macro":
+            n_macro += 1
+            macro_sum += s
+        elif impact_type == "market_event":
+            n_market += 1
+            market_sum += s
+        else:
+            n_general += 1
+            general_sum += s
+
+        q = a.get("_query", "unknown")
+        if q not in query_scores:
+            query_scores[q] = {"count": 0, "sum": 0.0}
+        query_scores[q]["count"] += 1
+        query_scores[q]["sum"] += s
 
     score = weighted_sum / weight_total if weight_total > 0 else 0.0
     n     = len(scored)
@@ -323,7 +432,6 @@ def aggregate(scored: list[dict]) -> dict:
     else:               label = "neutral"
 
     def _to_ist(utc_str: str) -> str:
-        """Convert GNews UTC 'YYYY-MM-DDTHH:MM:SSZ' to IST 'YYYY-MM-DD HH:MM IST'."""
         if not utc_str:
             return ""
         try:
@@ -334,43 +442,73 @@ def aggregate(scored: list[dict]) -> dict:
             return utc_str
 
     def _fmt(a):
+        impact = a.get("impact", {})
         return {
             "title":         a.get("title", "")[:140],
             "sentiment":     a.get("sentiment", 0.0),
             "source":        (a.get("source") or {}).get("name", "unknown"),
             "url":           a.get("url", ""),
-            "publishedAt":   a.get("publishedAt", ""),          # raw UTC (for sorting)
-            "publishedIST":  _to_ist(a.get("publishedAt", "")), # display string
+            "publishedAt":   a.get("publishedAt", ""),
+            "publishedIST":  _to_ist(a.get("publishedAt", "")),
+            "impact_type":   impact.get("impact_type", "general"),
+            "weight_mult":   impact.get("weight_multiplier", 1.0),
+            "query":         a.get("_query", ""),
         }
 
-    # Top 5 strongest-signal headlines (by |sentiment|)
-    top = sorted(scored, key=lambda a: abs(a.get("sentiment", 0.0)), reverse=True)[:5]
+    # Top 10 strongest-signal headlines (by |sentiment|)
+    top = sorted(scored, key=lambda a: abs(a.get("sentiment", 0.0)), reverse=True)[:10]
     top_headlines = [_fmt(t) for t in top]
 
-    # Last 5 fetched headlines (most recent by publish time)
-    latest = sorted(scored, key=lambda a: a.get("publishedAt", ""), reverse=True)[:5]
+    # Latest 10 fetched headlines (most recent by publish time)
+    latest = sorted(scored, key=lambda a: a.get("publishedAt", ""), reverse=True)[:10]
     latest_headlines = [_fmt(t) for t in latest]
+
+    # Top macro/market-event headlines specifically
+    macro_arts = [a for a in scored if a.get("impact", {}).get("impact_type") in ("macro", "market_event")]
+    macro_arts.sort(key=lambda a: abs(a.get("sentiment", 0.0)), reverse=True)
+    macro_headlines = [_fmt(a) for a in macro_arts[:10]]
+
+    # Category breakdown for LLM context
+    category_breakdown = {}
+    for q, data in sorted(query_scores.items(), key=lambda x: x[1]["count"], reverse=True):
+        avg = data["sum"] / data["count"] if data["count"] > 0 else 0
+        category_breakdown[q] = {
+            "count": data["count"],
+            "avg_sentiment": round(avg, 3),
+            "label": "bullish" if avg > 0.1 else "bearish" if avg < -0.1 else "neutral",
+        }
 
     backend_used = scored[0].get("backend", _detect_backend()) if scored else _detect_backend()
     result = {
-        "score":          round(score, 4),
-        "label":          label,
-        "n_articles":     n,
-        "n_positive":     n_pos,
-        "n_negative":     n_neg,
-        "n_neutral":      n_neu,
-        "pct_positive":   round(n_pos / n * 100, 1) if n else 0.0,
-        "pct_negative":   round(n_neg / n * 100, 1) if n else 0.0,
-        "backend":        backend_used,
-        "top_headlines":  top_headlines,
-        "latest_headlines": latest_headlines,
+        "score":              round(score, 4),
+        "label":              label,
+        "n_articles":         n,
+        "n_positive":         n_pos,
+        "n_negative":         n_neg,
+        "n_neutral":          n_neu,
+        "pct_positive":       round(n_pos / n * 100, 1) if n else 0.0,
+        "pct_negative":       round(n_neg / n * 100, 1) if n else 0.0,
+        "n_macro":            n_macro,
+        "n_market_events":    n_market,
+        "n_general":          n_general,
+        "macro_sentiment":    round(macro_sum / n_macro, 3) if n_macro > 0 else 0.0,
+        "market_sentiment":   round(market_sum / n_market, 3) if n_market > 0 else 0.0,
+        "general_sentiment":  round(general_sum / n_general, 3) if n_general > 0 else 0.0,
+        "backend":            backend_used,
+        "top_headlines":      top_headlines,
+        "latest_headlines":   latest_headlines,
+        "macro_headlines":    macro_headlines,
+        "category_breakdown": category_breakdown,
     }
     if backend_used == "none":
         result["error"] = ("Sentiment scoring unavailable — no model installed. "
-                           "Run: pip install vaderSentiment   "
-                           "Articles were fetched but all scores are 0.0.")
+                           "Run: pip install vaderSentiment")
     return result
 
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MAIN ENTRY POINT
+# ─────────────────────────────────────────────────────────────────────────────
 
 def get_market_sentiment(
     api_key: str,
@@ -380,11 +518,7 @@ def get_market_sentiment(
 ) -> dict:
     """
     Main entry point. Fetches news, scores it, aggregates, caches.
-
-    Cache lasts 4 hours — news doesn't change second-to-second, and this
-    keeps you under the 100/day GNews free-tier limit.
-
-    Returns the aggregate dict (see `aggregate()`).
+    Premium plan (1000 req/day): short TTL (5 min), 100 articles per query.
     """
     if cache_dir is None:
         try:
@@ -396,10 +530,8 @@ def get_market_sentiment(
     cache_dir.mkdir(exist_ok=True)
     cache_file = cache_dir / "news_sentiment.json"
 
-    # Cache TTL in minutes (small on premium plans = near-realtime).
     _, _, _, cache_minutes = _gnews_cfg()
 
-    # Serve from cache only if still within the (short) TTL
     if cache_file.exists() and not force_refresh and cache_minutes > 0:
         age_min = (datetime.now().timestamp() - cache_file.stat().st_mtime) / 60
         if age_min < cache_minutes:
@@ -411,9 +543,8 @@ def get_market_sentiment(
                 cached["cache_age_minutes"] = round(age_min, 1)
                 return cached
             except Exception:
-                pass   # fall through to refresh
+                pass
 
-    # Fresh fetch
     if not api_key or api_key in ("YOUR_GNEWS_API_KEY", ""):
         return {
             "score":  0.0,
@@ -422,6 +553,9 @@ def get_market_sentiment(
             "backend": _detect_backend(),
             "error":  "GNews API key not configured. Add it in Settings tab.",
             "top_headlines": [],
+            "latest_headlines": [],
+            "macro_headlines": [],
+            "category_breakdown": {},
         }
 
     articles = fetch_all_news(api_key, days=days)
@@ -444,7 +578,6 @@ def _archive_daily(result: dict, cache_dir: Path):
     """
     Append today's sentiment to a persistent daily archive.
     File: data/news_history.json — NEVER deleted, grows over time.
-    Each day gets the latest fetch; older entries preserved.
     """
     archive_path = Path(cache_dir) / "news_history.json"
     today_str = date.today().isoformat()
@@ -455,31 +588,32 @@ def _archive_daily(result: dict, cache_dir: Path):
             with open(archive_path) as f:
                 archive = json.load(f)
         except Exception:
-            archive = {}
+            pass
 
     archive[today_str] = {
-        "score": result.get("score", 0),
-        "label": result.get("label", "neutral"),
-        "n_articles": result.get("n_articles", 0),
-        "backend": result.get("backend", "none"),
-        "fetched_at": result.get("fetched_at", ""),
-        "top_headlines": [
-            {"title": a.get("title", ""), "score": a.get("score", 0),
-             "source": a.get("source", {}).get("name", ""),
-             "published": a.get("publishedAt", "")}
-            for a in result.get("top_headlines", [])[:20]
-        ],
+        "score":           result.get("score", 0),
+        "label":           result.get("label", ""),
+        "n_articles":      result.get("n_articles", 0),
+        "n_positive":      result.get("n_positive", 0),
+        "n_negative":      result.get("n_negative", 0),
+        "n_neutral":       result.get("n_neutral", 0),
+        "n_macro":         result.get("n_macro", 0),
+        "macro_sentiment": result.get("macro_sentiment", 0),
+        "backend":         result.get("backend", ""),
+        "top_headlines":   result.get("top_headlines", [])[:5],
+        "macro_headlines":  result.get("macro_headlines", [])[:5],
+        "category_breakdown": result.get("category_breakdown", {}),
+        "fetched_at":      result.get("fetched_at", ""),
     }
 
     try:
         with open(archive_path, "w") as f:
-            json.dump(archive, f, indent=2, default=str)
+            json.dump(archive, f, indent=2)
     except Exception as e:
         print(f"[news] Archive write failed: {e}")
 
 
-def load_news_history(cache_dir: Path = None, last_n_days: int = 30) -> dict:
-    """Load archived news history. Returns {date_str: sentiment_dict}."""
+def load_news_history(cache_dir=None, last_n_days: int = 7) -> dict:
     if cache_dir is None:
         try:
             from settings import DATA_DIR
@@ -492,63 +626,7 @@ def load_news_history(cache_dir: Path = None, last_n_days: int = 30) -> dict:
     try:
         with open(archive_path) as f:
             archive = json.load(f)
-        if last_n_days:
-            cutoff = (date.today() - timedelta(days=last_n_days)).isoformat()
-            archive = {k: v for k, v in archive.items() if k >= cutoff}
-        return archive
+        cutoff = (date.today() - timedelta(days=last_n_days)).isoformat()
+        return {k: v for k, v in archive.items() if k >= cutoff}
     except Exception:
         return {}
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# CONFIDENCE ADJUSTMENT
-# ─────────────────────────────────────────────────────────────────────────────
-
-def adjust_confidence(direction: int, confidence: float, sentiment: dict,
-                      max_boost: float = 0.08, max_penalty: float = 0.15) -> tuple[float, str]:
-    """
-    Adjust the model's confidence based on news/model alignment.
-
-    Rules
-    -----
-    - News strongly AGREES with model direction → small boost (+max_boost)
-    - News strongly DISAGREES with model direction → larger penalty (-max_penalty)
-    - News neutral or noisy → no change
-    - Asymmetric penalty (disagreement matters more than agreement) — markets
-      get hit harder by adverse news than they rally on positive news.
-
-    Parameters
-    ----------
-    direction   : Model's predicted direction (1 = bullish, 0 = bearish)
-    confidence  : Model's confidence (0..1)
-    sentiment   : Aggregate dict from get_market_sentiment()
-    max_boost   : Max upward adjustment when news strongly agrees
-    max_penalty : Max downward adjustment when news strongly disagrees
-
-    Returns
-    -------
-    (adjusted_confidence, reason_string)
-    """
-    score = sentiment.get("score", 0.0)
-    n     = sentiment.get("n_articles", 0)
-
-    if n < 3 or abs(score) < 0.05:
-        return confidence, "News neutral / too few articles — no adjustment"
-
-    # Model says bullish (1), news positive → agree; news negative → disagree
-    # Model says bearish (0), news negative → agree; news positive → disagree
-    model_bullish = direction == 1
-    news_bullish  = score > 0
-
-    aligned = (model_bullish == news_bullish)
-    magnitude = min(abs(score), 1.0)              # strength of news signal
-
-    if aligned:
-        delta = +max_boost * magnitude
-        reason = f"News {sentiment['label']} agrees with model ({score:+.2f}) → +{delta:.3f} boost"
-    else:
-        delta = -max_penalty * magnitude
-        reason = f"News {sentiment['label']} contradicts model ({score:+.2f}) → {delta:+.3f} penalty"
-
-    adjusted = max(0.0, min(1.0, confidence + delta))
-    return round(adjusted, 4), reason
