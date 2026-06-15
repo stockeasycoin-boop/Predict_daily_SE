@@ -614,16 +614,13 @@ with tab1:
 
                         # ── CONSENSUS: LLM-powered signal aggregation (Groq) ──
                         import llm_signal
-                        _market_ctx = {
-                            "spot": spot,
-                            "prev_close": prev_close,
-                            "vix": vix,
-                            "atr_pct": atr_pct,
-                            "gift_gap_pct": round(gift_gap_pct, 2),
-                            "live_pcr": float(live_pcr) if live_pcr else None,
-                            "news_score": news.get("score", 0),
-                            "news_count": news.get("n_articles", 0),
-                        }
+                        _market_ctx = llm_signal.build_market_context(
+                            preds=preds, spot=spot, prev_close=prev_close,
+                            vix=vix, atr_pct=atr_pct,
+                            gift_live=gift_live, gift_gap_pct=gift_gap_pct,
+                            gift_status=gift_status, ofi_data=ofi_data,
+                            live_pcr=live_pcr, news=news, opts_df=opts_df,
+                        )
                         _groq_key = settings.get("groq_api_key", "")
                         consensus = llm_signal.aggregate_with_llm(
                             [model_vote, gift_vote, ofi_vote, news_vote],
@@ -650,9 +647,17 @@ with tab1:
                         _method = "LLM (Groq)" if _used_llm else "Weighted math"
                         st.info(f"**Signal consensus** ({_method}): {' | '.join(_vote_parts)}")
                         if _used_llm and "LLM Consensus:" in consensus.summary:
-                            _llm_reason = consensus.summary.split("—", 1)[-1].split("|")[0].strip()
-                            if _llm_reason:
-                                st.caption(f"LLM reasoning: {_llm_reason}")
+                            _llm_parts = consensus.summary.split("—", 1)
+                            if len(_llm_parts) > 1:
+                                _reasoning_and_rest = _llm_parts[1]
+                                _risk_idx = _reasoning_and_rest.find("| Risks:")
+                                _llm_reason = _reasoning_and_rest[:_risk_idx].strip() if _risk_idx > 0 else _reasoning_and_rest.split("|")[0].strip()
+                                if _llm_reason:
+                                    st.caption(f"**LLM analysis**: {_llm_reason}")
+                                if _risk_idx > 0:
+                                    _risks = _reasoning_and_rest[_risk_idx+9:].split("|")[0].strip()
+                                    if _risks:
+                                        st.caption(f"**Risks**: {_risks}")
 
                         # Generate suggestion using CONSENSUS direction + confidence
                         log_step("Step 6/6 — generating trade suggestion…")
@@ -666,6 +671,7 @@ with tab1:
                             "agreement_ratio": consensus.agreement_ratio,
                             "summary": consensus.summary,
                             "method": "llm" if _used_llm else "weighted_math",
+                            "market_context": _market_ctx if _used_llm else {},
                             "votes": {v.source: {"dir": v.direction, "strength": v.strength,
                                                   "reason": v.reason, "available": v.available}
                                       for v in consensus.votes},
