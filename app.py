@@ -604,19 +604,93 @@ with tab1:
                                 ofi_data = gc.get_live_ofi(_groww_main, "NIFTY")
                             except Exception:
                                 pass
-                        if not ofi_data.get("available") and live_pcr is not None:
-                            _pcr_val = float(live_pcr)
-                            if _pcr_val > 0:
-                                _pcr_ofi = (_pcr_val - 1.0) * 0.5
-                                _pcr_ofi = max(-1.0, min(1.0, _pcr_ofi))
+                        if not ofi_data.get("available") and opts_df is not None and len(opts_df) > 0:
+                            try:
+                                _ce_df = opts_df[opts_df["type"] == "CE"]
+                                _pe_df = opts_df[opts_df["type"] == "PE"]
+                                _total_ce_oi = _ce_df["oi"].sum()
+                                _total_pe_oi = _pe_df["oi"].sum()
+                                _pcr_val = round(_total_pe_oi / _total_ce_oi, 3) if _total_ce_oi > 0 else 1.0
+
+                                # 1) PCR signal: deviation from 1.0
+                                _pcr_score = (_pcr_val - 1.0) * 0.4
+                                _pcr_score = max(-0.5, min(0.5, _pcr_score))
+
+                                # 2) Max pain vs spot: if spot > max pain → bearish pull, spot < max pain → bullish pull
+                                _strikes = sorted(opts_df["strike"].unique())
+                                _max_pain = None
+                                if _strikes:
+                                    _pain = {}
+                                    for _s in _strikes:
+                                        _ce_itm = _ce_df[_ce_df["strike"] <= _s]
+                                        _pe_itm = _pe_df[_pe_df["strike"] >= _s]
+                                        _ce_p = (_ce_itm["oi"] * (_s - _ce_itm["strike"])).sum() if len(_ce_itm) > 0 else 0
+                                        _pe_p = (_pe_itm["oi"] * (_pe_itm["strike"] - _s)).sum() if len(_pe_itm) > 0 else 0
+                                        _pain[_s] = _ce_p + _pe_p
+                                    if _pain:
+                                        _max_pain = min(_pain, key=_pain.get)
+                                _mp_score = 0.0
+                                if _max_pain and spot:
+                                    _mp_dist_pct = (spot - _max_pain) / spot * 100
+                                    _mp_score = -_mp_dist_pct * 0.15
+                                    _mp_score = max(-0.3, min(0.3, _mp_score))
+
+                                # 3) OI concentration: where is the wall?
+                                _max_ce_strike = int(_ce_df.loc[_ce_df["oi"].idxmax()]["strike"]) if len(_ce_df) > 0 else 0
+                                _max_pe_strike = int(_pe_df.loc[_pe_df["oi"].idxmax()]["strike"]) if len(_pe_df) > 0 else 0
+                                _wall_score = 0.0
+                                if spot and _max_ce_strike and _max_pe_strike:
+                                    _dist_to_resist = (_max_ce_strike - spot) / spot * 100
+                                    _dist_to_support = (spot - _max_pe_strike) / spot * 100
+                                    if _dist_to_resist < _dist_to_support:
+                                        _wall_score = -0.15
+                                    elif _dist_to_support < _dist_to_resist:
+                                        _wall_score = 0.15
+
+                                # 4) IV skew: PE IV > CE IV = fear premium
+                                _atm_idx = len(_strikes) // 2 if _strikes else 0
+                                _atm_strike = _strikes[_atm_idx] if _strikes else None
+                                _iv_score = 0.0
+                                if _atm_strike:
+                                    _atm_ce = _ce_df[_ce_df["strike"] == _atm_strike]
+                                    _atm_pe = _pe_df[_pe_df["strike"] == _atm_strike]
+                                    _ce_iv = float(_atm_ce["iv"].iloc[0]) if len(_atm_ce) > 0 and _atm_ce["iv"].iloc[0] > 0 else 0
+                                    _pe_iv = float(_atm_pe["iv"].iloc[0]) if len(_atm_pe) > 0 and _atm_pe["iv"].iloc[0] > 0 else 0
+                                    if _ce_iv > 0 and _pe_iv > 0:
+                                        _iv_skew = _pe_iv - _ce_iv
+                                        _iv_score = -_iv_skew * 0.01
+                                        _iv_score = max(-0.2, min(0.2, _iv_score))
+
+                                # Combine all sub-signals
+                                _combined_ofi = _pcr_score + _mp_score + _wall_score + _iv_score
+                                _combined_ofi = max(-1.0, min(1.0, _combined_ofi))
+
+                                _parts = []
+                                _parts.append(f"PCR={_pcr_val:.2f}({_pcr_score:+.2f})")
+                                if _max_pain:
+                                    _parts.append(f"MaxPain={_max_pain}({_mp_score:+.2f})")
+                                if _max_ce_strike:
+                                    _parts.append(f"Resist={_max_ce_strike}")
+                                if _max_pe_strike:
+                                    _parts.append(f"Support={_max_pe_strike}")
+                                if _iv_score != 0:
+                                    _parts.append(f"IVskew({_iv_score:+.2f})")
+
+                                _bias = "bearish" if _combined_ofi > 0.05 else "bullish" if _combined_ofi < -0.05 else "neutral"
                                 ofi_data = {
-                                    "ofi": _pcr_ofi,
+                                    "ofi": round(_combined_ofi, 3),
                                     "available": True,
-                                    "signal": f"PCR={_pcr_val:.2f} → {'bearish' if _pcr_val > 1.2 else 'bullish' if _pcr_val < 0.8 else 'neutral'}",
-                                    "bias": "bearish" if _pcr_ofi > 0.1 else "bullish" if _pcr_ofi < -0.1 else "neutral",
-                                    "source": "pcr",
+                                    "signal": " | ".join(_parts),
+                                    "bias": _bias,
+                                    "source": "options_chain",
+                                    "raw_pcr": _pcr_val,
+                                    "max_pain": _max_pain,
+                                    "max_ce_strike": _max_ce_strike,
+                                    "max_pe_strike": _max_pe_strike,
                                 }
-                                log_step(f"Groww unavailable — using PCR {_pcr_val:.2f} as OFI proxy")
+                                log_step(f"OFI from options chain: {_combined_ofi:+.3f} ({_bias}) — {' | '.join(_parts)}")
+                            except Exception as _ofi_err:
+                                log_step(f"Options chain OFI calc failed: {_ofi_err}", "warning")
                         ofi_vote = sa.vote_from_ofi(ofi_data)
                         log_step(f"OFI: {ofi_vote.reason}")
 
@@ -691,19 +765,30 @@ with tab1:
                             "Detail": f"GIFT: {f'₹{gift_live:,.0f}' if gift_live else 'N/A'} vs Prev: ₹{prev_close:,.0f}" if prev_close else gift_vote.reason,
                         })
 
-                        # OFI / PCR signal
+                        # OFI / Options Flow signal
                         _o_icon = "🟢" if ofi_vote.direction == 1 else "🔴" if ofi_vote.direction == 0 else "⚪"
-                        _o_dir_str = "Buy pressure" if ofi_vote.direction == 1 else "Sell pressure" if ofi_vote.direction == 0 else "Neutral/N/A"
+                        _o_dir_str = "Bullish" if ofi_vote.direction == 1 else "Bearish" if ofi_vote.direction == 0 else "Neutral"
                         _ofi_val = ofi_data.get("ofi", 0)
                         _ofi_src = ofi_data.get("source", "N/A")
-                        _pcr_str = f"PCR: {float(live_pcr):.2f}" if live_pcr else ""
+                        _ofi_detail_parts = []
+                        if ofi_data.get("available"):
+                            if ofi_data.get("raw_pcr"):
+                                _ofi_detail_parts.append(f"PCR={ofi_data['raw_pcr']:.2f}")
+                            if ofi_data.get("max_pain"):
+                                _ofi_detail_parts.append(f"MaxPain={ofi_data['max_pain']}")
+                            if ofi_data.get("max_pe_strike"):
+                                _ofi_detail_parts.append(f"Support={ofi_data['max_pe_strike']}")
+                            if ofi_data.get("max_ce_strike"):
+                                _ofi_detail_parts.append(f"Resist={ofi_data['max_ce_strike']}")
+                            if not _ofi_detail_parts:
+                                _ofi_detail_parts.append(ofi_data.get("signal", ""))
                         _sig_rows.append({
-                            "Signal": f"OFI / PCR ({_ofi_src})",
+                            "Signal": f"Options Flow ({_ofi_src})",
                             "Status": f"{_o_icon} {_o_dir_str}",
-                            "Value": f"OFI: {_ofi_val:+.2f}" + (f" | {_pcr_str}" if _pcr_str else ""),
+                            "Value": f"Score: {_ofi_val:+.3f}" + (f" | PCR: {ofi_data.get('raw_pcr', 0):.2f}" if ofi_data.get("raw_pcr") else ""),
                             "Confidence": f"{ofi_vote.strength:.0%}" if ofi_vote.available else "—",
                             "Strength": f"{ofi_vote.strength:.0%}",
-                            "Detail": ofi_data.get("signal", ofi_vote.reason) if ofi_vote.available else "Groww not connected, no PCR available",
+                            "Detail": " | ".join(_ofi_detail_parts) if _ofi_detail_parts else "Groww not connected, no options data",
                         })
 
                         # News signal

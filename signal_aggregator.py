@@ -85,15 +85,29 @@ def vote_from_ofi(ofi_data: dict) -> SignalVote:
         return SignalVote("ofi", None, 0.0, "OFI unavailable", False)
 
     ofi = ofi_data.get("ofi", 0.0)
+    src = ofi_data.get("source", "groww")
 
-    if abs(ofi) < 0.10:
-        return SignalVote("ofi", None, 0.1, f"OFI neutral ({ofi:+.2f})")
+    # Options chain composite uses multiple sub-signals so even small values are meaningful
+    threshold = 0.03 if src == "options_chain" else 0.10
+
+    if abs(ofi) < threshold:
+        return SignalVote("ofi", None, 0.1,
+                          f"OFI neutral ({ofi:+.3f}) — {ofi_data.get('signal', '')}")
 
     direction = 1 if ofi > 0 else 0
-    strength = min(abs(ofi) / 0.8, 1.0)
-    src = ofi_data.get("source", "groww")
-    if src == "pcr":
-        reason = f"PCR {ofi_data.get('signal', '')} → {'buy' if direction == 1 else 'sell'} pressure"
+    # Scale strength: options_chain signal is already composite, so scale more aggressively
+    if src == "options_chain":
+        strength = min(abs(ofi) / 0.4, 1.0)
+    else:
+        strength = min(abs(ofi) / 0.8, 1.0)
+    strength = max(0.15, strength)
+
+    bias = ofi_data.get("bias", "buy" if direction == 1 else "sell")
+    signal_detail = ofi_data.get("signal", "")
+    if src == "options_chain":
+        reason = f"Options: {bias} ({ofi:+.3f}) — {signal_detail}"
+    elif src == "pcr":
+        reason = f"PCR {signal_detail} → {'buy' if direction == 1 else 'sell'} pressure"
     else:
         reason = f"OFI {ofi:+.2f} → {'buy' if direction == 1 else 'sell'} pressure"
 
