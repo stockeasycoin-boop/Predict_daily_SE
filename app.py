@@ -633,19 +633,111 @@ with tab1:
                                  f"{'BULLISH' if direction == 1 else 'BEARISH'} "
                                  f"{confidence:.0%} (agreement: {consensus.agreement_ratio:.0%})")
 
-                        # Show vote breakdown
-                        _vote_parts = []
-                        for _v in consensus.votes:
-                            if not _v.available:
-                                _vote_parts.append(f"**{_v.source}**: ⚪ unavailable")
-                            elif _v.direction is None:
-                                _vote_parts.append(f"**{_v.source}**: ⚪ neutral")
-                            elif _v.direction == 1:
-                                _vote_parts.append(f"**{_v.source}**: 🟢 bullish ({_v.strength:.0%})")
-                            else:
-                                _vote_parts.append(f"**{_v.source}**: 🔴 bearish ({_v.strength:.0%})")
-                        _method = "LLM (Groq)" if _used_llm else "Weighted math"
-                        st.info(f"**Signal consensus** ({_method}): {' | '.join(_vote_parts)}")
+                        # ── Detailed signal breakdown ──────────────────────
+                        _method = "LLM (Groq Llama-3.3-70B)" if _used_llm else "Weighted math"
+                        _dir_emoji = "🟢 BULLISH" if direction == 1 else "🔴 BEARISH"
+                        st.success(f"**Final Verdict ({_method})**: {_dir_emoji} — Confidence: **{confidence:.0%}** — Agreement: {consensus.agreement_ratio:.0%}")
+
+                        # Build signal detail rows
+                        _sig_rows = []
+
+                        # Model signal
+                        _m_dir = preds.get("close_direction", preds.get("direction"))
+                        _m_conf = preds.get("close_confidence", preds.get("confidence", 0.5))
+                        _m_agree = preds.get("ensemble_agree", preds.get("close_agree", False))
+                        _m_pct = preds.get("close_pred_pct", 0)
+                        _m_icon = "🟢" if _m_dir == 1 else "🔴" if _m_dir == 0 else "⚪"
+                        _sig_rows.append({
+                            "Signal": "ML Model (XGB+LGB)",
+                            "Status": f"{_m_icon} {'Bullish' if _m_dir == 1 else 'Bearish' if _m_dir == 0 else 'N/A'}",
+                            "Value": f"Move: {_m_pct:+.2f}%",
+                            "Confidence": f"{_m_conf:.0%}",
+                            "Strength": f"{model_vote.strength:.0%}",
+                            "Detail": f"{'XGB+LGB agree' if _m_agree else 'XGB/LGB disagree'} | Pred close: {preds.get('predicted_close', 'N/A')}",
+                        })
+
+                        # GIFT signal
+                        _g_icon = "🟢" if gift_vote.direction == 1 else "🔴" if gift_vote.direction == 0 else "⚪"
+                        _g_dir_str = "Bullish" if gift_vote.direction == 1 else "Bearish" if gift_vote.direction == 0 else "Neutral/N/A"
+                        _sig_rows.append({
+                            "Signal": f"GIFT Nifty ({gift_status})",
+                            "Status": f"{_g_icon} {_g_dir_str}",
+                            "Value": f"Gap: {gift_gap_pct:+.2f}%" if gift_live else "N/A",
+                            "Confidence": f"{gift_vote.strength:.0%}" if gift_vote.available else "—",
+                            "Strength": f"{gift_vote.strength:.0%}",
+                            "Detail": f"GIFT: {f'₹{gift_live:,.0f}' if gift_live else 'N/A'} vs Prev: ₹{prev_close:,.0f}" if prev_close else gift_vote.reason,
+                        })
+
+                        # OFI / PCR signal
+                        _o_icon = "🟢" if ofi_vote.direction == 1 else "🔴" if ofi_vote.direction == 0 else "⚪"
+                        _o_dir_str = "Buy pressure" if ofi_vote.direction == 1 else "Sell pressure" if ofi_vote.direction == 0 else "Neutral/N/A"
+                        _ofi_val = ofi_data.get("ofi", 0)
+                        _ofi_src = ofi_data.get("source", "N/A")
+                        _pcr_str = f"PCR: {float(live_pcr):.2f}" if live_pcr else ""
+                        _sig_rows.append({
+                            "Signal": f"OFI / PCR ({_ofi_src})",
+                            "Status": f"{_o_icon} {_o_dir_str}",
+                            "Value": f"OFI: {_ofi_val:+.2f}" + (f" | {_pcr_str}" if _pcr_str else ""),
+                            "Confidence": f"{ofi_vote.strength:.0%}" if ofi_vote.available else "—",
+                            "Strength": f"{ofi_vote.strength:.0%}",
+                            "Detail": ofi_data.get("signal", ofi_vote.reason) if ofi_vote.available else "Groww not connected, no PCR available",
+                        })
+
+                        # News signal
+                        _n_icon = "🟢" if news_vote.direction == 1 else "🔴" if news_vote.direction == 0 else "⚪"
+                        _n_dir_str = "Bullish" if news_vote.direction == 1 else "Bearish" if news_vote.direction == 0 else "Neutral/N/A"
+                        _n_score = news.get("score", 0)
+                        _n_count = news.get("n_articles", 0)
+                        _sig_rows.append({
+                            "Signal": f"News ({news.get('backend', 'N/A')})",
+                            "Status": f"{_n_icon} {_n_dir_str}",
+                            "Value": f"Score: {_n_score:+.3f} ({_n_count} articles)",
+                            "Confidence": f"{news_vote.strength:.0%}" if news_vote.available else "—",
+                            "Strength": f"{news_vote.strength:.0%}",
+                            "Detail": f"{news.get('label', 'N/A')} | +{news.get('n_positive', 0)} / -{news.get('n_negative', 0)} / ~{news.get('n_neutral', 0)}",
+                        })
+
+                        # Options chain (info only, not a vote)
+                        if opts_df is not None and len(opts_df) > 0:
+                            _opts_p = _market_ctx.get("options_params", {})
+                            if _opts_p.get("available"):
+                                _pcr_v = _opts_p.get("pcr", 1.0)
+                                _pcr_icon = "🔴" if _pcr_v > 1.2 else "🟢" if _pcr_v < 0.8 else "⚪"
+                                _pcr_bias = "Bearish (high puts)" if _pcr_v > 1.2 else "Bullish (high calls)" if _pcr_v < 0.8 else "Balanced"
+                                _sig_rows.append({
+                                    "Signal": "Options Chain",
+                                    "Status": f"{_pcr_icon} {_pcr_bias}",
+                                    "Value": f"PCR: {_pcr_v:.2f} | MaxPain: {_opts_p.get('max_pain', 'N/A')}",
+                                    "Confidence": "—",
+                                    "Strength": "info",
+                                    "Detail": f"Support (PE OI): {_opts_p.get('max_pe_oi_strike', 'N/A')} | Resist (CE OI): {_opts_p.get('max_ce_oi_strike', 'N/A')} | IV skew: {_opts_p.get('iv_skew', 'N/A')}",
+                                })
+
+                        # Market context row
+                        _vix_icon = "🔴" if vix > 20 else "🟡" if vix > 15 else "🟢"
+                        _sig_rows.append({
+                            "Signal": "Market Context",
+                            "Status": f"{_vix_icon} VIX: {vix:.1f}",
+                            "Value": f"Spot: ₹{spot:,.0f} | ATR: {atr_pct:.2f}%",
+                            "Confidence": "—",
+                            "Strength": "info",
+                            "Detail": f"{'High volatility regime' if vix > 20 else 'Normal volatility' if vix > 14 else 'Low volatility / complacency'}",
+                        })
+
+                        st.dataframe(
+                            pd.DataFrame(_sig_rows),
+                            use_container_width=True, hide_index=True,
+                            column_config={
+                                "Signal": st.column_config.TextColumn("Signal Source", width="medium"),
+                                "Status": st.column_config.TextColumn("Verdict", width="small"),
+                                "Value": st.column_config.TextColumn("Raw Value", width="medium"),
+                                "Confidence": st.column_config.TextColumn("Conf.", width="small"),
+                                "Strength": st.column_config.TextColumn("Wt.", width="small"),
+                                "Detail": st.column_config.TextColumn("Details", width="large"),
+                            },
+                        )
+
+                        # LLM reasoning below the table
                         if _used_llm and "LLM Consensus:" in consensus.summary:
                             _llm_parts = consensus.summary.split("—", 1)
                             if len(_llm_parts) > 1:
@@ -653,11 +745,11 @@ with tab1:
                                 _risk_idx = _reasoning_and_rest.find("| Risks:")
                                 _llm_reason = _reasoning_and_rest[:_risk_idx].strip() if _risk_idx > 0 else _reasoning_and_rest.split("|")[0].strip()
                                 if _llm_reason:
-                                    st.caption(f"**LLM analysis**: {_llm_reason}")
+                                    st.info(f"**LLM Analysis**: {_llm_reason}")
                                 if _risk_idx > 0:
                                     _risks = _reasoning_and_rest[_risk_idx+9:].split("|")[0].strip()
                                     if _risks:
-                                        st.caption(f"**Risks**: {_risks}")
+                                        st.warning(f"**Risk Factors**: {_risks}")
 
                         # Generate suggestion using CONSENSUS direction + confidence
                         log_step("Step 6/6 — generating trade suggestion…")
