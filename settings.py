@@ -100,7 +100,7 @@ OPTUNA_TRIALS         = 60      # Hyperparameter search trials (more = better, s
 # INTRADAY FEATURE SETTINGS
 # ─────────────────────────────────────────────────────────────────────────────
 INTRADAY_INTERVAL     = "5minute"   # Breeze interval for intraday candles
-INTRADAY_DAYS_BACK    = 730         # Calendar days of intraday to cache (incrementally updated)
+INTRADAY_DAYS_BACK    = 1095        # Calendar days of intraday to cache (~3 years, incrementally updated)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # INSTRUMENTS TO FETCH FROM BREEZE

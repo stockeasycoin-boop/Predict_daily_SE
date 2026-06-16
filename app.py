@@ -610,11 +610,13 @@ with tab1:
                                 _pe_df = opts_df[opts_df["type"] == "PE"]
                                 _total_ce_oi = _ce_df["oi"].sum()
                                 _total_pe_oi = _pe_df["oi"].sum()
-                                _pcr_val = round(_total_pe_oi / _total_ce_oi, 3) if _total_ce_oi > 0 else 1.0
+                                _pcr_val = round(_total_pe_oi / _total_ce_oi, 3) if _total_ce_oi > 0 else None
 
-                                # 1) PCR signal: deviation from 1.0
-                                _pcr_score = (_pcr_val - 1.0) * 0.4
-                                _pcr_score = max(-0.5, min(0.5, _pcr_score))
+                                # 1) PCR signal: deviation from 1.0 (skip if OI was 0)
+                                _pcr_score = 0.0
+                                if _pcr_val is not None:
+                                    _pcr_score = (_pcr_val - 1.0) * 0.4
+                                    _pcr_score = max(-0.5, min(0.5, _pcr_score))
 
                                 # 2) Max pain vs spot: if spot > max pain → bearish pull, spot < max pain → bullish pull
                                 _strikes = sorted(opts_df["strike"].unique())
@@ -666,7 +668,10 @@ with tab1:
                                 _combined_ofi = max(-1.0, min(1.0, _combined_ofi))
 
                                 _parts = []
-                                _parts.append(f"PCR={_pcr_val:.2f}({_pcr_score:+.2f})")
+                                if _pcr_val is not None:
+                                    _parts.append(f"PCR={_pcr_val:.2f}({_pcr_score:+.2f})")
+                                else:
+                                    _parts.append("PCR=N/A(OI=0)")
                                 if _max_pain:
                                     _parts.append(f"MaxPain={_max_pain}({_mp_score:+.2f})")
                                 if _max_ce_strike:
@@ -753,16 +758,16 @@ with tab1:
                             "Detail": f"{'XGB+LGB agree' if _m_agree else 'XGB/LGB disagree'} | Pred close: {preds.get('predicted_close', 'N/A')}",
                         })
 
-                        # GIFT signal
+                        # GIFT signal (open direction only — not used for close consensus)
                         _g_icon = "🟢" if gift_vote.direction == 1 else "🔴" if gift_vote.direction == 0 else "⚪"
                         _g_dir_str = "Bullish" if gift_vote.direction == 1 else "Bearish" if gift_vote.direction == 0 else "Neutral/N/A"
                         _sig_rows.append({
-                            "Signal": f"GIFT Nifty ({gift_status})",
+                            "Signal": f"GIFT Nifty ({gift_status}) ⓘ Open only",
                             "Status": f"{_g_icon} {_g_dir_str}",
                             "Value": f"Gap: {gift_gap_pct:+.2f}%" if gift_live else "N/A",
                             "Confidence": f"{gift_vote.strength:.0%}" if gift_vote.available else "—",
                             "Strength": f"{gift_vote.strength:.0%}",
-                            "Detail": f"GIFT: {f'₹{gift_live:,.0f}' if gift_live else 'N/A'} vs Prev: ₹{prev_close:,.0f}" if prev_close else gift_vote.reason,
+                            "Detail": f"Open direction only | GIFT: {f'₹{gift_live:,.0f}' if gift_live else 'N/A'} vs Prev: ₹{prev_close:,.0f}" if prev_close else gift_vote.reason,
                         })
 
                         # OFI / Options Flow signal
@@ -812,13 +817,17 @@ with tab1:
                         if opts_df is not None and len(opts_df) > 0:
                             _opts_p = _market_ctx.get("options_params", {})
                             if _opts_p.get("available"):
-                                _pcr_v = _opts_p.get("pcr", 1.0)
-                                _pcr_icon = "🔴" if _pcr_v > 1.2 else "🟢" if _pcr_v < 0.8 else "⚪"
-                                _pcr_bias = "Bearish (high puts)" if _pcr_v > 1.2 else "Bullish (high calls)" if _pcr_v < 0.8 else "Balanced"
+                                _pcr_v = _opts_p.get("pcr")
+                                if _pcr_v is not None:
+                                    _pcr_icon = "🔴" if _pcr_v > 1.2 else "🟢" if _pcr_v < 0.8 else "⚪"
+                                    _pcr_bias = "Bearish (high puts)" if _pcr_v > 1.2 else "Bullish (high calls)" if _pcr_v < 0.8 else "Balanced"
+                                    _pcr_str = f"PCR: {_pcr_v:.2f}"
+                                else:
+                                    _pcr_icon, _pcr_bias, _pcr_str = "⚪", "PCR unavailable (OI=0)", "PCR: N/A"
                                 _sig_rows.append({
                                     "Signal": "Options Chain",
                                     "Status": f"{_pcr_icon} {_pcr_bias}",
-                                    "Value": f"PCR: {_pcr_v:.2f} | MaxPain: {_opts_p.get('max_pain', 'N/A')}",
+                                    "Value": f"{_pcr_str} | MaxPain: {_opts_p.get('max_pain', 'N/A')}",
                                     "Confidence": "—",
                                     "Strength": "info",
                                     "Detail": f"Support (PE OI): {_opts_p.get('max_pe_oi_strike', 'N/A')} | Resist (CE OI): {_opts_p.get('max_ce_oi_strike', 'N/A')} | IV skew: {_opts_p.get('iv_skew', 'N/A')}",
@@ -2388,16 +2397,21 @@ with tab4:
                 )
             _delta = (f"skill {_o_sk*100:+.1f}% / {_c_sk*100:+.1f}%"
                       if (_o_sk is not None and _c_sk is not None) else None)
-            c1.metric("CV open / close",
+            c1.metric("ML Model (open/close)",
                      f"{cv_open*100:.1f}% / {cv_close*100:.1f}%",
                      delta=_delta, delta_color="off", help=_help)
         else:
-            c1.metric("CV accuracy", f"{cv_open*100:.1f}%")
+            c1.metric("ML Model accuracy", f"{cv_open*100:.1f}%")
         total_candles = meta.get("total_candles", meta.get("n_samples", 0))
         n_days = meta.get("n_days", meta.get("n_samples", 0))
         c2.metric("Training candles", f"{total_candles:,}", delta=f"{n_days} days")
         c3.metric("Features",      meta.get("n_features", 0))
-        c4.metric("Last trained",  str(meta.get("trained_at", "—"))[:10])
+        c4.metric("Last trained",  str(meta.get("trained_at", "---"))[:10])
+        st.caption(
+            "ML model accuracy is from pure technical indicators only. "
+            "The **combined system** (Model + GIFT + OFI + News + LLM) "
+            "targets 60-65% by aggregating multiple independent signal sources."
+        )
     else:
         st.info("ℹ️ Model has not been trained yet. Click **Train model now** below to get started.")
 
@@ -2515,8 +2529,8 @@ with tab4:
                         _existing_5min.to_csv(_cache_file, index=False)
                         log_step(f"Step 2/7 -- appended {len(_new_5min)} candles, total {len(_existing_5min)}")
             else:
-                status_box.info("Step 2/7 -- No cache found. Full 2-year fetch (this takes a few minutes on first run)...")
-                _existing_5min = df_mod.fetch_intraday_chunked(breeze3, "NIFTY", total_days=730, chunk_days=12)
+                status_box.info("Step 2/7 -- No cache found. Full 3-year fetch (this takes a few minutes on first run)...")
+                _existing_5min = df_mod.fetch_intraday_chunked(breeze3, "NIFTY", total_days=1095, chunk_days=12)
                 if _existing_5min is not None and len(_existing_5min) > 0:
                     _existing_5min.to_csv(_cache_file, index=False)
                     log_step(f"Step 2/7 -- fetched {len(_existing_5min)} candles")

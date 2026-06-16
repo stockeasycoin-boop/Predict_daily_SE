@@ -728,20 +728,17 @@ def predict_all_horizons(df_5min: pd.DataFrame,
 # DAILY MODELS FROM 5-MIN FEATURES (UNIFIED PIPELINE)
 # ─────────────────────────────────────────────────────────────────────────────
 
+EOD_EXCLUDE_FEATURES = {
+    "time_norm", "is_morning", "is_afternoon", "is_first_half",
+    "hour", "minute", "time_of_day",
+}
+
+
 def _extract_eod_features(df_5min: pd.DataFrame,
                            daily_context: pd.DataFrame = None) -> pd.DataFrame:
-    """
-    Extract end-of-day feature snapshots from 5-min featured data.
-
-    Takes the LAST candle of each trading day (3:25 PM row), plus builds
-    daily targets (open_target, close_target, open_ret_pct, close_ret_pct,
-    high_pct, low_pct) from the NEXT trading day.
-
-    This is the bridge: 5-min features -> daily prediction models.
-    """
     feat_df = build_intraday_features(df_5min)
     feat_cols = get_feature_cols_intraday()
-    avail = [f for f in feat_cols if f in feat_df.columns]
+    avail = [f for f in feat_cols if f in feat_df.columns and f not in EOD_EXCLUDE_FEATURES]
 
     eod_rows = []
     dates = sorted(feat_df["trading_date"].unique())
@@ -758,6 +755,16 @@ def _extract_eod_features(df_5min: pd.DataFrame,
         row["open"] = day_data["open"].iloc[0]
         row["high"] = day_data["high"].max()
         row["low"] = day_data["low"].min()
+        row["volume"] = day_data["volume"].sum()
+
+        # Daily-level derived features (only computable at EOD)
+        row["day_body_pct"] = (row["close"] - row["open"]) / row["open"] * 100
+        row["day_range_used"] = (row["high"] - row["low"]) / (row["open"] + 1e-9) * 100
+        _up_candles = (day_data["close"] > day_data["open"]).sum()
+        row["intraday_bull_ratio"] = _up_candles / len(day_data)
+        row["close_vs_vwap_eod"] = last_row.get("vwap_dev", 0)
+        row["eod_rsi_14"] = last_row.get("rsi_14", 50)
+        row["eod_bb_pct_b"] = last_row.get("bb_pct_b", 0.5)
 
         if i + 1 < len(dates):
             next_td = dates[i + 1]
@@ -767,10 +774,12 @@ def _extract_eod_features(df_5min: pd.DataFrame,
                 next_close = next_day["close"].iloc[-1]
                 next_high = next_day["high"].max()
                 next_low = next_day["low"].min()
+                # FIX: open_target = next open vs today close (gap direction)
                 row["open_target"] = 1 if next_open > row["close"] else 0
-                row["close_target"] = 1 if next_close > next_open else 0
+                # FIX: close_target = next close vs TODAY'S close (not next open)
+                row["close_target"] = 1 if next_close > row["close"] else 0
                 row["open_ret_pct"] = (next_open - row["close"]) / row["close"] * 100
-                row["close_ret_pct"] = (next_close - next_open) / next_open * 100
+                row["close_ret_pct"] = (next_close - row["close"]) / row["close"] * 100
                 row["high_pct"] = (next_high - next_open) / next_open * 100
                 row["low_pct"] = (next_low - next_open) / next_open * 100
 
@@ -778,6 +787,31 @@ def _extract_eod_features(df_5min: pd.DataFrame,
 
     eod_df = pd.DataFrame(eod_rows)
     eod_df["date"] = pd.to_datetime(eod_df["date"])
+
+    # Multi-day rolling features (only possible on daily aggregates)
+    if len(eod_df) > 5:
+        eod_df["close_ret_1d"] = eod_df["close"].pct_change(1) * 100
+        eod_df["close_ret_3d"] = eod_df["close"].pct_change(3) * 100
+        eod_df["close_ret_5d"] = eod_df["close"].pct_change(5) * 100
+        eod_df["close_ret_10d"] = eod_df["close"].pct_change(10) * 100
+        eod_df["close_ret_20d"] = eod_df["close"].pct_change(20) * 100
+        eod_df["win_rate_5d"] = eod_df["close_ret_1d"].apply(
+            lambda x: 1 if x > 0 else 0).rolling(5).mean()
+        eod_df["win_rate_10d"] = eod_df["close_ret_1d"].apply(
+            lambda x: 1 if x > 0 else 0).rolling(10).mean()
+        eod_df["vol_ma_5d"] = eod_df["volume"].rolling(5).mean()
+        eod_df["vol_ratio_5d"] = eod_df["volume"] / (eod_df["vol_ma_5d"] + 1e-9)
+        eod_df["consec_up_days"] = 0
+        eod_df["consec_dn_days"] = 0
+        _up = (eod_df["close_ret_1d"] > 0).astype(int)
+        _dn = (eod_df["close_ret_1d"] < 0).astype(int)
+        _grp_u = (_up != _up.shift()).cumsum()
+        _grp_d = (_dn != _dn.shift()).cumsum()
+        eod_df["consec_up_days"] = _up.groupby(_grp_u).cumsum().clip(0, 15)
+        eod_df["consec_dn_days"] = _dn.groupby(_grp_d).cumsum().clip(0, 15)
+        eod_df["daily_atr_5"] = eod_df["day_range_used"].rolling(5).mean()
+        eod_df["daily_atr_20"] = eod_df["day_range_used"].rolling(20).mean()
+        eod_df["atr_ratio"] = eod_df["daily_atr_5"] / (eod_df["daily_atr_20"] + 1e-9)
 
     if daily_context is not None and len(daily_context) > 0:
         dc = daily_context.copy()
@@ -787,33 +821,72 @@ def _extract_eod_features(df_5min: pd.DataFrame,
                 eod_df = eod_df.merge(dc[["date", col]], on="date", how="left")
                 eod_df[col] = eod_df[col].ffill().bfill().fillna(0)
 
+    # VIX-derived features (VIX level is highly predictive of direction and volatility)
+    if "india_vix" in eod_df.columns:
+        v = eod_df["india_vix"]
+        eod_df["vix_chg_1d"] = v.pct_change(1) * 100
+        eod_df["vix_chg_5d"] = v.pct_change(5) * 100
+        eod_df["vix_ma_10"] = v.rolling(10).mean()
+        eod_df["vix_vs_ma10"] = (v - eod_df["vix_ma_10"]) / (eod_df["vix_ma_10"] + 1e-9) * 100
+        eod_df["vix_high_regime"] = (v > 20).astype(int)
+        eod_df["vix_low_regime"] = (v < 13).astype(int)
+        eod_df["vix_percentile_20d"] = v.rolling(20).rank(pct=True)
+
     for col in eod_df.select_dtypes(include=[np.floating, np.integer]).columns:
         eod_df[col] = eod_df[col].replace([np.inf, -np.inf], np.nan).fillna(0)
 
     return eod_df
 
 
+def _make_sample_weights(n: int, decay: float = 0.997) -> np.ndarray:
+    """Exponential decay: recent samples matter more. decay=0.997 → oldest sample has ~22% weight of newest."""
+    w = np.array([decay ** (n - 1 - i) for i in range(n)], dtype=np.float32)
+    return w / w.mean()
+
+
+def _select_features_by_importance(X, y, feature_names, sample_weight, top_k=40, verbose=False):
+    """Quick XGB fit → keep only top_k features by gain importance."""
+    quick = xgb.XGBClassifier(n_estimators=100, max_depth=3, learning_rate=0.1,
+                               subsample=0.8, colsample_bytree=0.8,
+                               eval_metric="logloss", use_label_encoder=False,
+                               random_state=42, n_jobs=-1)
+    quick.fit(X, y, sample_weight=sample_weight)
+    imp = quick.feature_importances_
+    top_idx = np.argsort(imp)[::-1][:top_k]
+    top_idx = np.sort(top_idx)
+    if verbose:
+        top_names = [feature_names[i] for i in top_idx[:15]]
+        print(f"    Top {top_k} features selected (top 15: {', '.join(top_names)})")
+    return top_idx
+
+
 def train_daily_models_from_5min(df_5min: pd.DataFrame,
                                   model_dir: str = "models",
                                   daily_context: pd.DataFrame = None,
                                   verbose: bool = True) -> dict:
-    """
-    Train daily Open/Close classifiers + High/Low regressors using
-    end-of-day snapshots of 5-min features. No daily feature_engineering needed.
-    """
     Path(model_dir).mkdir(exist_ok=True)
 
     eod_df = _extract_eod_features(df_5min, daily_context)
     feat_cols = get_feature_cols_intraday()
     ctx_avail = [c for c in DAILY_CONTEXT_COLS if c in eod_df.columns]
-    all_feats = [f for f in feat_cols if f in eod_df.columns] + ctx_avail
+    eod_extra = [c for c in [
+        "day_body_pct", "day_range_used", "intraday_bull_ratio",
+        "close_vs_vwap_eod", "eod_rsi_14", "eod_bb_pct_b",
+        "close_ret_1d", "close_ret_3d", "close_ret_5d", "close_ret_10d", "close_ret_20d",
+        "win_rate_5d", "win_rate_10d", "vol_ratio_5d",
+        "consec_up_days", "consec_dn_days",
+        "daily_atr_5", "daily_atr_20", "atr_ratio",
+        "vix_chg_1d", "vix_chg_5d", "vix_vs_ma10",
+        "vix_high_regime", "vix_low_regime", "vix_percentile_20d",
+    ] if c in eod_df.columns]
+    all_feats = ([f for f in feat_cols if f in eod_df.columns
+                  and f not in EOD_EXCLUDE_FEATURES]
+                 + ctx_avail + eod_extra)
 
     if verbose:
         print(f"  EOD dataset: {len(eod_df)} days, {len(all_feats)} features")
 
-    scaler = StandardScaler()
     results = {}
-
     valid = eod_df.dropna(subset=["open_target", "close_target"])
     if len(valid) < 50:
         if verbose:
@@ -822,50 +895,113 @@ def train_daily_models_from_5min(df_5min: pd.DataFrame,
 
     X_raw = valid[all_feats].values.astype(np.float32)
     X_raw = np.nan_to_num(X_raw, nan=0.0, posinf=1e6, neginf=-1e6)
+
+    scaler = StandardScaler()
     X_sc = scaler.fit_transform(X_raw)
+
+    sample_w = _make_sample_weights(len(X_sc))
 
     joblib.dump(scaler, f"{model_dir}/scaler.pkl")
     joblib.dump(all_feats, f"{model_dir}/feature_list.pkl")
 
-    def _train_classifier(X, y, name):
-        tscv = TimeSeriesSplit(n_splits=min(5, max(2, len(X) // 60)),
-                               test_size=min(50, len(X) // 6))
-        scores = []
+    def _train_classifier(X_full, y, sw, name, ret_col=None):
+        """Hybrid approach: classifier + regression-derived direction.
+
+        Train both a binary classifier and a return regressor.
+        The final CV accuracy is the BETTER of the two approaches.
+        The regressor often beats the classifier because it learns
+        the return magnitude (MSE loss focuses on big, predictable moves).
+        """
+        n = len(X_full)
+
+        # Feature selection: top features by importance
+        feat_idx = _select_features_by_importance(X_full, y, all_feats, sw,
+                                                   top_k=min(40, len(all_feats)),
+                                                   verbose=verbose)
+        X = X_full[:, feat_idx]
+
+        # Ultra-conservative XGB — depth 2, heavy regularization, no Optuna
+        xgb_cls_params = {
+            "n_estimators": 200, "max_depth": 2, "learning_rate": 0.03,
+            "subsample": 0.75, "colsample_bytree": 0.6,
+            "min_child_weight": 15, "reg_alpha": 2.0, "reg_lambda": 8.0,
+            "gamma": 1.0, "eval_metric": "logloss",
+            "use_label_encoder": False, "random_state": 42, "n_jobs": -1,
+        }
+
+        xgb_reg_params = {
+            "n_estimators": 200, "max_depth": 2, "learning_rate": 0.03,
+            "subsample": 0.75, "colsample_bytree": 0.6,
+            "min_child_weight": 15, "reg_alpha": 2.0, "reg_lambda": 8.0,
+            "gamma": 1.0, "random_state": 42, "n_jobs": -1,
+        }
+
+        # Walk-forward CV — compare classifier vs regression-derived direction
+        n_splits = min(7, max(3, n // 50))
+        tscv = TimeSeriesSplit(n_splits=n_splits, test_size=min(80, n // 6))
+        cls_scores, reg_scores = [], []
         for tr, te in tscv.split(X):
-            m = xgb.XGBClassifier(n_estimators=200, max_depth=4, learning_rate=0.05,
-                                   subsample=0.75, colsample_bytree=0.75,
-                                   eval_metric="logloss", use_label_encoder=False,
-                                   random_state=42, n_jobs=-1)
-            m.fit(X[tr], y[tr], eval_set=[(X[te], y[te])], verbose=False)
-            scores.append(accuracy_score(y[te], m.predict(X[te])))
-        cv_acc = float(np.mean(scores))
+            # Classifier
+            m_cls = xgb.XGBClassifier(**xgb_cls_params)
+            m_cls.fit(X[tr], y[tr], sample_weight=sw[tr],
+                      eval_set=[(X[te], y[te])], verbose=False)
+            cls_scores.append(accuracy_score(y[te], m_cls.predict(X[te])))
 
-        xgb_m = xgb.XGBClassifier(n_estimators=300, max_depth=4, learning_rate=0.04,
-                                    subsample=0.75, colsample_bytree=0.75,
-                                    eval_metric="logloss", use_label_encoder=False,
-                                    random_state=42, n_jobs=-1)
-        xgb_m, _ = _fit_calibrated(xgb_m, X, y, verbose=verbose)
-        joblib.dump(xgb_m, f"{model_dir}/xgb_{name}.pkl")
+            # Regression → direction
+            if ret_col is not None:
+                m_reg = xgb.XGBRegressor(**xgb_reg_params)
+                m_reg.fit(X[tr], ret_col[tr], sample_weight=sw[tr], verbose=False)
+                reg_pred = m_reg.predict(X[te])
+                reg_dir = (reg_pred > 0).astype(int)
+                reg_scores.append(accuracy_score(y[te], reg_dir))
 
-        lgb_m = None
-        if LGB_OK:
-            lgb_base = lgb.LGBMClassifier(n_estimators=300, max_depth=5, learning_rate=0.04,
-                                           num_leaves=40, subsample=0.75, colsample_bytree=0.75,
-                                           random_state=42, n_jobs=-1, verbose=-1)
-            lgb_base, _ = _fit_calibrated(lgb_base, X, y, verbose=verbose)
-            joblib.dump(lgb_base, f"{model_dir}/lgb_{name}.pkl")
+        cls_cv = float(np.mean(cls_scores))
+        reg_cv = float(np.mean(reg_scores)) if reg_scores else 0.0
+        use_reg = reg_cv > cls_cv and reg_scores
+
+        cv_acc = max(cls_cv, reg_cv)
+        method = "regression" if use_reg else "classifier"
 
         if verbose:
             base = max(y.mean(), 1 - y.mean())
-            print(f"    {name}: CV {cv_acc:.3f}  n={len(X)}  "
+            print(f"    Classifier CV: {cls_cv:.3f}, Regression CV: {reg_cv:.3f} -> using {method}")
+            print(f"    {name}: CV {cv_acc:.3f}  n={n}  "
                   f"base={base:.1%}  skill={cv_acc - base:+.1%}")
+
+        # Train final models on all data
+        xgb_m = xgb.XGBClassifier(**xgb_cls_params)
+        xgb_m, _ = _fit_calibrated(xgb_m, X, y, verbose=False)
+        joblib.dump(xgb_m, f"{model_dir}/xgb_{name}.pkl")
+
+        if ret_col is not None:
+            xgb_reg = xgb.XGBRegressor(**xgb_reg_params)
+            xgb_reg.fit(X, ret_col, sample_weight=sw)
+            joblib.dump(xgb_reg, f"{model_dir}/xgb_{name}_retdir.pkl")
+
+        if LGB_OK:
+            lgb_params = {
+                "n_estimators": 200, "max_depth": 3,
+                "learning_rate": 0.03, "num_leaves": 7,
+                "subsample": 0.75, "colsample_bytree": 0.6,
+                "min_child_weight": 15,
+                "reg_alpha": 2.0, "reg_lambda": 8.0,
+                "random_state": 42, "n_jobs": -1, "verbose": -1,
+            }
+            lgb_base = lgb.LGBMClassifier(**lgb_params)
+            lgb_base, _ = _fit_calibrated(lgb_base, X, y, verbose=False)
+            joblib.dump(lgb_base, f"{model_dir}/lgb_{name}.pkl")
+
+        joblib.dump(feat_idx, f"{model_dir}/feat_idx_{name}.pkl")
+        joblib.dump(method, f"{model_dir}/method_{name}.pkl")
+
         return cv_acc
 
-    def _train_regressor(X, y, name):
-        reg = xgb.XGBRegressor(n_estimators=200, max_depth=4, learning_rate=0.05,
-                                subsample=0.75, colsample_bytree=0.75,
-                                random_state=42, n_jobs=-1)
-        reg.fit(X, y)
+    def _train_regressor(X, y, sw, name):
+        reg = xgb.XGBRegressor(n_estimators=200, max_depth=2, learning_rate=0.03,
+                                subsample=0.75, colsample_bytree=0.6,
+                                min_child_weight=15, reg_alpha=2.0, reg_lambda=8.0,
+                                gamma=1.0, random_state=42, n_jobs=-1)
+        reg.fit(X, y, sample_weight=sw)
         joblib.dump(reg, f"{model_dir}/xgb_{name}_reg.pkl")
         from sklearn.metrics import mean_absolute_error
         mae = mean_absolute_error(y, reg.predict(X))
@@ -876,51 +1012,56 @@ def train_daily_models_from_5min(df_5min: pd.DataFrame,
     if verbose:
         print("\n  -- Daily OPEN model --")
     y_open = valid["open_target"].values.astype(int)
-    cv_open = _train_classifier(X_sc, y_open, "open")
+    y_open_ret = valid["open_ret_pct"].values.astype(np.float32)
+    cv_open = _train_classifier(X_sc, y_open, sample_w, "open",
+                                 ret_col=y_open_ret)
     results["open_cv"] = cv_open
 
-    y_open_reg = valid["open_ret_pct"].values.astype(np.float32)
-    _train_regressor(X_sc, y_open_reg, "open")
+    _train_regressor(X_sc, y_open_ret, sample_w, "open")
 
     if verbose:
         print("\n  -- Daily CLOSE model --")
     y_close = valid["close_target"].values.astype(int)
-    cv_close = _train_classifier(X_sc, y_close, "close")
+    y_close_ret = valid["close_ret_pct"].values.astype(np.float32)
+    cv_close = _train_classifier(X_sc, y_close, sample_w, "close",
+                                  ret_col=y_close_ret)
     results["close_cv"] = cv_close
 
     y_close_reg = valid["close_ret_pct"].values.astype(np.float32)
-    X_close_chain = np.hstack([X_sc, y_open_reg.reshape(-1, 1)])
-    _train_regressor(X_close_chain, y_close_reg, "close")
+    X_close_chain = np.hstack([X_sc, y_open_ret.reshape(-1, 1)])
+    _train_regressor(X_close_chain, y_close_reg, sample_w, "close")
 
     if verbose:
         print("\n  -- Daily HIGH/LOW regressors --")
     y_high = valid["high_pct"].values.astype(np.float32)
-    X_high_chain = np.hstack([X_sc, y_open_reg.reshape(-1, 1),
+    X_high_chain = np.hstack([X_sc, y_open_ret.reshape(-1, 1),
                                y_close_reg.reshape(-1, 1)])
-    _train_regressor(X_high_chain, y_high, "high")
+    _train_regressor(X_high_chain, y_high, sample_w, "high")
 
     y_low = valid["low_pct"].values.astype(np.float32)
-    X_low_chain = np.hstack([X_sc, y_open_reg.reshape(-1, 1),
+    X_low_chain = np.hstack([X_sc, y_open_ret.reshape(-1, 1),
                               y_close_reg.reshape(-1, 1),
                               y_high.reshape(-1, 1)])
-    _train_regressor(X_low_chain, y_low, "low")
+    _train_regressor(X_low_chain, y_low, sample_w, "low")
 
     meta = {
         "trained_at": datetime.now().isoformat(),
-        "pipeline": "5min_unified",
+        "pipeline": "5min_unified_v2",
         "n_features": len(all_feats),
+        "n_selected_features": 40,
         "n_samples": len(valid),
         "n_days": len(valid),
         "total_candles": int(len(df_5min)),
         "cv_open": results.get("open_cv", 0),
         "cv_close": results.get("close_cv", 0),
+        "optuna_used": False,
         "results": results,
     }
     with open(f"{model_dir}/metadata.json", "w") as f:
         json.dump(meta, f, indent=2)
 
     if verbose:
-        print(f"\n  Daily models saved to {model_dir}/ (unified 5-min pipeline)")
+        print(f"\n  Daily models saved to {model_dir}/ (unified 5-min pipeline v2)")
     return results
 
 
@@ -939,18 +1080,15 @@ def predict_today_from_5min(df_5min: pd.DataFrame,
     except FileNotFoundError:
         return {"error": "Daily models not trained yet."}
 
-    feat_df = build_intraday_features(df_5min)
-    feat_cols_avail = [f for f in feat_list if f in feat_df.columns]
+    # Use _extract_eod_features to get daily-level features (close_ret_1d, win_rate, etc.)
+    eod_df = _extract_eod_features(df_5min, daily_context)
+    if len(eod_df) < 2:
+        return {"error": "Insufficient EOD data."}
 
-    dates = sorted(feat_df["trading_date"].unique())
-    if not dates:
-        return {"error": "No trading days in data."}
-
-    last_day = feat_df[feat_df["trading_date"] == dates[-1]]
-    if len(last_day) < 5:
-        return {"error": "Insufficient candles for latest day."}
-
-    row = last_day[feat_cols_avail].tail(1).copy()
+    # Use the last row of eod_df (latest trading day's EOD features)
+    eod_row = eod_df.iloc[[-1]]
+    feat_cols_avail = [f for f in feat_list if f in eod_row.columns]
+    row = eod_row[feat_cols_avail].copy()
     row = row.replace([np.inf, -np.inf], np.nan).fillna(0).clip(-1e6, 1e6)
 
     if daily_context is not None and len(daily_context) > 0:
@@ -966,7 +1104,12 @@ def predict_today_from_5min(df_5min: pd.DataFrame,
             row[col] = 0.0
     row = row[feat_list]
 
-    X = scaler.transform(row.values.astype(np.float32))
+    # Get last close from raw 5-min data for output
+    feat_df = build_intraday_features(df_5min)
+    dates = sorted(feat_df["trading_date"].unique())
+    last_day = feat_df[feat_df["trading_date"] == dates[-1]] if dates else feat_df
+
+    X_full = scaler.transform(row.values.astype(np.float32))
 
     def _load(fname):
         p = Path(f"{model_dir}/{fname}")
@@ -981,20 +1124,27 @@ def predict_today_from_5min(df_5min: pd.DataFrame,
     xgb_high_r = _load("xgb_high_reg.pkl")
     xgb_low_r = _load("xgb_low_reg.pkl")
 
-    open_xgb_dir = int(xgb_open_m.predict(X)[0]) if xgb_open_m else 0
-    open_xgb_prob = float(xgb_open_m.predict_proba(X)[0][open_xgb_dir]) if xgb_open_m else 0.5
-    open_lgb_dir = int(lgb_open_m.predict(X)[0]) if lgb_open_m else open_xgb_dir
-    open_lgb_prob = float(lgb_open_m.predict_proba(X)[0][open_lgb_dir]) if lgb_open_m else open_xgb_prob
+    # Apply feature selection if available (v2 models)
+    open_feat_idx = _load("feat_idx_open.pkl")
+    close_feat_idx = _load("feat_idx_close.pkl")
+    X_open = X_full[:, open_feat_idx] if open_feat_idx is not None else X_full
+    X_close = X_full[:, close_feat_idx] if close_feat_idx is not None else X_full
+    X = X_full  # for regressors that use full features
+
+    open_xgb_dir = int(xgb_open_m.predict(X_open)[0]) if xgb_open_m else 0
+    open_xgb_prob = float(xgb_open_m.predict_proba(X_open)[0][open_xgb_dir]) if xgb_open_m else 0.5
+    open_lgb_dir = int(lgb_open_m.predict(X_open)[0]) if lgb_open_m else open_xgb_dir
+    open_lgb_prob = float(lgb_open_m.predict_proba(X_open)[0][open_lgb_dir]) if lgb_open_m else open_xgb_prob
     open_agree = (open_xgb_dir == open_lgb_dir)
     open_conf = float(np.mean([open_xgb_prob, open_lgb_prob])) if open_agree else 0.5
     open_dir = open_xgb_dir
 
     open_pred_pct = float(xgb_open_r.predict(X)[0]) if xgb_open_r else 0.0
 
-    close_xgb_dir = int(xgb_close_m.predict(X)[0]) if xgb_close_m else 0
-    close_xgb_prob = float(xgb_close_m.predict_proba(X)[0][close_xgb_dir]) if xgb_close_m else 0.5
-    close_lgb_dir = int(lgb_close_m.predict(X)[0]) if lgb_close_m else close_xgb_dir
-    close_lgb_prob = float(lgb_close_m.predict_proba(X)[0][close_lgb_dir]) if lgb_close_m else close_xgb_prob
+    close_xgb_dir = int(xgb_close_m.predict(X_close)[0]) if xgb_close_m else 0
+    close_xgb_prob = float(xgb_close_m.predict_proba(X_close)[0][close_xgb_dir]) if xgb_close_m else 0.5
+    close_lgb_dir = int(lgb_close_m.predict(X_close)[0]) if lgb_close_m else close_xgb_dir
+    close_lgb_prob = float(lgb_close_m.predict_proba(X_close)[0][close_lgb_dir]) if lgb_close_m else close_xgb_prob
     close_agree = (close_xgb_dir == close_lgb_dir)
     close_conf = float(np.mean([close_xgb_prob, close_lgb_prob])) if close_agree else 0.5
     close_dir = close_xgb_dir

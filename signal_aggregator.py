@@ -1,19 +1,11 @@
 """
 signal_aggregator.py — Multi-source signal consensus engine.
 
-Direction is decided by WEIGHTED VOTE across all available signals,
-not by the model alone. Each source contributes a directional vote
-with a strength, and the final direction + confidence comes from
-the weighted consensus.
-
-Sources and default weights:
-  Model (XGB+LGB):  0.45  — trained on 2yr data, primary but not sole
-  GIFT Nifty gap:    0.20  — pre-market gap is a strong lead indicator
-  Groww OFI:         0.20  — real-time buy/sell pressure from order book
-  News sentiment:    0.15  — FinBERT scored, noisy but important
-
-Agreement bonus: when 3+ sources agree on direction, confidence gets
-a +5% boost. When sources split 2v2, confidence is capped at 60%.
+Two consensus modes:
+  CLOSE direction (default): Model 0.50, OFI 0.30, News 0.20
+    GIFT excluded — it only predicts the opening gap, not the close.
+  OPEN direction:  Model 0.30, GIFT 0.35, OFI 0.20, News 0.15
+    GIFT is the strongest signal for predicting the opening direction.
 """
 
 import numpy as np
@@ -21,10 +13,18 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 
-# Default weights — must sum to 1.0
+# Weights for CLOSE direction — GIFT excluded (it only predicts open)
 DEFAULT_WEIGHTS = {
-    "model":  0.45,
-    "gift":   0.20,
+    "model":  0.50,
+    "gift":   0.00,
+    "ofi":    0.30,
+    "news":   0.20,
+}
+
+# Weights for OPEN direction — GIFT is the strongest signal
+OPEN_WEIGHTS = {
+    "model":  0.30,
+    "gift":   0.35,
     "ofi":    0.20,
     "news":   0.15,
 }

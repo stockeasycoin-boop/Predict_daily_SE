@@ -66,7 +66,7 @@ def _build_prompt(market_context: dict) -> str:
 """
 
     # ── GIFT Nifty / Futures gap ──────────────────────────────────────
-    gift_section = "## GIFT Nifty / Pre-market Gap\n"
+    gift_section = "## GIFT Nifty / Pre-market Gap (OPEN DIRECTION ONLY — do NOT use for close prediction)\n"
     gp = m.get("gift_params", {})
     if gp.get("available"):
         gift_section += f"""- GIFT/Futures price: {gp.get("gift_price", "N/A")}
@@ -187,7 +187,7 @@ Think about:
 4. Are the news headlines market-moving? Macro events (RBI policy, US Fed, global events) matter more than company-specific news for index direction.
 5. Is the predicted move flat (<0.2%)? If yes, it's essentially a coin flip — confidence should be low.
 6. Do XGB and LGB ensemble models agree? Disagreement = lower conviction.
-7. GIFT gap direction has ~65% hit rate for open direction — give it weight but don't over-rely.
+7. IMPORTANT: GIFT gap ONLY predicts the OPENING direction, NOT the close. Do NOT use GIFT gap to predict close direction. If asked about close direction, ignore GIFT entirely. GIFT has ~65% hit rate for open direction only.
 
 Respond with ONLY a JSON object (no markdown, no code fences):
 {{
@@ -220,7 +220,7 @@ def _extract_options_params(opts_df) -> dict:
 
         total_ce_oi = ce["oi"].sum()
         total_pe_oi = pe["oi"].sum()
-        pcr = round(total_pe_oi / total_ce_oi, 3) if total_ce_oi > 0 else 1.0
+        pcr = round(total_pe_oi / total_ce_oi, 3) if total_ce_oi > 0 else None
 
         max_ce_oi_row = ce.loc[ce["oi"].idxmax()] if len(ce) > 0 else None
         max_pe_oi_row = pe.loc[pe["oi"].idxmax()] if len(pe) > 0 else None
@@ -418,7 +418,8 @@ def aggregate_with_llm(
         direction = llm_result["direction"]
         confidence = llm_result["confidence"]
 
-        active = [v for v in votes if v.direction is not None and v.available]
+        # Exclude GIFT from close-direction agreement (it only predicts open)
+        active = [v for v in votes if v.direction is not None and v.available and v.source != "gift"]
         n_bull = sum(1 for v in active if v.direction == 1)
         n_bear = sum(1 for v in active if v.direction == 0)
         agreement_ratio = max(n_bull, n_bear) / len(active) if active else 0

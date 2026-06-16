@@ -350,12 +350,12 @@ def fetch_options_chain_breeze(breeze, expiry_str: str,
                                 spot: float) -> tuple[pd.DataFrame | None, float]:
     from settings import NIFTY_STRIKE_GAP
     atm     = int(round(spot / NIFTY_STRIKE_GAP) * NIFTY_STRIKE_GAP)
-    strikes = [atm + i * NIFTY_STRIKE_GAP for i in range(-5, 6)]
+    strikes = [atm + i * NIFTY_STRIKE_GAP for i in range(-10, 11)]
     rows, ce_oi, pe_oi = [], 0.0, 0.0
     for strike in strikes:
         for right in ["call", "put"]:
             try:
-                resp = breeze.get_quotes(
+                resp = breeze.get_option_chain_quotes(
                     stock_code="NIFTY", exchange_code="NFO",
                     product_type="options", expiry_date=expiry_str,
                     right=right, strike_price=str(int(strike)),
@@ -372,12 +372,17 @@ def fetch_options_chain_breeze(breeze, expiry_str: str,
                         "bid":   float(d.get("best_bid_price",   0) or 0),
                         "ask":   float(d.get("best_offer_price", 0) or 0),
                         "oi":    oi,
-                        "volume":float(d.get("volume",           0) or 0),
+                        "volume":float(d.get("total_quantity_traded", 0) or 0),
                         "iv":    float(d.get("implied_volatility",0) or 0),
+                        "chg_oi":float(d.get("chnge_oi",        0) or 0),
                     })
             except Exception:
                 pass
-    pcr = round(pe_oi / ce_oi, 3) if ce_oi > 0 else 1.0
+    if ce_oi > 0:
+        pcr = round(pe_oi / ce_oi, 3)
+    else:
+        pcr = None
+        print(f"[Options] WARNING: CE OI is 0 — PCR unavailable (PE OI: {pe_oi})")
     return (pd.DataFrame(rows) if rows else None), pcr
 
 
