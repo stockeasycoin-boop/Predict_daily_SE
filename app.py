@@ -154,7 +154,7 @@ def _password_login():
         with st.form("login_form"):
             username = st.text_input("Username", autocomplete="username")
             password = st.text_input("Password", type="password", autocomplete="current-password")
-            submitted = st.form_submit_button("Sign in", use_container_width=True)
+            submitted = st.form_submit_button("Sign in", width="stretch")
         if submitted:
             if username == AUTH_USERNAME and _hash_pw(password) == AUTH_PASSWORD_SHA256:
                 st.session_state["authenticated"] = True
@@ -164,7 +164,7 @@ def _password_login():
             else:
                 st.error("Invalid username or password.")
         if st.session_state.get("_use_password_fallback"):
-            if st.button("← Back to Google sign-in", use_container_width=True):
+            if st.button("← Back to Google sign-in", width="stretch"):
                 st.session_state.pop("_use_password_fallback", None)
                 st.rerun()
     st.stop()
@@ -191,10 +191,10 @@ def _google_login():
                 unsafe_allow_html=True,
             )
             st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
-            if st.button("🔐  Sign in with Google", use_container_width=True, type="primary"):
+            if st.button("🔐  Sign in with Google", width="stretch", type="primary"):
                 st.login()
             st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
-            if st.button("🔑  Sign in with password instead", use_container_width=True):
+            if st.button("🔑  Sign in with password instead", width="stretch"):
                 st.session_state["_use_password_fallback"] = True
                 st.rerun()
             st.markdown(
@@ -210,7 +210,7 @@ def _google_login():
         _, mid, _ = st.columns([1, 1.4, 1])
         with mid:
             st.error(f"🚫 Access denied for **{email}**. This account is not authorized.")
-            if st.button("Sign out and try another account", use_container_width=True):
+            if st.button("Sign out and try another account", width="stretch"):
                 st.logout()
         st.stop()
 
@@ -358,7 +358,7 @@ with col_date:
                 f"</div>", unsafe_allow_html=True)
 with col_logout:
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
-    if st.button("🔒 Log out", use_container_width=True,
+    if st.button("🔒 Log out", width="stretch",
                  help=f"Signed in as {st.session_state.get('auth_user', '')}"):
         st.session_state["authenticated"] = False
         st.session_state.pop("auth_user", None)
@@ -396,7 +396,7 @@ with tab1:
     # ── Refresh button + model status ─────────────────────────────────────
     col_ref, col_mod, col_cap = st.columns([1, 2, 2])
     with col_ref:
-        run_btn = st.button("🔄 Generate Today's Signal", type="primary", use_container_width=True)
+        run_btn = st.button("🔄 Generate Today's Signal", type="primary", width="stretch")
     with col_mod:
         model_ready = mt.model_exists(str(cfg.MODEL_DIR))
         if model_ready:
@@ -846,7 +846,7 @@ with tab1:
 
                         st.dataframe(
                             pd.DataFrame(_sig_rows),
-                            use_container_width=True, hide_index=True,
+                            width="stretch", hide_index=True,
                             column_config={
                                 "Signal": st.column_config.TextColumn("Signal Source", width="medium"),
                                 "Status": st.column_config.TextColumn("Verdict", width="small"),
@@ -1032,7 +1032,7 @@ with tab1:
             f"📅 Analysing last {_look_days} days of news ({_range_txt}) · "
             f"{cache_label} · {_ttl_txt}"
         )
-        if nb_col.button("🔄 Fetch fresh news", use_container_width=True,
+        if nb_col.button("🔄 Fetch fresh news", width="stretch",
                          help="Pull the latest headlines now (uses GNews quota) and regenerate the signal"):
             st.session_state["_force_news_refresh"] = True
             st.rerun()
@@ -1341,7 +1341,7 @@ with tab1:
             with _rc2:
                 st.markdown("<div style='padding-top:28px'></div>", unsafe_allow_html=True)
                 _recal_btn = st.form_submit_button("↻ Recalibrate signal", type="primary",
-                                                    use_container_width=True)
+                                                    width="stretch")
 
         if _recal_btn:
             from settings import MIN_CONFIDENCE as _MIN_CONF
@@ -1485,7 +1485,7 @@ with tab1:
                 showlegend=False, plot_bgcolor="white",
                 xaxis=dict(showticklabels=False, showgrid=False, zeroline=True),
             )
-            st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+            st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
 
         with col_g2:
             st.markdown("**Market context**")
@@ -1981,7 +1981,7 @@ with tab2:
                                        plot_bgcolor="white", paper_bgcolor="white",
                                        xaxis_rangeslider_visible=False,
                                        xaxis=dict(gridcolor="#f0f0f0"), yaxis=dict(gridcolor="#f0f0f0"))
-                    st.plotly_chart(_fig, use_container_width=True, config={"displayModeBar": False})
+                    st.plotly_chart(_fig, width="stretch", config={"displayModeBar": False})
 
             # ── Run the live prediction display ─────────────────────────────
             # Auto-refresh strategy (in priority order):
@@ -2039,7 +2039,7 @@ with tab2:
                     _disp["Conf"] = (pd.to_numeric(_disp["Conf"],errors="coerce")*100).round(0).fillna(0).astype(int).astype(str)+"%"
                 if "Horizon" in _disp.columns:
                     _disp["Horizon"] = _disp["Horizon"].map(_hz_labels).fillna(_disp["Horizon"])
-                st.dataframe(_disp, use_container_width=True, hide_index=True, height=260)
+                st.dataframe(_disp, width="stretch", hide_index=True, height=260)
 
                 _calib = le.get_calibration_summary(_sel_date)
                 if _calib.get("n_verified", 0) > 0:
@@ -2069,7 +2069,7 @@ with tab2:
                                 "As % of price": f"{_m['mae_pct']:.2f}%",
                                 "Magnitude quality": _quality,
                             })
-                        st.dataframe(pd.DataFrame(_mag_rows), use_container_width=True, hide_index=True)
+                        st.dataframe(pd.DataFrame(_mag_rows), width="stretch", hide_index=True)
 
                     # Calibration buckets
                     if _calib.get("calibration"):
@@ -2084,7 +2084,7 @@ with tab2:
                                 "Status": ("✅ Calibrated" if abs(_gap)<=8 else
                                            "⚠️ Overconfident" if _gap<0 else "📈 Underconfident"),
                             })
-                        st.dataframe(pd.DataFrame(_cal_rows), use_container_width=True, hide_index=True)
+                        st.dataframe(pd.DataFrame(_cal_rows), width="stretch", hide_index=True)
 
                 _csv = _hist_df.to_csv(index=False).encode()
                 _dcol1, _dcol2, _dcol3 = st.columns([1.2, 1.4, 1.4])
@@ -2127,7 +2127,7 @@ with tab2:
                          "Training samples": f"{v['n_samples']:,}",
                          "Calibrated": "✅" if v.get("calibrated") else "—"}
                         for h, v in _hzr.items()])
-                    st.dataframe(_mdf, use_container_width=True, hide_index=True)
+                    st.dataframe(_mdf, width="stretch", hide_index=True)
                 st.caption(f"Last trained: {_intra_meta.get('trained_at','—')[:16]}")
 
 
@@ -2268,7 +2268,7 @@ with tab3:
                 xaxis=dict(title="Trade #", gridcolor="#f0f0f0"),
                 yaxis=dict(title="₹", gridcolor="#f0f0f0"),
             )
-            st.plotly_chart(fig1, use_container_width=True, config={"displayModeBar": False})
+            st.plotly_chart(fig1, width="stretch", config={"displayModeBar": False})
 
         with col_ch2:
             st.markdown("**Rolling 10-trade direction accuracy (%)**")
@@ -2293,7 +2293,7 @@ with tab3:
                 xaxis=dict(title="Trade #", gridcolor="#f0f0f0"),
                 yaxis=dict(title="%", range=[0, 105], gridcolor="#f0f0f0"),
             )
-            st.plotly_chart(fig2, use_container_width=True, config={"displayModeBar": False})
+            st.plotly_chart(fig2, width="stretch", config={"displayModeBar": False})
 
         # ── P&L by month ──────────────────────────────────────────────────
         st.markdown("**Monthly P&L breakdown**")
@@ -2313,7 +2313,7 @@ with tab3:
             plot_bgcolor="white", paper_bgcolor="white",
             coloraxis_showscale=False,
         )
-        st.plotly_chart(fig3, use_container_width=True, config={"displayModeBar": False})
+        st.plotly_chart(fig3, width="stretch", config={"displayModeBar": False})
 
     else:
         st.info("📭 No completed trades yet. Make trades and record outcomes to see stats here.")
@@ -2331,7 +2331,7 @@ with tab3:
             lambda x: f"₹{int(x):,}" if pd.notna(x) else "")
         disp["direction_correct"] = disp["direction_correct"].map(
             lambda x: "✅" if str(x) == "1" else ("❌" if str(x) == "0" else ""))
-        st.dataframe(disp.sort_values("date", ascending=False), use_container_width=True, height=320)
+        st.dataframe(disp.sort_values("date", ascending=False), width="stretch", height=320)
     else:
         st.info("No trades logged yet.")
 
@@ -2451,7 +2451,7 @@ with tab4:
 
     col_train, col_info = st.columns([1, 2])
     with col_train:
-        train_btn = st.button("🚀 Train model now", type="primary", use_container_width=True)
+        train_btn = st.button("🚀 Train model now", type="primary", width="stretch")
     with col_info:
         if meta:
             fold_scores = meta.get("fold_scores", [])
@@ -2636,7 +2636,7 @@ with tab4:
                 coloraxis_showscale=False,
                 xaxis=dict(gridcolor="#f0f0f0"),
             )
-            st.plotly_chart(fig_imp, use_container_width=True, config={"displayModeBar": False})
+            st.plotly_chart(fig_imp, width="stretch", config={"displayModeBar": False})
     except Exception:
         pass   # Feature importance chart is optional; don't crash if unavailable
 
@@ -2755,7 +2755,7 @@ with tab5:
         if trades_file.exists():
             with open(trades_file, "rb") as f:
                 st.download_button("⬇️ Download trade log CSV", f, file_name="nifty_trades.csv",
-                                   mime="text/csv", use_container_width=True)
+                                   mime="text/csv", width="stretch")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -2964,7 +2964,7 @@ with tab6:
         })
 
         _ds_df = pd.DataFrame(_ds_rows)
-        st.dataframe(_ds_df, use_container_width=True, hide_index=True, height=480)
+        st.dataframe(_ds_df, width="stretch", hide_index=True, height=480)
 
         _n_green = sum(1 for r in _ds_rows if "🟢" in r["Status"])
         _n_amber = sum(1 for r in _ds_rows if "🟡" in r["Status"])

@@ -625,22 +625,35 @@ def reasoning_for_prediction(feature_df: pd.DataFrame,
     except Exception:
         feat_idx = None
 
-    avail = [f for f in feat_list if f in feature_df.columns]
-    row   = feature_df[avail].tail(1).copy().fillna(feature_df[avail].mean())
+    # Build row with ALL features from feat_list (fill missing with 0)
+    row_data = {}
+    for f in feat_list:
+        if f in feature_df.columns:
+            v = feature_df[f].iloc[-1]
+            row_data[f] = v if pd.notna(v) else 0.0
+        else:
+            row_data[f] = 0.0
+    row = pd.DataFrame([row_data])[feat_list]
     vals_full = row.values.astype(np.float32)[0]
 
-    # Apply feature selection indices to match the trained model's feature set
-    if feat_idx is not None:
-        valid_idx = feat_idx[feat_idx < len(avail)]
-        sel_names = [avail[i] for i in valid_idx]
-        sel_vals = vals_full[valid_idx]
-        pop_mean = feature_df[avail].mean().values.astype(np.float32)[valid_idx]
-        pop_std  = feature_df[avail].std().values.astype(np.float32)[valid_idx] + 1e-9
+    # Apply feature selection indices
+    if feat_idx is not None and len(feat_idx) > 0:
+        sel_idx = feat_idx[feat_idx < len(feat_list)]
+        sel_names = [feat_list[i] for i in sel_idx]
+        sel_vals = vals_full[sel_idx]
+        all_means = np.array([feature_df[f].mean() if f in feature_df.columns else 0.0
+                              for f in feat_list], dtype=np.float32)
+        all_stds = np.array([feature_df[f].std() if f in feature_df.columns else 1.0
+                             for f in feat_list], dtype=np.float32) + 1e-9
+        pop_mean = all_means[sel_idx]
+        pop_std = all_stds[sel_idx]
     else:
-        sel_names = avail
+        sel_names = feat_list
         sel_vals = vals_full
-        pop_mean = feature_df[avail].mean().values.astype(np.float32)
-        pop_std  = feature_df[avail].std().values.astype(np.float32) + 1e-9
+        pop_mean = np.array([feature_df[f].mean() if f in feature_df.columns else 0.0
+                             for f in feat_list], dtype=np.float32)
+        pop_std = np.array([feature_df[f].std() if f in feature_df.columns else 1.0
+                            for f in feat_list], dtype=np.float32) + 1e-9
 
     norm_dev = (sel_vals - pop_mean) / pop_std
     if hasattr(model, "feature_importances_"):
@@ -667,9 +680,9 @@ def reasoning_for_prediction(feature_df: pd.DataFrame,
     bearish = [(l,s,v) for l,s,v in rows if s < -0.004][:top_n]
 
     X_sc = scaler.transform(row.values.astype(np.float32))
-    if feat_idx is not None:
-        valid_idx = feat_idx[feat_idx < X_sc.shape[1]]
-        X_sc = X_sc[:, valid_idx]
+    if feat_idx is not None and len(feat_idx) > 0:
+        sel_idx = feat_idx[feat_idx < X_sc.shape[1]]
+        X_sc = X_sc[:, sel_idx]
     d  = int(model.predict(X_sc)[0])
     dw = "bullish" if d == 1 else "bearish"
     top = (bearish[0][0].lower() if (d == 0 and bearish) else

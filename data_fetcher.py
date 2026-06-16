@@ -352,32 +352,45 @@ def fetch_options_chain_breeze(breeze, expiry_str: str,
     atm     = int(round(spot / NIFTY_STRIKE_GAP) * NIFTY_STRIKE_GAP)
     strikes = [atm + i * NIFTY_STRIKE_GAP for i in range(-10, 11)]
     rows, ce_oi, pe_oi = [], 0.0, 0.0
+    _req_count = 0
     for strike in strikes:
         for right in ["call", "put"]:
-            try:
-                resp = breeze.get_option_chain_quotes(
-                    stock_code="NIFTY", exchange_code="NFO",
-                    product_type="options", expiry_date=expiry_str,
-                    right=right, strike_price=str(int(strike)),
-                )
-                if resp.get("Status") == 200 and resp.get("Success"):
-                    d    = resp["Success"][0]
-                    oi   = float(d.get("open_interest",      0) or 0)
-                    ltp  = float(d.get("ltp",                0) or 0)
-                    opt  = "CE" if right == "call" else "PE"
-                    if opt == "CE": ce_oi += oi
-                    else:           pe_oi += oi
-                    rows.append({
-                        "strike": strike, "type":   opt,    "ltp":    ltp,
-                        "bid":   float(d.get("best_bid_price",   0) or 0),
-                        "ask":   float(d.get("best_offer_price", 0) or 0),
-                        "oi":    oi,
-                        "volume":float(d.get("total_quantity_traded", 0) or 0),
-                        "iv":    float(d.get("implied_volatility",0) or 0),
-                        "chg_oi":float(d.get("chnge_oi",        0) or 0),
-                    })
-            except Exception:
-                pass
+            for _attempt in range(3):
+                try:
+                    resp = breeze.get_option_chain_quotes(
+                        stock_code="NIFTY", exchange_code="NFO",
+                        product_type="options", expiry_date=expiry_str,
+                        right=right, strike_price=str(int(strike)),
+                    )
+                    if resp.get("Status") == 200 and resp.get("Success"):
+                        d    = resp["Success"][0]
+                        oi   = float(d.get("open_interest",      0) or 0)
+                        ltp  = float(d.get("ltp",                0) or 0)
+                        opt  = "CE" if right == "call" else "PE"
+                        if opt == "CE": ce_oi += oi
+                        else:           pe_oi += oi
+                        rows.append({
+                            "strike": strike, "type":   opt,    "ltp":    ltp,
+                            "bid":   float(d.get("best_bid_price",   0) or 0),
+                            "ask":   float(d.get("best_offer_price", 0) or 0),
+                            "oi":    oi,
+                            "volume":float(d.get("total_quantity_traded", 0) or 0),
+                            "iv":    float(d.get("implied_volatility",0) or 0),
+                            "chg_oi":float(d.get("chnge_oi",        0) or 0),
+                        })
+                        break
+                    elif resp.get("Status") in (503, 429):
+                        time.sleep(0.3 * (_attempt + 1))
+                        continue
+                    else:
+                        break
+                except Exception:
+                    if _attempt < 2:
+                        time.sleep(0.3 * (_attempt + 1))
+                    continue
+            _req_count += 1
+            if _req_count % 6 == 0:
+                time.sleep(0.15)
     if ce_oi > 0:
         pcr = round(pe_oi / ce_oi, 3)
     else:
