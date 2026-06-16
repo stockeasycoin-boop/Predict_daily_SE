@@ -324,11 +324,12 @@ def fetch_gift_nifty_breeze(breeze) -> float | None:
     ]
     for params in attempts:
         try:
+            _right = "others" if params["exchange_code"] == "NFO" else ""
             resp = breeze.get_quotes(
                 stock_code=params["stock_code"],
                 exchange_code=params["exchange_code"],
                 product_type=params["product_type"],
-                expiry_date=params["expiry_date"], right="", strike_price="",
+                expiry_date=params["expiry_date"], right=_right, strike_price="",
             )
             if resp.get("Status") == 200 and resp.get("Success"):
                 d   = resp["Success"][0]

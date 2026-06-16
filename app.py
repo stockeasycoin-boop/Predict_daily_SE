@@ -28,6 +28,11 @@ logging.basicConfig(
 )
 log = logging.getLogger("nifty_app")
 
+# Silence noisy third-party logs (Breeze 503 retries, HuggingFace HTTP, etc.)
+for _noisy in ["breeze_connect", "urllib3", "requests", "httpx", "httpcore",
+               "APILogger", "huggingface_hub", "transformers", "filelock"]:
+    logging.getLogger(_noisy).setLevel(logging.CRITICAL)
+
 
 def log_step(msg: str, level: str = "info") -> None:
     """Log a single step to stdout (visible in Streamlit Cloud logs)."""
