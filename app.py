@@ -595,7 +595,7 @@ with tab1:
                         st.session_state["gift_gap_pct"] = gift_gap_pct
                         st.session_state["gift_status"]  = gift_status
 
-                        # 3) OFI vote (Groww live → PCR fallback from options chain)
+                        # 3) OFI vote (Groww live only — no fallback)
                         ofi_data = {"ofi": 0.0, "available": False}
                         _groww_main = st.session_state.get("groww_obj")
                         if _groww_main:
@@ -604,7 +604,7 @@ with tab1:
                                 ofi_data = gc.get_live_ofi(_groww_main, "NIFTY")
                             except Exception:
                                 pass
-                        if not ofi_data.get("available") and opts_df is not None and len(opts_df) > 0:
+                        if False and not ofi_data.get("available") and opts_df is not None and len(opts_df) > 0:
                             try:
                                 _ce_df = opts_df[opts_df["type"] == "CE"]
                                 _pe_df = opts_df[opts_df["type"] == "PE"]
@@ -2930,15 +2930,13 @@ with tab6:
                 _ofi_ok = _ofi_res.get("available", False)
             except Exception:
                 pass
-        _pcr_fallback = _pcr_ok and not _ofi_ok
         _ds_rows.append({
-            "Source": "Order Flow / PCR", "Used for": "Order Flow Imbalance — buy/sell pressure",
+            "Source": "Order Flow / OFI", "Used for": "Order Flow Imbalance — buy/sell pressure",
             "Status": ("🟢 Live OFI" if _ofi_ok else
-                       ("🟡 PCR fallback" if _pcr_fallback else
-                        ("🟡 Connected, no depth" if _groww_c else "🟡 Using PCR from options chain" if _pcr_ok else "⚪ Optional — not connected"))),
+                       ("🟡 Connected, no depth" if _groww_c else "⚪ Not connected")),
             "Detail": ("OFI feeding Live Monitor" if _ofi_ok else
-                       (f"PCR from Breeze options chain used as OFI proxy" if _pcr_fallback or _pcr_ok
-                        else "Connect Groww or ensure Breeze options chain is available")),
+                       ("Groww connected but no depth data" if _groww_c
+                        else "Connect Groww for live OFI")),
         })
 
         # ── 11. Intraday models ────────────────────────────────────────────
