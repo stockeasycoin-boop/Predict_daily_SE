@@ -620,26 +620,45 @@ def reasoning_for_prediction(feature_df: pd.DataFrame,
     except Exception:
         return {"bullish_factors":[], "bearish_factors":[], "summary_text":"Model not trained."}
 
+    try:
+        feat_idx = joblib.load(f"{model_dir}/feat_idx_close.pkl")
+    except Exception:
+        feat_idx = None
+
     avail = [f for f in feat_list if f in feature_df.columns]
     row   = feature_df[avail].tail(1).copy().fillna(feature_df[avail].mean())
-    vals  = row.values.astype(np.float32)[0]
+    vals_full = row.values.astype(np.float32)[0]
 
-    pop_mean = feature_df[avail].mean().values.astype(np.float32)
-    pop_std  = feature_df[avail].std().values.astype(np.float32)  + 1e-9
-    norm_dev = (vals - pop_mean) / pop_std
+    # Apply feature selection indices to match the trained model's feature set
+    if feat_idx is not None:
+        valid_idx = feat_idx[feat_idx < len(avail)]
+        sel_names = [avail[i] for i in valid_idx]
+        sel_vals = vals_full[valid_idx]
+        pop_mean = feature_df[avail].mean().values.astype(np.float32)[valid_idx]
+        pop_std  = feature_df[avail].std().values.astype(np.float32)[valid_idx] + 1e-9
+    else:
+        sel_names = avail
+        sel_vals = vals_full
+        pop_mean = feature_df[avail].mean().values.astype(np.float32)
+        pop_std  = feature_df[avail].std().values.astype(np.float32) + 1e-9
+
+    norm_dev = (sel_vals - pop_mean) / pop_std
     if hasattr(model, "feature_importances_"):
         imp = model.feature_importances_
     elif hasattr(model, "calibrated_classifiers_"):
         imp = np.mean([c.estimator.feature_importances_ for c in model.calibrated_classifiers_], axis=0)
     else:
-        imp = np.ones(len(avail)) / len(avail)
+        imp = np.ones(len(sel_names)) / len(sel_names)
+
+    if len(imp) != len(norm_dev):
+        imp = np.ones(len(sel_names)) / len(sel_names)
     contrib  = norm_dev * imp
 
     rows = []
-    for i, feat in enumerate(avail):
+    for i, feat in enumerate(sel_names):
         label   = FEATURE_LABELS.get(feat, feat.replace("_"," ").title())
         score   = float(contrib[i])
-        val     = float(vals[i])
+        val     = float(sel_vals[i])
         val_str = _fmt(feat, val)
         rows.append((label, score, val_str))
 
@@ -647,13 +666,15 @@ def reasoning_for_prediction(feature_df: pd.DataFrame,
     bullish = [(l,s,v) for l,s,v in rows if s >  0.004][:top_n]
     bearish = [(l,s,v) for l,s,v in rows if s < -0.004][:top_n]
 
-    X  = scaler.transform(row.values.astype(np.float32))
-    d  = int(model.predict(X)[0])
+    X_sc = scaler.transform(row.values.astype(np.float32))
+    if feat_idx is not None:
+        valid_idx = feat_idx[feat_idx < X_sc.shape[1]]
+        X_sc = X_sc[:, valid_idx]
+    d  = int(model.predict(X_sc)[0])
     dw = "bullish" if d == 1 else "bearish"
-    # Pick primary driver that MATCHES the signal direction (not just highest abs score)
     top = (bearish[0][0].lower() if (d == 0 and bearish) else
            bullish[0][0].lower() if (d == 1 and bullish) else "mixed signals")
-    summary = f"Signal is {dw} — primarily driven by {top}."
+    summary = f"Signal is {dw} -- primarily driven by {top}."
 
     return {"bullish_factors": bullish, "bearish_factors": bearish, "summary_text": summary}
 
