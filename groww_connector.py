@@ -45,73 +45,85 @@ except ImportError:
 
 def init_groww(api_key: str, api_secret: str = None, totp: str = None):
     """
-    Connect to Groww API.
+    Connect to Groww Trade API.
 
-    The growwapi SDK has several auth flows depending on version:
-      A. Direct access token:   GrowwAPI(access_token)
-      B. TOTP flow:             GrowwAPI.get_access_token(api_key, secret/totp)
-      C. API-key + secret TOTP: generate TOTP from secret, then get token
+    Auth flow (growwapi SDK):
+      1. Call GrowwAPI.get_access_token(api_key, totp=...) or secret=... to get access token
+      2. Pass access token to GrowwAPI(token) to create client
+      3. If settings has a saved groww_access_token, try that first
 
-    What to enter in Settings:
-      - "Groww API Key"    → either your API key OR a ready access token
-      - "Groww API Secret" → your API secret (used to generate TOTP)
-      - "Groww TOTP"       → current 6-digit code (only needed for some flows)
-
-    Most reliable: paste a fresh ACCESS TOKEN into the "API Key" field
-    (generate it from the Groww developer portal). Then leave secret/TOTP blank.
-
-    Returns a connected GrowwAPI client, or raises with a clear message.
+    Run `python groww_auth.py` to generate and save a token interactively.
     """
     if not GROWW_OK:
         raise ImportError("Run: pip install growwapi")
     if not api_key:
-        raise ValueError("Groww API key (or access token) not configured in Settings.")
+        raise ValueError("Groww API key not configured in Settings.")
 
     errors = []
 
-    # ── Attempt A: treat api_key as a direct access token ──────────────────
+    # Check for a saved access token from groww_auth.py
     try:
-        client = GrowwAPI(api_key)
-        # Sanity check — try a lightweight call if available
-        return client
-    except Exception as e:
-        errors.append(f"direct-token: {e}")
+        import json
+        from pathlib import Path
+        sf = Path(__file__).parent / "settings.json"
+        if sf.exists():
+            with open(sf) as f:
+                _s = json.load(f)
+            saved_token = _s.get("groww_access_token", "")
+            if saved_token:
+                try:
+                    client = GrowwAPI(saved_token)
+                    client.get_ltp(exchange_trading_symbols=("NIFTY 50",), segment="CASH")
+                    return client
+                except Exception as e:
+                    errors.append(f"saved-token: {e}")
+    except Exception:
+        pass
 
-    # ── Attempt B: static get_access_token with api_key + secret ───────────
-    if api_secret:
+    # Flow 1: TOTP flow (explicit code or auto-generated from secret)
+    if totp:
         try:
-            if hasattr(GrowwAPI, "get_access_token"):
-                token = GrowwAPI.get_access_token(api_key=api_key, secret=api_secret)
-                return GrowwAPI(token)
+            token = GrowwAPI.get_access_token(api_key, totp=totp)
+            client = GrowwAPI(token)
+            client.get_ltp(exchange_trading_symbols=("NIFTY 50",), segment="CASH")
+            return client
         except Exception as e:
-            errors.append(f"get_access_token(secret): {e}")
+            errors.append(f"totp: {e}")
 
-    # ── Attempt C: generate TOTP from secret, then get token ───────────────
-    if api_secret:
+    # Flow 2: Auto-generate TOTP from secret
+    if api_secret and len(api_secret) in (16, 32, 64):
         try:
             import pyotp
-            totp_code = totp or pyotp.TOTP(api_secret).now()
-            if hasattr(GrowwAPI, "get_access_token"):
-                token = GrowwAPI.get_access_token(api_key=api_key, totp=totp_code)
-                return GrowwAPI(token)
+            auto_totp = pyotp.TOTP(api_secret).now()
+            token = GrowwAPI.get_access_token(api_key, totp=auto_totp)
+            client = GrowwAPI(token)
+            client.get_ltp(exchange_trading_symbols=("NIFTY 50",), segment="CASH")
+            return client
         except ImportError:
             errors.append("pyotp not installed (pip install pyotp)")
         except Exception as e:
-            errors.append(f"totp-flow: {e}")
+            errors.append(f"auto-totp: {e}")
 
-    # ── Attempt D: explicit TOTP passed in ─────────────────────────────────
-    if totp:
+    # Flow 3: Approval flow with secret
+    if api_secret:
         try:
-            if hasattr(GrowwAPI, "get_access_token"):
-                token = GrowwAPI.get_access_token(api_key=api_key, totp=totp)
-                return GrowwAPI(token)
+            token = GrowwAPI.get_access_token(api_key, secret=api_secret)
+            client = GrowwAPI(token)
+            client.get_ltp(exchange_trading_symbols=("NIFTY 50",), segment="CASH")
+            return client
         except Exception as e:
-            errors.append(f"explicit-totp: {e}")
+            errors.append(f"secret: {e}")
+
+    # Flow 4: Direct token (api_key might already be an access token)
+    try:
+        client = GrowwAPI(api_key)
+        client.get_ltp(exchange_trading_symbols=("NIFTY 50",), segment="CASH")
+        return client
+    except Exception as e:
+        errors.append(f"direct: {e}")
 
     raise RuntimeError(
-        "Could not connect to Groww with any known auth method. "
-        "Easiest fix: generate an ACCESS TOKEN from the Groww developer portal "
-        "and paste it into the 'Groww API Key' field (leave secret/TOTP blank). "
+        "Groww auth failed. Run: python groww_auth.py\n"
         f"Tried: {'; '.join(errors)}"
     )
 
@@ -156,11 +168,9 @@ def fetch_order_book_groww(client, symbol: str = None) -> dict | None:
     """
     fut_symbol = symbol or _nifty_futures_symbol()
 
-    # (method_name, kwargs) attempts — newest SDK first
     attempts = [
-        ("get_quote",        {"exchange": "NSE", "segment": "FNO",  "trading_symbol": fut_symbol}),
-        ("get_market_depth", {"exchange": "NSE", "segment": "FNO",  "trading_symbol": fut_symbol}),
-        ("get_quote",        {"exchange": "NSE", "segment": "CASH", "trading_symbol": "NIFTY"}),
+        ("get_quote", {"trading_symbol": fut_symbol, "exchange": "NSE", "segment": "FNO"}),
+        ("get_quote", {"trading_symbol": "NIFTY 50",  "exchange": "NSE", "segment": "CASH"}),
     ]
     errors = []
     for method_name, kwargs in attempts:
@@ -173,7 +183,6 @@ def fetch_order_book_groww(client, symbol: str = None) -> dict | None:
             if not resp:
                 errors.append(f"{method_name}({kwargs.get('trading_symbol')}): empty")
                 continue
-            # Depth may be nested under 'depth' or at top level as buy/sell
             depth = resp.get("depth", resp) if isinstance(resp, dict) else {}
             bids = depth.get("buy")  or depth.get("bids") or []
             asks = depth.get("sell") or depth.get("asks") or []
@@ -182,7 +191,7 @@ def fetch_order_book_groww(client, symbol: str = None) -> dict | None:
                 return {"bids": bids, "asks": asks,
                         "symbol": kwargs.get("trading_symbol"),
                         "ts": datetime.now()}
-            errors.append(f"{method_name}({kwargs.get('trading_symbol')}): no depth in response "
+            errors.append(f"{method_name}({kwargs.get('trading_symbol')}): no depth "
                           f"(keys: {list(resp.keys())[:6] if isinstance(resp, dict) else type(resp).__name__})")
         except Exception as e:
             errors.append(f"{method_name}({kwargs.get('trading_symbol')}): {e}")
