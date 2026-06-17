@@ -155,17 +155,40 @@ def main():
     print(f"\nAPI Key: {api_key[:20]}...{api_key[-10:]} ({len(api_key)} chars)")
     print(f"Secret:  {'set' if api_secret else 'not set'} ({len(api_secret)} chars)")
 
-    # Ask for TOTP if needed
-    totp_code = ""
+    print("\nAuth method:")
+    print("  [1] Paste access token directly")
     if api_secret:
-        choice = input("\nAuth method — [1] Auto-TOTP from secret  [2] Enter TOTP manually  [3] Approval flow: ").strip()
-        if choice == "2":
-            totp_code = input("Enter 6-digit TOTP from your authenticator app: ").strip()
+        print("  [2] Auto-TOTP from secret")
+        print("  [3] Enter TOTP manually")
+        print("  [4] Approval flow")
     else:
-        totp_code = input("\nEnter 6-digit TOTP (or press Enter to try direct token): ").strip()
+        print("  [2] Enter TOTP manually")
+        print("  [3] Try API key as direct token")
 
-    # Get token
-    token = get_groww_token(api_key, api_secret, totp_code)
+    choice = input("\nChoice: ").strip()
+
+    token = ""
+    if choice == "1":
+        token = input("Paste your Groww access token: ").strip()
+        if token:
+            print(f"\nToken received ({len(token)} chars). Validating...")
+            from growwapi import GrowwAPI
+            try:
+                client = GrowwAPI(token)
+                client.get_ltp(exchange_trading_symbols=("NIFTY 50",), segment="CASH")
+                print("Token is valid!")
+            except Exception as e:
+                print(f"Token validation failed: {e}")
+                print("Saving anyway — it may work for other endpoints.")
+    else:
+        totp_code = ""
+        if api_secret:
+            if choice == "3":
+                totp_code = input("Enter 6-digit TOTP from your authenticator app: ").strip()
+        else:
+            if choice == "2":
+                totp_code = input("Enter 6-digit TOTP from your authenticator app: ").strip()
+        token = get_groww_token(api_key, api_secret, totp_code)
 
     if not token:
         print("\nFailed to get access token. Check your credentials.")
