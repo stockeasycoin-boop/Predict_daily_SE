@@ -603,6 +603,17 @@ with tab1:
                         # 3) OFI vote (Groww live only — no fallback)
                         ofi_data = {"ofi": 0.0, "available": False}
                         _groww_main = st.session_state.get("groww_obj")
+                        if not _groww_main:
+                            try:
+                                import groww_connector as gc
+                                _gk = settings.get("groww_api_key", "")
+                                _gs = settings.get("groww_api_secret", "")
+                                if _gk or settings.get("groww_access_token", ""):
+                                    _groww_main = gc.init_groww(_gk, _gs)
+                                    st.session_state["groww_obj"] = _groww_main
+                                    log_step("Groww auto-connected via saved token")
+                            except Exception as _gae:
+                                log_step(f"Groww auto-connect failed: {_gae}", "warning")
                         if _groww_main:
                             try:
                                 import groww_connector as gc
@@ -775,30 +786,20 @@ with tab1:
                             "Detail": f"Open direction only | GIFT: {f'₹{gift_live:,.0f}' if gift_live else 'N/A'} vs Prev: ₹{prev_close:,.0f}" if prev_close else gift_vote.reason,
                         })
 
-                        # OFI / Options Flow signal
+                        # OFI / Order Flow signal
                         _o_icon = "🟢" if ofi_vote.direction == 1 else "🔴" if ofi_vote.direction == 0 else "⚪"
                         _o_dir_str = "Bullish" if ofi_vote.direction == 1 else "Bearish" if ofi_vote.direction == 0 else "Neutral"
                         _ofi_val = ofi_data.get("ofi", 0)
-                        _ofi_src = ofi_data.get("source", "N/A")
-                        _ofi_detail_parts = []
-                        if ofi_data.get("available"):
-                            if ofi_data.get("raw_pcr"):
-                                _ofi_detail_parts.append(f"PCR={ofi_data['raw_pcr']:.2f}")
-                            if ofi_data.get("max_pain"):
-                                _ofi_detail_parts.append(f"MaxPain={ofi_data['max_pain']}")
-                            if ofi_data.get("max_pe_strike"):
-                                _ofi_detail_parts.append(f"Support={ofi_data['max_pe_strike']}")
-                            if ofi_data.get("max_ce_strike"):
-                                _ofi_detail_parts.append(f"Resist={ofi_data['max_ce_strike']}")
-                            if not _ofi_detail_parts:
-                                _ofi_detail_parts.append(ofi_data.get("signal", ""))
+                        _ofi_bias = ofi_data.get("bias", "neutral")
+                        _ofi_signal = ofi_data.get("signal", "")
+                        _ofi_label = "Groww OFI" if ofi_data.get("available") else "Order Flow"
                         _sig_rows.append({
-                            "Signal": f"Options Flow ({_ofi_src})",
+                            "Signal": _ofi_label,
                             "Status": f"{_o_icon} {_o_dir_str}",
-                            "Value": f"Score: {_ofi_val:+.3f}" + (f" | PCR: {ofi_data.get('raw_pcr', 0):.2f}" if ofi_data.get("raw_pcr") else ""),
-                            "Confidence": f"{ofi_vote.strength:.0%}" if ofi_vote.available else "—",
+                            "Value": f"OFI: {_ofi_val:+.3f}" if ofi_data.get("available") else "N/A",
+                            "Confidence": f"{ofi_vote.strength:.0%}" if ofi_vote.available else "---",
                             "Strength": f"{ofi_vote.strength:.0%}",
-                            "Detail": " | ".join(_ofi_detail_parts) if _ofi_detail_parts else "Groww not connected, no options data",
+                            "Detail": _ofi_signal if ofi_data.get("available") else "Groww not connected",
                         })
 
                         # News signal
@@ -1778,6 +1779,16 @@ with tab2:
                 # Optional Groww OFI
                 _ofi_data = {"ofi": 0.0, "available": False, "signal": "", "bias": "neutral"}
                 _groww_client = st.session_state.get("groww_obj")
+                if not _groww_client:
+                    try:
+                        import groww_connector as gc
+                        _gk = _settings_lm.get("groww_api_key", "")
+                        _gs = _settings_lm.get("groww_api_secret", "")
+                        if _gk or _settings_lm.get("groww_access_token", ""):
+                            _groww_client = gc.init_groww(_gk, _gs)
+                            st.session_state["groww_obj"] = _groww_client
+                    except Exception:
+                        pass
                 if _groww_client:
                     try:
                         import groww_connector as gc
@@ -2734,11 +2745,11 @@ with tab5:
             })
             st.success("✅ Settings saved.")
 
-            # Connect Groww if credentials provided
-            if groww_k and groww_totp:
+            # Connect Groww if credentials or saved token available
+            if groww_k or saved.get("groww_access_token", ""):
                 try:
                     import groww_connector as gc
-                    _gclient = gc.init_groww(groww_k, groww_s, groww_totp)
+                    _gclient = gc.init_groww(groww_k, groww_s, groww_totp if groww_totp else None)
                     st.session_state["groww_obj"] = _gclient
                     st.success("✅ Groww API connected — OFI will appear in Live Monitor.")
                 except Exception as _ge:
@@ -2927,6 +2938,16 @@ with tab6:
 
         # ── 10. Groww OFI ──────────────────────────────────────────────────
         _groww_c = st.session_state.get("groww_obj")
+        if not _groww_c:
+            try:
+                import groww_connector as _gc_auto
+                _gk = _ds_settings.get("groww_api_key", "")
+                _gs = _ds_settings.get("groww_api_secret", "")
+                if _gk or _ds_settings.get("groww_access_token", ""):
+                    _groww_c = _gc_auto.init_groww(_gk, _gs)
+                    st.session_state["groww_obj"] = _groww_c
+            except Exception:
+                pass
         _ofi_ok = False
         if _groww_c:
             try:
