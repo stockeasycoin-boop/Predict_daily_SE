@@ -73,7 +73,7 @@ def init_groww(api_key: str, api_secret: str = None, totp: str = None):
             if saved_token:
                 try:
                     client = GrowwAPI(saved_token)
-                    client.get_ltp(exchange_trading_symbols=("NIFTY 50",), segment="CASH")
+                    client.get_ltp(exchange_trading_symbols=("NSE_NIFTY",), segment="CASH")
                     return client
                 except Exception as e:
                     errors.append(f"saved-token: {e}")
@@ -85,7 +85,7 @@ def init_groww(api_key: str, api_secret: str = None, totp: str = None):
         try:
             token = GrowwAPI.get_access_token(api_key, totp=totp)
             client = GrowwAPI(token)
-            client.get_ltp(exchange_trading_symbols=("NIFTY 50",), segment="CASH")
+            client.get_ltp(exchange_trading_symbols=("NSE_NIFTY",), segment="CASH")
             return client
         except Exception as e:
             errors.append(f"totp: {e}")
@@ -97,7 +97,7 @@ def init_groww(api_key: str, api_secret: str = None, totp: str = None):
             auto_totp = pyotp.TOTP(api_secret).now()
             token = GrowwAPI.get_access_token(api_key, totp=auto_totp)
             client = GrowwAPI(token)
-            client.get_ltp(exchange_trading_symbols=("NIFTY 50",), segment="CASH")
+            client.get_ltp(exchange_trading_symbols=("NSE_NIFTY",), segment="CASH")
             return client
         except ImportError:
             errors.append("pyotp not installed (pip install pyotp)")
@@ -109,7 +109,7 @@ def init_groww(api_key: str, api_secret: str = None, totp: str = None):
         try:
             token = GrowwAPI.get_access_token(api_key, secret=api_secret)
             client = GrowwAPI(token)
-            client.get_ltp(exchange_trading_symbols=("NIFTY 50",), segment="CASH")
+            client.get_ltp(exchange_trading_symbols=("NSE_NIFTY",), segment="CASH")
             return client
         except Exception as e:
             errors.append(f"secret: {e}")
@@ -117,7 +117,7 @@ def init_groww(api_key: str, api_secret: str = None, totp: str = None):
     # Flow 4: Direct token (api_key might already be an access token)
     try:
         client = GrowwAPI(api_key)
-        client.get_ltp(exchange_trading_symbols=("NIFTY 50",), segment="CASH")
+        client.get_ltp(exchange_trading_symbols=("NSE_NIFTY",), segment="CASH")
         return client
     except Exception as e:
         errors.append(f"direct: {e}")
@@ -170,7 +170,7 @@ def fetch_order_book_groww(client, symbol: str = None) -> dict | None:
 
     attempts = [
         ("get_quote", {"trading_symbol": fut_symbol, "exchange": "NSE", "segment": "FNO"}),
-        ("get_quote", {"trading_symbol": "NIFTY 50",  "exchange": "NSE", "segment": "CASH"}),
+        ("get_quote", {"trading_symbol": "NIFTY",     "exchange": "NSE", "segment": "CASH"}),
     ]
     errors = []
     for method_name, kwargs in attempts:
@@ -186,13 +186,22 @@ def fetch_order_book_groww(client, symbol: str = None) -> dict | None:
             depth = resp.get("depth", resp) if isinstance(resp, dict) else {}
             bids = depth.get("buy")  or depth.get("bids") or []
             asks = depth.get("sell") or depth.get("asks") or []
-            if bids or asks:
+            has_depth = any(b.get("quantity", 0) > 0 for b in bids) if bids else False
+            if has_depth:
                 LAST_GROWW_ERROR["msg"] = ""
                 return {"bids": bids, "asks": asks,
                         "symbol": kwargs.get("trading_symbol"),
                         "ts": datetime.now()}
-            errors.append(f"{method_name}({kwargs.get('trading_symbol')}): no depth "
-                          f"(keys: {list(resp.keys())[:6] if isinstance(resp, dict) else type(resp).__name__})")
+            # Fallback: use total_buy_quantity / total_sell_quantity from quote
+            tbq = resp.get("total_buy_quantity", 0) or 0
+            tsq = resp.get("total_sell_quantity", 0) or 0
+            if tbq > 0 or tsq > 0:
+                LAST_GROWW_ERROR["msg"] = ""
+                return {"bids": [{"quantity": tbq, "price": resp.get("bid_price", 0)}],
+                        "asks": [{"quantity": tsq, "price": resp.get("offer_price", 0)}],
+                        "symbol": kwargs.get("trading_symbol"),
+                        "ts": datetime.now()}
+            errors.append(f"{method_name}({kwargs.get('trading_symbol')}): no depth/qty")
         except Exception as e:
             errors.append(f"{method_name}({kwargs.get('trading_symbol')}): {e}")
 

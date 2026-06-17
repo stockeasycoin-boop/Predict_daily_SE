@@ -84,7 +84,7 @@ def get_groww_token(api_key: str, api_secret: str = "", totp_code: str = "") -> 
     print("[Groww Auth] Trying api_key as direct access token...")
     try:
         client = GrowwAPI(api_key)
-        client.get_ltp(exchange_trading_symbols=("NIFTY 50",), segment="CASH")
+        client.get_ltp(exchange_trading_symbols=("NSE_NIFTY",), segment="CASH")
         print("[Groww Auth] Direct token works!")
         return api_key
     except Exception as e:
@@ -102,7 +102,7 @@ def test_connection(token: str) -> bool:
 
     # Test 1: LTP
     try:
-        r = client.get_ltp(exchange_trading_symbols=("NIFTY 50",), segment="CASH")
+        r = client.get_ltp(exchange_trading_symbols=("NSE_NIFTY",), segment="CASH")
         print(f"  get_ltp(NIFTY 50): {r}")
     except Exception as e:
         print(f"  get_ltp: FAILED - {e}")
@@ -110,7 +110,7 @@ def test_connection(token: str) -> bool:
 
     # Test 2: Quote
     try:
-        r = client.get_quote(trading_symbol="NIFTY 50", exchange="NSE", segment="CASH")
+        r = client.get_quote(trading_symbol="NIFTY", exchange="NSE", segment="CASH")
         keys = list(r.keys()) if isinstance(r, dict) else str(type(r))
         print(f"  get_quote(NIFTY 50): keys={keys}")
     except Exception as e:
@@ -175,7 +175,7 @@ def main():
             from growwapi import GrowwAPI
             try:
                 client = GrowwAPI(token)
-                client.get_ltp(exchange_trading_symbols=("NIFTY 50",), segment="CASH")
+                client.get_ltp(exchange_trading_symbols=("NSE_NIFTY",), segment="CASH")
                 print("Token is valid!")
             except Exception as e:
                 print(f"Token validation failed: {e}")
