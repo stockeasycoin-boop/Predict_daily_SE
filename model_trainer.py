@@ -613,49 +613,46 @@ def reasoning_for_prediction(feature_df: pd.DataFrame,
     Explain the close-direction prediction using signed feature contributions.
     contribution = feature_importance × (value − mean) / std
     """
+    _empty = {"bullish_factors":[], "bearish_factors":[], "summary_text":"Model not trained."}
     try:
         scaler    = joblib.load(f"{model_dir}/scaler.pkl")
-        feat_list = joblib.load(f"{model_dir}/feature_list.pkl")
+        feat_list = list(joblib.load(f"{model_dir}/feature_list.pkl"))
         model     = joblib.load(f"{model_dir}/xgb_close.pkl")
     except Exception:
-        return {"bullish_factors":[], "bearish_factors":[], "summary_text":"Model not trained."}
+        return _empty
 
     try:
         feat_idx = joblib.load(f"{model_dir}/feat_idx_close.pkl")
     except Exception:
         feat_idx = None
 
-    # Build row with ALL features from feat_list (fill missing with 0)
-    row_data = {}
-    for f in feat_list:
-        if f in feature_df.columns:
-            v = feature_df[f].iloc[-1]
-            row_data[f] = v if pd.notna(v) else 0.0
-        else:
-            row_data[f] = 0.0
-    row = pd.DataFrame([row_data])[feat_list]
-    vals_full = row.values.astype(np.float32)[0]
-
-    # Apply feature selection indices
+    # Determine the actual feature names the model was trained on
     if feat_idx is not None and len(feat_idx) > 0:
         sel_idx = feat_idx[feat_idx < len(feat_list)]
         sel_names = [feat_list[i] for i in sel_idx]
-        sel_vals = vals_full[sel_idx]
-        all_means = np.array([feature_df[f].mean() if f in feature_df.columns else 0.0
-                              for f in feat_list], dtype=np.float32)
-        all_stds = np.array([feature_df[f].std() if f in feature_df.columns else 1.0
-                             for f in feat_list], dtype=np.float32) + 1e-9
-        pop_mean = all_means[sel_idx]
-        pop_std = all_stds[sel_idx]
     else:
         sel_names = feat_list
-        sel_vals = vals_full
-        pop_mean = np.array([feature_df[f].mean() if f in feature_df.columns else 0.0
-                             for f in feat_list], dtype=np.float32)
-        pop_std = np.array([feature_df[f].std() if f in feature_df.columns else 1.0
-                            for f in feat_list], dtype=np.float32) + 1e-9
+        sel_idx = None
 
-    norm_dev = (sel_vals - pop_mean) / pop_std
+    n_model = getattr(model, "n_features_in_", None)
+    if n_model and n_model != len(sel_names):
+        sel_names = sel_names[:n_model] if len(sel_names) > n_model else sel_names
+
+    # Build values for selected features only
+    sel_vals = np.zeros(len(sel_names), dtype=np.float32)
+    pop_mean = np.zeros(len(sel_names), dtype=np.float32)
+    pop_std  = np.ones(len(sel_names), dtype=np.float32)
+    for i, f in enumerate(sel_names):
+        if f in feature_df.columns:
+            col = feature_df[f]
+            v = col.iloc[-1]
+            sel_vals[i] = float(v) if pd.notna(v) else 0.0
+            m = col.mean()
+            pop_mean[i] = float(m) if pd.notna(m) else 0.0
+            s = col.std()
+            pop_std[i] = float(s) if pd.notna(s) and s > 0 else 1.0
+
+    norm_dev = (sel_vals - pop_mean) / (pop_std + 1e-9)
     if hasattr(model, "feature_importances_"):
         imp = model.feature_importances_
     elif hasattr(model, "calibrated_classifiers_"):
@@ -679,10 +676,16 @@ def reasoning_for_prediction(feature_df: pd.DataFrame,
     bullish = [(l,s,v) for l,s,v in rows if s >  0.004][:top_n]
     bearish = [(l,s,v) for l,s,v in rows if s < -0.004][:top_n]
 
-    X_sc = scaler.transform(row.values.astype(np.float32))
-    if feat_idx is not None and len(feat_idx) > 0:
-        sel_idx = feat_idx[feat_idx < X_sc.shape[1]]
-        X_sc = X_sc[:, sel_idx]
+    # Build full feature row for scaler, then select
+    row_full = np.zeros((1, len(feat_list)), dtype=np.float32)
+    for i, f in enumerate(feat_list):
+        if f in feature_df.columns:
+            v = feature_df[f].iloc[-1]
+            row_full[0, i] = float(v) if pd.notna(v) else 0.0
+    X_sc = scaler.transform(row_full)
+    if sel_idx is not None:
+        _si = sel_idx[sel_idx < X_sc.shape[1]] if hasattr(sel_idx, '__len__') else sel_idx
+        X_sc = X_sc[:, _si]
     d  = int(model.predict(X_sc)[0])
     dw = "bullish" if d == 1 else "bearish"
     top = (bearish[0][0].lower() if (d == 0 and bearish) else
