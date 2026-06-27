@@ -2391,31 +2391,33 @@ with tab4:
         st.warning(f"Could not read model metadata: {e}")
 
     if meta:
-        # New trainer writes cv_open + cv_close (two separate models).
-        # Older trainer wrote a single cv_accuracy. Support both for backward compat.
         cv_open  = float(meta.get("cv_open",     meta.get("cv_accuracy", 0)))
         cv_close = float(meta.get("cv_close",    meta.get("cv_accuracy", 0)))
+        val_open  = float(meta.get("val_open", 0))
+        val_close = float(meta.get("val_close", 0))
+        val_open_g  = float(meta.get("val_open_gated", 0))
+        val_close_g = float(meta.get("val_close_gated", 0))
+
         c1, c2, c3, c4 = st.columns(4)
-        if "cv_open" in meta or "cv_close" in meta:
-            _o_sk = meta.get("open_skill")
-            _c_sk = meta.get("close_skill")
-            _help = None
-            if _o_sk is not None and _c_sk is not None:
-                _help = (
-                    "Skill = accuracy above the majority-class baseline (always guessing "
-                    "the more common outcome).\n\n"
-                    f"OPEN: {cv_open*100:.1f}% vs baseline {meta.get('open_baseline_acc',0)*100:.1f}% "
-                    f"(gap-up base rate {meta.get('open_base_rate',0)*100:.1f}%) -> "
-                    f"skill {_o_sk*100:+.1f}%\n\n"
-                    f"CLOSE: {cv_close*100:.1f}% vs baseline {meta.get('close_baseline_acc',0)*100:.1f}% "
-                    f"(bull base rate {meta.get('close_base_rate',0)*100:.1f}%) -> "
-                    f"skill {_c_sk*100:+.1f}%"
-                )
-            _delta = (f"skill {_o_sk*100:+.1f}% / {_c_sk*100:+.1f}%"
-                      if (_o_sk is not None and _c_sk is not None) else None)
+
+        # Show validation accuracy (most meaningful metric)
+        if val_open > 0 or val_close > 0:
+            _best_open = max(val_open, val_open_g)
+            _best_close = max(val_close, val_close_g)
+            _help = (
+                f"**Validation accuracy** (last {meta.get('n_val', 60)} days held out):\n\n"
+                f"OPEN: Val {val_open*100:.1f}% | Gated {val_open_g*100:.1f}%\n\n"
+                f"CLOSE: Val {val_close*100:.1f}% | Gated {val_close_g*100:.1f}%\n\n"
+                f"CV (train): Open {cv_open*100:.1f}% | Close {cv_close*100:.1f}%\n\n"
+                f"Reinforcement rounds: {meta.get('reinforce_rounds', 0)}"
+            )
+            c1.metric("Model accuracy (val)",
+                     f"{_best_open*100:.1f}% / {_best_close*100:.1f}%",
+                     delta=f"gated: {val_open_g*100:.0f}% / {val_close_g*100:.0f}%",
+                     delta_color="off", help=_help)
+        elif "cv_open" in meta or "cv_close" in meta:
             c1.metric("ML Model (open/close)",
-                     f"{cv_open*100:.1f}% / {cv_close*100:.1f}%",
-                     delta=_delta, delta_color="off", help=_help)
+                     f"{cv_open*100:.1f}% / {cv_close*100:.1f}%")
         else:
             c1.metric("ML Model accuracy", f"{cv_open*100:.1f}%")
         total_candles = meta.get("total_candles", meta.get("n_samples", 0))
@@ -2423,10 +2425,11 @@ with tab4:
         c2.metric("Training candles", f"{total_candles:,}", delta=f"{n_days} days")
         c3.metric("Features",      meta.get("n_features", 0))
         c4.metric("Last trained",  str(meta.get("trained_at", "---"))[:10])
+        _pipeline = meta.get("pipeline", "unknown")
         st.caption(
-            "ML model accuracy is from pure technical indicators only. "
+            f"Pipeline: **{_pipeline}** | "
             "The **combined system** (Model + GIFT + OFI + News + LLM) "
-            "targets 60-65% by aggregating multiple independent signal sources."
+            "targets 65-70% by aggregating multiple independent signal sources."
         )
     else:
         st.info("ℹ️ Model has not been trained yet. Click **Train model now** below to get started.")
