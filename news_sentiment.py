@@ -2,15 +2,16 @@
 news_sentiment.py — News sentiment enrichment for Nifty predictions.
 
 Pipeline:
-  1. GNews API     → fetch India/Nifty/market/macro/global news (1000 req/day plan)
-  2. FinBERT       → financial-domain sentiment scoring (primary)
-  3. VADER         → lexicon-based fallback when transformers/torch missing
+  1. RSS Scraper   → primary: scrape 20+ sources via RSS + Google News (FREE)
+  2. GNews API     → fallback only: free tier 100 req/day if scraper fails
+  3. FinBERT       → financial-domain sentiment scoring (primary)
+  4. VADER         → lexicon-based fallback when transformers/torch missing
 
 Returns a sentiment score in [-1, +1] aggregated across articles, plus per-article
 breakdown. Designed to ENRICH (not replace) model predictions — it adjusts
 confidence based on news/model alignment.
 
-Cached to data/news_sentiment.json (short TTL for premium plan).
+Cached to data/news_sentiment.json.
 """
 
 from __future__ import annotations
@@ -93,14 +94,14 @@ def _detect_backend() -> str:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# GNEWS FETCH — PREMIUM PLAN (1000 req/day)
+# GNEWS FETCH — FREE TIER FALLBACK (100 req/day)
+# Only used when RSS scraper returns < 10 articles.
 # ─────────────────────────────────────────────────────────────────────────────
 
 GNEWS_SEARCH_URL = "https://gnews.io/api/v4/search"
 GNEWS_TOP_URL    = "https://gnews.io/api/v4/top-headlines"
 
-# Comprehensive query set covering all market-moving categories
-# Each query costs 1 API call, returns up to 100 articles
+# Full query bank — only 1-2 picked per fallback call to conserve free tier
 NIFTY_QUERIES = [
     # Direct index
     "Nifty 50",
@@ -131,8 +132,10 @@ NIFTY_QUERIES = [
     "Asia markets today",
 ]
 
-# Top-headlines categories to also fetch (no query needed, just category)
 TOP_HEADLINE_CATEGORIES = ["business", "world"]
+
+# Max API calls per fallback trigger (free tier: 100 req/day)
+GNEWS_MAX_CALLS_PER_FALLBACK = 2
 
 
 def _gnews_cfg():
@@ -203,40 +206,54 @@ def fetch_top_headlines(api_key: str, category: str = "business",
 
 def fetch_all_news(api_key: str, days: int = None) -> list[dict]:
     """
-    Fetch news across all queries + top headlines. Dedupes by URL.
-    With 20 queries + 2 top-headline categories = ~22 API calls per refresh.
-    At 1000 req/day, can refresh ~45 times/day (every ~20 min during market hours).
+    GNews fallback fetch. Only called when RSS scraper returns < 10 articles.
+    Uses max 1-2 API calls per trigger to conserve free tier (100 req/day).
+    Rotates through queries daily so coverage varies across days.
     """
+    import random
     cfg_max, cfg_days, pause, _ = _gnews_cfg()
     if days is None:
         days = cfg_days
 
+    max_calls = GNEWS_MAX_CALLS_PER_FALLBACK
+    calls_used = 0
     seen = set()
     articles = []
 
-    # Search queries
-    for q in NIFTY_QUERIES:
-        for art in fetch_gnews(api_key, q, days=days, max_results=cfg_max):
-            url = art.get("url")
-            if url and url not in seen:
-                seen.add(url)
-                art["_query"] = q
-                articles.append(art)
-        if pause > 0:
-            time.sleep(pause)
+    # Pick queries using day-of-year as seed for deterministic daily rotation
+    day_seed = datetime.utcnow().timetuple().tm_yday
+    rng = random.Random(day_seed)
+    shuffled_queries = list(NIFTY_QUERIES)
+    rng.shuffle(shuffled_queries)
 
-    # Top headlines (business + world for India)
-    for cat in TOP_HEADLINE_CATEGORIES:
+    # 1 top-headline call (most bang for the buck) + remaining budget on search
+    if calls_used < max_calls:
+        cat = TOP_HEADLINE_CATEGORIES[day_seed % len(TOP_HEADLINE_CATEGORIES)]
         for art in fetch_top_headlines(api_key, cat, max_results=cfg_max):
             url = art.get("url")
             if url and url not in seen:
                 seen.add(url)
                 art["_query"] = f"top:{cat}"
                 articles.append(art)
+        calls_used += 1
         if pause > 0:
             time.sleep(pause)
 
-    print(f"[news] Fetched {len(articles)} unique articles from {len(NIFTY_QUERIES) + len(TOP_HEADLINE_CATEGORIES)} sources")
+    # Use remaining budget on search queries
+    for q in shuffled_queries:
+        if calls_used >= max_calls:
+            break
+        for art in fetch_gnews(api_key, q, days=days, max_results=cfg_max):
+            url = art.get("url")
+            if url and url not in seen:
+                seen.add(url)
+                art["_query"] = q
+                articles.append(art)
+        calls_used += 1
+        if pause > 0:
+            time.sleep(pause)
+
+    print(f"[news] GNews fallback: {len(articles)} articles using {calls_used} API calls")
     return articles
 
 
@@ -510,15 +527,47 @@ def aggregate(scored: list[dict]) -> dict:
 # MAIN ENTRY POINT
 # ─────────────────────────────────────────────────────────────────────────────
 
+def _fetch_via_scraper(max_age_hours: int = 24) -> list[dict]:
+    """Primary pipeline: RSS scraper (free, unlimited)."""
+    try:
+        import news_scraper
+        articles = news_scraper.scrape_all(
+            fetch_body=False, max_age_hours=max_age_hours
+        )
+        if articles:
+            news_scraper.save_scraped(articles)
+            print(f"[news] Scraper: {len(articles)} articles from RSS + Google News")
+        return articles
+    except Exception as e:
+        print(f"[news] Scraper failed: {e}")
+        return []
+
+
+def _fetch_via_gnews_fallback(api_key: str, days: int = None) -> list[dict]:
+    """Fallback: GNews free tier (100 req/day). Only called when scraper < 10."""
+    if not api_key or api_key in ("YOUR_GNEWS_API_KEY", ""):
+        return []
+    print("[news] Scraper returned < 10 articles, falling back to GNews free tier...")
+    return fetch_all_news(api_key, days=days)
+
+
+MIN_SCRAPER_ARTICLES = 10
+
+
 def get_market_sentiment(
-    api_key: str,
+    api_key: str = "",
     days: int = None,
     force_refresh: bool = False,
     cache_dir: Optional[Path] = None,
 ) -> dict:
     """
-    Main entry point. Fetches news, scores it, aggregates, caches.
-    Premium plan (1000 req/day): short TTL (5 min), 100 articles per query.
+    Main entry point. Pipeline:
+      1. RSS Scraper (primary, free, unlimited)
+      2. GNews free tier (fallback, 100 req/day) — only if scraper < 10 articles
+      3. Score with FinBERT/VADER
+      4. Cache to news_sentiment.json
+
+    api_key is optional — scraper works without it. Only used for GNews fallback.
     """
     if cache_dir is None:
         try:
@@ -545,24 +594,37 @@ def get_market_sentiment(
             except Exception:
                 pass
 
-    if not api_key or api_key in ("YOUR_GNEWS_API_KEY", ""):
+    # Phase 1: RSS Scraper (primary — no API key needed)
+    articles = _fetch_via_scraper(max_age_hours=24 if days is None else days * 24)
+
+    # Phase 2: GNews fallback (free tier) if scraper got too few
+    if len(articles) < MIN_SCRAPER_ARTICLES:
+        gnews_articles = _fetch_via_gnews_fallback(api_key, days=days)
+        # Merge, dedup by URL
+        seen_urls = {a.get("url") for a in articles}
+        for a in gnews_articles:
+            if a.get("url") not in seen_urls:
+                seen_urls.add(a.get("url"))
+                articles.append(a)
+
+    if not articles:
         return {
             "score":  0.0,
-            "label":  "neutral (no API key)",
+            "label":  "neutral",
             "n_articles": 0,
             "backend": _detect_backend(),
-            "error":  "GNews API key not configured. Add it in Settings tab.",
+            "error":  "No articles fetched from scraper or GNews.",
             "top_headlines": [],
             "latest_headlines": [],
             "macro_headlines": [],
             "category_breakdown": {},
         }
 
-    articles = fetch_all_news(api_key, days=days)
-    scored   = score_articles(articles)
-    result   = aggregate(scored)
+    scored = score_articles(articles)
+    result = aggregate(scored)
     result["fetched_at"] = datetime.utcnow().isoformat()
     result["from_cache"] = False
+    result["source"] = "scraper" if len(articles) >= MIN_SCRAPER_ARTICLES else "gnews_fallback"
 
     try:
         with open(cache_file, "w") as f:

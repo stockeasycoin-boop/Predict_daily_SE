@@ -1866,15 +1866,14 @@ with tab2:
                 elif _groww_client:
                     st.caption("📊 Groww connected — OFI activates during market hours (live depth needed).")
 
-                # ── NEWS SENTIMENT (cached — respects GNews 5-min TTL) ────
+                # ── NEWS SENTIMENT (scraper primary, GNews fallback) ────
                 _news_lm = None
                 _gnews_key_lm = _settings_lm.get("gnews_api_key", "")
-                if _gnews_key_lm:
-                    try:
-                        import news_sentiment as _ns_lm
-                        _news_lm = _ns_lm.get_market_sentiment(_gnews_key_lm)
-                    except Exception:
-                        _news_lm = None
+                try:
+                    import news_sentiment as _ns_lm
+                    _news_lm = _ns_lm.get_market_sentiment(_gnews_key_lm)
+                except Exception:
+                    _news_lm = None
                 if _news_lm and _news_lm.get("n_articles", 0) > 0:
                     _nsc  = _news_lm.get("score", 0.0)
                     _nlbl = _news_lm.get("label", "neutral")
@@ -2913,22 +2912,22 @@ with tab6:
             "Detail": "Live premiums from Breeze" if _pcr_ok else "Falls back to Black-Scholes estimate when unavailable",
         })
 
-        # ── 8. News (GNews) ────────────────────────────────────────────────
+        # ── 8. News (RSS Scraper + GNews fallback) ─────────────────────────
         _gnews_key = _ds_settings.get("gnews_api_key", "")
-        _news_ok, _news_n, _news_backend = False, 0, "none"
-        if _gnews_key:
-            try:
-                import news_sentiment as _ns_ds
-                _nres = _ns_ds.get_market_sentiment(_gnews_key)
-                _news_n  = _nres.get("n_articles", 0)
-                _news_backend = _nres.get("backend", "none")
-                _news_ok = _news_n > 0
-            except Exception:
-                _news_ok = False
+        _news_ok, _news_n, _news_backend, _news_source = False, 0, "none", "none"
+        try:
+            import news_sentiment as _ns_ds
+            _nres = _ns_ds.get_market_sentiment(_gnews_key)
+            _news_n  = _nres.get("n_articles", 0)
+            _news_backend = _nres.get("backend", "none")
+            _news_source = _nres.get("source", "scraper")
+            _news_ok = _news_n > 0
+        except Exception:
+            _news_ok = False
         _ds_rows.append({
-            "Source": "GNews headlines", "Used for": "News sentiment confidence adjustment",
-            "Status": "🟢 Working" if _news_ok else ("🟡 Key set, fetch failed" if _gnews_key else "🔴 No API key"),
-            "Detail": f"{_news_n} articles fetched" if _news_ok else "Add free key from gnews.io in Settings",
+            "Source": "News sentiment (RSS scraper)", "Used for": "News sentiment confidence adjustment",
+            "Status": "🟢 Working" if _news_ok else "🔴 Fetch failed",
+            "Detail": f"{_news_n} articles via {_news_source}" if _news_ok else "Check news_scraper.py logs",
         })
 
         # ── 9. Sentiment scoring backend ───────────────────────────────────
