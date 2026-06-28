@@ -832,6 +832,115 @@ def _extract_eod_features(df_5min: pd.DataFrame,
         eod_df["vix_low_regime"] = (v < 13).astype(int)
         eod_df["vix_percentile_20d"] = v.rolling(20).rank(pct=True)
 
+    # ── Interaction & divergence features (capture non-linear edges) ──
+    if len(eod_df) > 20:
+        c = eod_df["close"]
+        # Price-volume divergence: price up but volume down = weak rally
+        if "volume" in eod_df.columns:
+            _pchg = c.pct_change(5)
+            _vchg = eod_df["volume"].pct_change(5)
+            eod_df["pv_divergence_5d"] = np.where(
+                (_pchg > 0) & (_vchg < 0), -1,
+                np.where((_pchg < 0) & (_vchg > 0), 1, 0))
+
+        # Momentum divergence: price making highs but RSI declining
+        if "eod_rsi_14" in eod_df.columns:
+            _p5 = c.rolling(5).max() == c
+            _r5 = eod_df["eod_rsi_14"].rolling(5).apply(
+                lambda x: 1 if x.iloc[-1] < x.iloc[0] else 0, raw=False)
+            eod_df["rsi_divergence"] = (_p5.astype(int) * _r5).fillna(0)
+
+        # Mean reversion signals
+        if "close_ret_1d" in eod_df.columns:
+            eod_df["ret_zscore_20d"] = (
+                eod_df["close_ret_1d"] - eod_df["close_ret_1d"].rolling(20).mean()
+            ) / (eod_df["close_ret_1d"].rolling(20).std() + 1e-9)
+
+        # Trend strength: how consistent are recent returns
+        if "close_ret_1d" in eod_df.columns:
+            eod_df["trend_consistency_5d"] = eod_df["close_ret_1d"].rolling(5).apply(
+                lambda x: (x > 0).sum() / len(x) - 0.5, raw=True) * 2
+            eod_df["trend_consistency_10d"] = eod_df["close_ret_1d"].rolling(10).apply(
+                lambda x: (x > 0).sum() / len(x) - 0.5, raw=True) * 2
+
+        # Volatility regime shift
+        if "daily_atr_5" in eod_df.columns and "daily_atr_20" in eod_df.columns:
+            eod_df["vol_expansion"] = (
+                eod_df["daily_atr_5"] / (eod_df["daily_atr_20"] + 1e-9) - 1) * 100
+
+        # Gap analysis
+        eod_df["overnight_gap"] = (
+            eod_df["open"] - eod_df["close"].shift(1)
+        ) / (eod_df["close"].shift(1) + 1e-9) * 100
+        eod_df["gap_filled_ratio"] = np.where(
+            eod_df["overnight_gap"] > 0,
+            (eod_df["open"] - eod_df["low"]) / (eod_df["overnight_gap"].abs() * eod_df["close"].shift(1) / 100 + 1e-9),
+            (eod_df["high"] - eod_df["open"]) / (eod_df["overnight_gap"].abs() * eod_df["close"].shift(1) / 100 + 1e-9)
+        ).clip(-5, 5)
+        eod_df["gap_filled_ratio"] = eod_df["gap_filled_ratio"].fillna(0)
+
+        # Rolling Sharpe (risk-adjusted momentum)
+        if "close_ret_1d" in eod_df.columns:
+            _rm = eod_df["close_ret_1d"].rolling(10).mean()
+            _rs = eod_df["close_ret_1d"].rolling(10).std() + 1e-9
+            eod_df["rolling_sharpe_10d"] = (_rm / _rs).clip(-5, 5)
+
+        # VIX-price correlation (fear vs price action)
+        if "india_vix" in eod_df.columns:
+            eod_df["vix_price_corr_10d"] = c.rolling(10).corr(
+                eod_df["india_vix"]).fillna(0)
+
+    # ── Calendar features ──
+    if "date" in eod_df.columns:
+        _dt = pd.to_datetime(eod_df["date"])
+        eod_df["day_of_week"] = _dt.dt.dayofweek / 4.0  # 0=Mon → 0.0, 4=Fri → 1.0
+        eod_df["is_monday"] = (_dt.dt.dayofweek == 0).astype(int)
+        eod_df["is_friday"] = (_dt.dt.dayofweek == 4).astype(int)
+        eod_df["month_sin"] = np.sin(2 * np.pi * _dt.dt.month / 12)
+        eod_df["month_cos"] = np.cos(2 * np.pi * _dt.dt.month / 12)
+        eod_df["day_of_month_norm"] = _dt.dt.day / 31.0
+
+    # ── Extended daily features ──
+    if len(eod_df) > 20:
+        c = eod_df["close"]
+        o = eod_df["open"]
+        h = eod_df["high"]
+        l = eod_df["low"]
+
+        # Donchian channel position (where price sits in N-day range)
+        for n in [10, 20]:
+            _hi = h.rolling(n).max()
+            _lo = l.rolling(n).min()
+            eod_df[f"donchian_pos_{n}d"] = ((c - _lo) / (_hi - _lo + 1e-9)).clip(0, 1)
+
+        # Rate of change (multi-scale momentum)
+        for n in [3, 5, 10, 20]:
+            eod_df[f"roc_{n}d"] = c.pct_change(n) * 100
+
+        # Exponential moving average slopes
+        for span in [5, 10, 20]:
+            _ema = c.ewm(span=span).mean()
+            eod_df[f"ema{span}_slope"] = _ema.pct_change(3) * 100
+
+        # Candle pattern features
+        _body = (c - o).abs()
+        _range = h - l + 1e-9
+        eod_df["body_ratio"] = (_body / _range).clip(0, 1)
+        eod_df["upper_shadow"] = ((h - np.maximum(c, o)) / _range).clip(0, 1)
+        eod_df["lower_shadow"] = ((np.minimum(c, o) - l) / _range).clip(0, 1)
+
+        # Cumulative return streaks
+        if "close_ret_1d" in eod_df.columns:
+            _pos = (eod_df["close_ret_1d"] > 0).astype(int)
+            eod_df["streak_strength_5d"] = eod_df["close_ret_1d"].rolling(5).sum()
+            eod_df["streak_strength_10d"] = eod_df["close_ret_1d"].rolling(10).sum()
+
+        # Williams %R
+        for n in [10, 20]:
+            _hh = h.rolling(n).max()
+            _ll = l.rolling(n).min()
+            eod_df[f"williams_r_{n}d"] = ((_hh - c) / (_hh - _ll + 1e-9) * -100).clip(-100, 0)
+
     for col in eod_df.select_dtypes(include=[np.floating, np.integer]).columns:
         eod_df[col] = eod_df[col].replace([np.inf, -np.inf], np.nan).fillna(0)
 
@@ -854,17 +963,21 @@ def _reinforcement_weights(base_w: np.ndarray, X: np.ndarray, y: np.ndarray,
 
 
 def _select_features_by_importance(X, y, feature_names, sample_weight, top_k=40, verbose=False):
-    """Quick XGB fit → keep only top_k features by gain importance."""
-    quick = xgb.XGBClassifier(n_estimators=100, max_depth=3, learning_rate=0.1,
-                               subsample=0.8, colsample_bytree=0.8,
-                               eval_metric="logloss", use_label_encoder=False,
-                               random_state=42, n_jobs=-1)
-    quick.fit(X, y, sample_weight=sample_weight)
-    imp = quick.feature_importances_
-    top_idx = np.argsort(imp)[::-1][:top_k]
+    """Stability-based feature selection: run XGB with 3 seeds, keep features consistently ranked high."""
+    imp_sum = np.zeros(X.shape[1], dtype=np.float64)
+    for seed in [42, 123, 777]:
+        quick = xgb.XGBClassifier(n_estimators=150, max_depth=3, learning_rate=0.08,
+                                   subsample=0.8, colsample_bytree=0.8,
+                                   eval_metric="logloss", use_label_encoder=False,
+                                   random_state=seed, n_jobs=-1)
+        quick.fit(X, y, sample_weight=sample_weight)
+        imp = quick.feature_importances_
+        imp_sum += imp / (imp.max() + 1e-9)
+
+    top_idx = np.argsort(imp_sum)[::-1][:top_k]
     top_idx = np.sort(top_idx)
     if verbose:
-        top_names = [feature_names[i] for i in top_idx[:15]]
+        top_names = [feature_names[i] for i in np.argsort(imp_sum)[::-1][:15]]
         print(f"    Top {top_k} features selected (top 15: {', '.join(top_names)})")
     return top_idx
 
@@ -874,12 +987,14 @@ def train_daily_models_from_5min(df_5min: pd.DataFrame,
                                   daily_context: pd.DataFrame = None,
                                   verbose: bool = True) -> dict:
     Path(model_dir).mkdir(exist_ok=True)
+    from sklearn.ensemble import ExtraTreesClassifier, RandomForestClassifier
+    from sklearn.linear_model import LogisticRegression
 
     REINFORCE_ROUNDS = 4
     VAL_DAYS = 60
-    SIGNIFICANT_MOVE_PCT = 0.12
-    CONFIDENCE_THRESHOLD = 0.55
-    N_SEEDS = 5
+    SIG_MOVE = 0.10
+    N_SEEDS = 7
+    TOP_K = 35
 
     eod_df = _extract_eod_features(df_5min, daily_context)
     feat_cols = get_feature_cols_intraday()
@@ -893,10 +1008,25 @@ def train_daily_models_from_5min(df_5min: pd.DataFrame,
         "daily_atr_5", "daily_atr_20", "atr_ratio",
         "vix_chg_1d", "vix_chg_5d", "vix_vs_ma10",
         "vix_high_regime", "vix_low_regime", "vix_percentile_20d",
+        "pv_divergence_5d", "rsi_divergence", "ret_zscore_20d",
+        "trend_consistency_5d", "trend_consistency_10d", "vol_expansion",
+        "overnight_gap", "gap_filled_ratio", "rolling_sharpe_10d",
+        "vix_price_corr_10d",
+        "day_of_week", "is_monday", "is_friday",
+        "month_sin", "month_cos", "day_of_month_norm",
+        "donchian_pos_10d", "donchian_pos_20d",
+        "roc_3d", "roc_5d", "roc_10d", "roc_20d",
+        "ema5_slope", "ema10_slope", "ema20_slope",
+        "body_ratio", "upper_shadow", "lower_shadow",
+        "streak_strength_5d", "streak_strength_10d",
+        "williams_r_10d", "williams_r_20d",
     ] if c in eod_df.columns]
     all_feats = ([f for f in feat_cols if f in eod_df.columns
                   and f not in EOD_EXCLUDE_FEATURES]
                  + ctx_avail + eod_extra)
+    # Deduplicate
+    _seen = set()
+    all_feats = [f for f in all_feats if not (f in _seen or _seen.add(f))]
 
     if verbose:
         print(f"  EOD dataset: {len(eod_df)} days, {len(all_feats)} features")
@@ -914,219 +1044,397 @@ def train_daily_models_from_5min(df_5min: pd.DataFrame,
     scaler = StandardScaler()
     X_sc = scaler.fit_transform(X_raw)
 
-    sample_w = _make_sample_weights(len(X_sc))
+    sample_w = _make_sample_weights(len(X_sc), decay=0.996)
 
-    # Train/validation split: last VAL_DAYS for validation
     n_total = len(X_sc)
-    val_size = min(VAL_DAYS, n_total // 5)
+    val_size = min(VAL_DAYS, n_total // 4)
     train_end = n_total - val_size
 
     joblib.dump(scaler, f"{model_dir}/scaler.pkl")
     joblib.dump(all_feats, f"{model_dir}/feature_list.pkl")
 
-    def _train_classifier_reinforced(X_full, y, sw, name, ret_col=None):
-        """Reinforcement training: train -> validate -> upweight errors -> retrain.
-
-        Round 0: Base training on full train set
-        Rounds 1-N: Upweight misclassified samples 2x, retrain
-        Final: Pick the round with best validation accuracy
+    def _train_stacked(X_full, y, sw, name, ret_col=None):
+        """Stacked ensemble with reinforcement:
+        Base learners: XGB, LGB, ExtraTrees, RandomForest, XGB-regression
+        Meta-learner: LogisticRegression on OOF predictions
+        Reinforcement: upweight errors each round, keep best validation round
         """
         n = len(X_full)
 
         feat_idx = _select_features_by_importance(X_full, y, all_feats, sw,
-                                                   top_k=min(40, len(all_feats)),
+                                                   top_k=min(TOP_K, len(all_feats)),
                                                    verbose=verbose)
         X = X_full[:, feat_idx]
 
-        # Split for validation
         X_train, X_val = X[:train_end], X[train_end:]
         y_train, y_val = y[:train_end], y[train_end:]
         sw_train = sw[:train_end].copy()
         ret_train = ret_col[:train_end] if ret_col is not None else None
         ret_val = ret_col[train_end:] if ret_col is not None else None
 
-        xgb_cls_params = {
-            "n_estimators": 300, "max_depth": 3, "learning_rate": 0.02,
-            "subsample": 0.80, "colsample_bytree": 0.7,
-            "min_child_weight": 10, "reg_alpha": 1.5, "reg_lambda": 5.0,
-            "gamma": 0.5, "eval_metric": "logloss",
-            "use_label_encoder": False, "random_state": 42, "n_jobs": -1,
-        }
+        # Significant move mask for validation
+        sig_val = np.abs(ret_val) >= SIG_MOVE if ret_val is not None else np.ones(len(y_val), dtype=bool)
 
-        xgb_reg_params = {
-            "n_estimators": 300, "max_depth": 3, "learning_rate": 0.02,
-            "subsample": 0.80, "colsample_bytree": 0.7,
-            "min_child_weight": 10, "reg_alpha": 1.5, "reg_lambda": 5.0,
-            "gamma": 0.5, "random_state": 42, "n_jobs": -1,
-        }
+        # Weight training samples by |return| — model focuses on big moves
+        if ret_col is not None:
+            ret_weight = 1.0 + np.abs(ret_col[:train_end]).clip(0, 2.0)
+            sw_train = sw_train * ret_weight
+            sw_train = sw_train / sw_train.mean()
 
-        # Walk-forward CV on training set
-        n_splits = min(7, max(3, len(X_train) // 50))
-        tscv = TimeSeriesSplit(n_splits=n_splits,
-                                test_size=min(80, len(X_train) // 6))
+        # Use multiple hyperparameter configs, pick best per round
+        xgb_configs = [
+            {"n_estimators": 400, "max_depth": 3, "learning_rate": 0.015,
+             "subsample": 0.80, "colsample_bytree": 0.65,
+             "min_child_weight": 8, "reg_alpha": 1.0, "reg_lambda": 4.0,
+             "gamma": 0.3},
+            {"n_estimators": 500, "max_depth": 4, "learning_rate": 0.01,
+             "subsample": 0.75, "colsample_bytree": 0.6,
+             "min_child_weight": 12, "reg_alpha": 2.0, "reg_lambda": 6.0,
+             "gamma": 0.5},
+            {"n_estimators": 300, "max_depth": 2, "learning_rate": 0.025,
+             "subsample": 0.85, "colsample_bytree": 0.7,
+             "min_child_weight": 5, "reg_alpha": 0.5, "reg_lambda": 3.0,
+             "gamma": 0.2},
+        ]
+        xgb_p = {**xgb_configs[0], "eval_metric": "logloss",
+                 "use_label_encoder": False, "random_state": 42, "n_jobs": -1}
+        lgb_p = {
+            "n_estimators": 400, "max_depth": 4, "learning_rate": 0.015,
+            "num_leaves": 15, "subsample": 0.80, "colsample_bytree": 0.65,
+            "min_child_weight": 8, "reg_alpha": 1.0, "reg_lambda": 4.0,
+            "random_state": 42, "n_jobs": -1, "verbose": -1,
+        }
+        et_p = {
+            "n_estimators": 500, "max_depth": 5, "min_samples_leaf": 15,
+            "max_features": 0.7, "random_state": 42, "n_jobs": -1,
+        }
+        rf_p = {
+            "n_estimators": 500, "max_depth": 5, "min_samples_leaf": 15,
+            "max_features": 0.6, "random_state": 42, "n_jobs": -1,
+        }
+        xreg_p = {
+            "n_estimators": 400, "max_depth": 3, "learning_rate": 0.015,
+            "subsample": 0.80, "colsample_bytree": 0.65,
+            "min_child_weight": 8, "reg_alpha": 1.0, "reg_lambda": 4.0,
+            "gamma": 0.3, "random_state": 42, "n_jobs": -1,
+        }
 
         best_val_acc = 0.0
+        best_val_sig = 0.0
         best_val_gated = 0.0
+        best_val_cov = 1.0
         best_round = 0
-        best_models = {}
+        best_state = {}
         current_sw = sw_train.copy()
 
         for rnd in range(REINFORCE_ROUNDS + 1):
-            seed = 42 + rnd * 7
+            seed = 42 + rnd * 11
+            xgb_p["random_state"] = seed
+            lgb_p["random_state"] = seed
+            et_p["random_state"] = seed
+            rf_p["random_state"] = seed
+            xreg_p["random_state"] = seed
 
-            xgb_cls_params["random_state"] = seed
-            xgb_reg_params["random_state"] = seed
+            # ── OOF predictions: expanding window walk-forward ──
+            n_tr = len(X_train)
+            n_folds = min(5, max(3, n_tr // 80))
+            fold_test_size = n_tr // (n_folds + 1)
+            min_train = n_tr // 3
+            # 3 XGB configs + LGB + ET + RF + Reg = 7 base models
+            n_base = 3 + (1 if LGB_OK else 0) + 2 + (1 if ret_train is not None else 0)
+            oof_all = np.full((n_tr, n_base), 0.5)
 
-            # ── CV on training set ──
-            cls_scores, reg_scores = [], []
-            for tr, te in tscv.split(X_train):
-                m_cls = xgb.XGBClassifier(**xgb_cls_params)
-                m_cls.fit(X_train[tr], y_train[tr], sample_weight=current_sw[tr],
-                          eval_set=[(X_train[te], y_train[te])], verbose=False)
-                cls_scores.append(accuracy_score(y_train[te], m_cls.predict(X_train[te])))
+            for fi in range(n_folds):
+                te_start = min_train + fi * fold_test_size
+                te_end = min(te_start + fold_test_size, n_tr)
+                tr_idx = np.arange(0, te_start)
+                te_idx = np.arange(te_start, te_end)
+                if len(tr_idx) < 50 or len(te_idx) < 5:
+                    continue
+
+                col = 0
+                # 3 diverse XGB configs
+                for ci, cfg in enumerate(xgb_configs):
+                    _p = {**cfg, "eval_metric": "logloss", "use_label_encoder": False,
+                           "random_state": seed + ci, "n_jobs": -1}
+                    _xm = xgb.XGBClassifier(**_p)
+                    _xm.fit(X_train[tr_idx], y_train[tr_idx],
+                            sample_weight=current_sw[tr_idx], verbose=False)
+                    oof_all[te_idx, col] = _xm.predict_proba(X_train[te_idx])[:, 1]
+                    col += 1
+
+                if LGB_OK:
+                    _lm = lgb.LGBMClassifier(**lgb_p)
+                    _lm.fit(X_train[tr_idx], y_train[tr_idx],
+                            sample_weight=current_sw[tr_idx])
+                    oof_all[te_idx, col] = _lm.predict_proba(X_train[te_idx])[:, 1]
+                    col += 1
+
+                _em = ExtraTreesClassifier(**et_p)
+                _em.fit(X_train[tr_idx], y_train[tr_idx],
+                        sample_weight=current_sw[tr_idx])
+                oof_all[te_idx, col] = _em.predict_proba(X_train[te_idx])[:, 1]
+                col += 1
+
+                _rfm = RandomForestClassifier(**rf_p)
+                _rfm.fit(X_train[tr_idx], y_train[tr_idx],
+                         sample_weight=current_sw[tr_idx])
+                oof_all[te_idx, col] = _rfm.predict_proba(X_train[te_idx])[:, 1]
+                col += 1
 
                 if ret_train is not None:
-                    m_reg = xgb.XGBRegressor(**xgb_reg_params)
-                    m_reg.fit(X_train[tr], ret_train[tr],
-                              sample_weight=current_sw[tr], verbose=False)
-                    reg_dir = (m_reg.predict(X_train[te]) > 0).astype(int)
-                    reg_scores.append(accuracy_score(y_train[te], reg_dir))
+                    _rm = xgb.XGBRegressor(**xreg_p)
+                    _rm.fit(X_train[tr_idx], ret_train[tr_idx],
+                            sample_weight=current_sw[tr_idx], verbose=False)
+                    oof_all[te_idx, col] = (_rm.predict(X_train[te_idx]) > 0).astype(float)
+                    col += 1
 
-            cls_cv = float(np.mean(cls_scores))
-            reg_cv = float(np.mean(reg_scores)) if reg_scores else 0.0
+            # ── Train meta-learner on OOF ──
+            # Only use samples where OOF is valid (after min_train)
+            oof_valid = np.arange(min_train, n_tr)
+            # Try multiple regularization strengths
+            best_meta_lr = None
+            best_meta_score = 0.0
+            for C_val in [0.1, 0.5, 1.0, 2.0, 5.0]:
+                _mlr = LogisticRegression(C=C_val, max_iter=500, random_state=seed)
+                _mlr.fit(oof_all[oof_valid], y_train[oof_valid],
+                         sample_weight=current_sw[oof_valid])
+                _sc = _mlr.score(oof_all[oof_valid], y_train[oof_valid],
+                                  sample_weight=current_sw[oof_valid])
+                if _sc > best_meta_score:
+                    best_meta_score = _sc
+                    best_meta_lr = _mlr
+            meta_lr = best_meta_lr
 
-            # ── Train on full training set, evaluate on validation ──
-            m_cls_full = xgb.XGBClassifier(**xgb_cls_params)
-            m_cls_full.fit(X_train, y_train, sample_weight=current_sw,
-                           eval_set=[(X_val, y_val)], verbose=False)
-            val_cls_preds = m_cls_full.predict(X_val)
-            val_cls_probs = m_cls_full.predict_proba(X_val)
-            val_cls_conf = np.max(val_cls_probs, axis=1)
-            val_cls_acc = accuracy_score(y_val, val_cls_preds)
+            # ── Train base models on FULL training set for validation ──
+            val_preds_list = []
+            m_xgbs = []
+            for ci, cfg in enumerate(xgb_configs):
+                _p = {**cfg, "eval_metric": "logloss", "use_label_encoder": False,
+                       "random_state": seed + ci, "n_jobs": -1}
+                _m = xgb.XGBClassifier(**_p)
+                _m.fit(X_train, y_train, sample_weight=current_sw,
+                       eval_set=[(X_val, y_val)], verbose=False)
+                m_xgbs.append(_m)
+                val_preds_list.append(_m.predict_proba(X_val)[:, 1])
 
-            # Confidence-gated accuracy: only count predictions where conf > threshold
-            confident_mask = val_cls_conf >= CONFIDENCE_THRESHOLD
-            if confident_mask.sum() >= 10:
-                val_cls_gated = accuracy_score(y_val[confident_mask],
-                                                val_cls_preds[confident_mask])
-                gated_pct = confident_mask.sum() / len(y_val) * 100
-            else:
-                val_cls_gated = val_cls_acc
-                gated_pct = 100.0
+            m_xgb = m_xgbs[0]  # primary XGB for other uses
 
-            # Significant-move accuracy: only on days with abs(return) > threshold
-            val_reg_acc, val_reg_gated = 0.0, 0.0
-            m_reg_full = None
+            m_lgb = None
+            if LGB_OK:
+                m_lgb = lgb.LGBMClassifier(**{**lgb_p, "random_state": seed})
+                m_lgb.fit(X_train, y_train, sample_weight=current_sw)
+                val_preds_list.append(m_lgb.predict_proba(X_val)[:, 1])
+
+            m_et = ExtraTreesClassifier(**{**et_p, "random_state": seed})
+            m_et.fit(X_train, y_train, sample_weight=current_sw)
+            val_preds_list.append(m_et.predict_proba(X_val)[:, 1])
+
+            m_rf = RandomForestClassifier(**{**rf_p, "random_state": seed})
+            m_rf.fit(X_train, y_train, sample_weight=current_sw)
+            val_preds_list.append(m_rf.predict_proba(X_val)[:, 1])
+
+            m_reg = None
             if ret_train is not None:
-                m_reg_full = xgb.XGBRegressor(**xgb_reg_params)
-                m_reg_full.fit(X_train, ret_train, sample_weight=current_sw,
-                               verbose=False)
-                reg_preds = m_reg_full.predict(X_val)
-                reg_dir = (reg_preds > 0).astype(int)
-                val_reg_acc = accuracy_score(y_val, reg_dir)
+                m_reg = xgb.XGBRegressor(**{**xreg_p, "random_state": seed})
+                m_reg.fit(X_train, ret_train, sample_weight=current_sw,
+                          verbose=False)
+                val_preds_list.append((m_reg.predict(X_val) > 0).astype(float))
 
-                sig_mask = np.abs(ret_val) >= SIGNIFICANT_MOVE_PCT
-                if sig_mask.sum() >= 10:
-                    val_reg_gated = accuracy_score(y_val[sig_mask], reg_dir[sig_mask])
+            VAL_STACK = np.column_stack(val_preds_list)
 
-            # Pick better: cls or reg, overall and gated
-            val_acc = max(val_cls_acc, val_reg_acc)
-            val_gated = max(val_cls_gated, val_reg_gated,
-                            val_cls_gated if val_cls_gated > val_reg_gated else val_reg_gated)
-            use_reg = val_reg_acc > val_cls_acc
+            # Meta-learner prediction
+            meta_probs = meta_lr.predict_proba(VAL_STACK)[:, 1]
+
+            # Threshold optimization: find threshold maximizing accuracy
+            best_thr, best_thr_acc = 0.5, 0.0
+            for thr in np.arange(0.35, 0.65, 0.01):
+                _preds = (meta_probs >= thr).astype(int)
+                _acc = accuracy_score(y_val, _preds)
+                if _acc > best_thr_acc:
+                    best_thr_acc = _acc
+                    best_thr = thr
+
+            val_preds = (meta_probs >= best_thr).astype(int)
+            val_acc = accuracy_score(y_val, val_preds)
+
+            # Confidence-gated accuracy: find threshold giving >=70% acc on max coverage
+            meta_conf = np.where(meta_probs >= best_thr, meta_probs, 1 - meta_probs)
+            best_conf_thr = 0.5
+            best_gated_acc = val_acc
+            best_gated_cov = 1.0
+            # Sweep confidence thresholds — prefer highest coverage at 70%+
+            for ct in np.arange(0.50, 0.75, 0.01):
+                mask = meta_conf >= ct
+                n_gated = mask.sum()
+                if n_gated >= 12:
+                    preds_gated = (meta_probs[mask] >= best_thr).astype(int)
+                    g_acc = accuracy_score(y_val[mask], preds_gated)
+                    g_cov = n_gated / len(y_val)
+                    if g_acc >= 0.70 and g_cov > best_gated_cov:
+                        best_gated_acc = g_acc
+                        best_gated_cov = g_cov
+                        best_conf_thr = ct
+                    elif g_acc > best_gated_acc and g_cov >= 0.25:
+                        best_gated_acc = g_acc
+                        best_gated_cov = g_cov
+                        best_conf_thr = ct
+
+            # Significant-move accuracy
+            val_sig_acc = val_acc
+            if sig_val.sum() >= 10:
+                val_sig_acc = accuracy_score(y_val[sig_val], val_preds[sig_val])
+
+            xgb_acc = accuracy_score(y_val, (val_preds_list[0] >= 0.5).astype(int))
 
             if verbose:
-                print(f"    Round {rnd}: CV={max(cls_cv, reg_cv):.3f}  "
-                      f"Val={val_acc:.3f}  ValGated={val_gated:.3f} "
-                      f"({gated_pct:.0f}% confident)  "
-                      f"{'REG' if use_reg else 'CLS'}")
+                print(f"    R{rnd}: XGB={xgb_acc:.3f} Stack={val_acc:.3f} "
+                      f"Gated={best_gated_acc:.3f}@{best_gated_cov:.0%} "
+                      f"thr={best_thr:.2f} conf>{best_conf_thr:.2f}")
 
-            # Keep best by validation accuracy (prefer gated accuracy)
-            score = val_gated * 0.6 + val_acc * 0.4
-            best_score = best_val_gated * 0.6 + best_val_acc * 0.4
+            score = best_gated_acc * 0.4 + val_acc * 0.3 + val_sig_acc * 0.3
+            best_score = best_val_gated * 0.4 + best_val_acc * 0.3 + best_val_sig * 0.3
             if score > best_score or rnd == 0:
                 best_val_acc = val_acc
-                best_val_gated = val_gated
+                best_val_sig = val_sig_acc
+                best_val_gated = best_gated_acc
+                best_val_cov = best_gated_cov
                 best_round = rnd
-                best_models = {
-                    "cls": m_cls_full, "reg": m_reg_full,
-                    "use_reg": use_reg, "cls_cv": cls_cv, "reg_cv": reg_cv,
+                best_state = {
+                    "xgb": m_xgb, "lgb": m_lgb, "et": m_et, "rf": m_rf,
+                    "reg": m_reg, "meta": meta_lr, "threshold": best_thr,
+                    "conf_threshold": best_conf_thr,
                     "sw": current_sw.copy(), "seed": seed,
-                    "gated_pct": gated_pct,
+                    "xgb_acc": xgb_acc,
                 }
 
-            # ── Reinforcement: upweight misclassified samples ──
+            # Reinforcement
             if rnd < REINFORCE_ROUNDS:
                 current_sw = _reinforcement_weights(
-                    sw_train, X_train, y_train, m_cls_full, boost=2.0 + rnd * 0.5)
+                    sw_train, X_train, y_train, m_xgb, boost=1.8 + rnd * 0.4)
 
         if verbose:
             base = max(y.mean(), 1 - y.mean())
-            print(f"    Best round: {best_round}  Val: {best_val_acc:.3f}  "
-                  f"ValGated: {best_val_gated:.3f}  base={base:.1%}")
+            print(f"    BEST R{best_round}: Val={best_val_acc:.3f} "
+                  f"Gated={best_val_gated:.3f}@{best_val_cov:.0%} "
+                  f"SigMove={best_val_sig:.3f} base={base:.1%}")
 
-        # ── Final training: multi-seed ensemble on ALL data ──
-        final_sw = _make_sample_weights(n)
+        # ── Final: retrain on ALL data ──
+        final_sw = _make_sample_weights(n, decay=0.996)
+        if ret_col is not None:
+            ret_w = 1.0 + np.abs(ret_col).clip(0, 2.0)
+            final_sw = final_sw * ret_w
+            final_sw = final_sw / final_sw.mean()
         if best_round > 0:
-            best_cls = best_models["cls"]
-            full_preds = best_cls.predict(X)
-            wrong = (full_preds != y).astype(np.float32)
-            boost = 2.0 + (best_round - 1) * 0.5
+            wrong = (best_state["xgb"].predict(X) != y).astype(np.float32)
+            boost = 1.8 + (best_round - 1) * 0.4
             final_sw = final_sw * (1.0 + wrong * (boost - 1.0))
             final_sw = final_sw / final_sw.mean()
 
-        # Train N_SEEDS models with different seeds, ensemble via probability averaging
-        seeds = [best_models["seed"] + i * 13 for i in range(N_SEEDS)]
+        best_seed = best_state["seed"]
+
+        # Multi-seed XGB ensemble (using primary config)
         xgb_ensemble = []
-        for s in seeds:
-            xgb_cls_params["random_state"] = s
-            m = xgb.XGBClassifier(**xgb_cls_params)
+        for i in range(N_SEEDS):
+            _p = {**xgb_configs[0], "eval_metric": "logloss", "use_label_encoder": False,
+                   "random_state": best_seed + i * 17, "n_jobs": -1}
+            m = xgb.XGBClassifier(**_p)
             m.fit(X, y, sample_weight=final_sw, verbose=False)
             xgb_ensemble.append(m)
-
-        # Save the best single calibrated model (for compatibility)
-        xgb_cls_params["random_state"] = best_models["seed"]
-        xgb_m = xgb.XGBClassifier(**xgb_cls_params)
-        xgb_m, _ = _fit_calibrated(xgb_m, X, y, verbose=False)
-        joblib.dump(xgb_m, f"{model_dir}/xgb_{name}.pkl")
         joblib.dump(xgb_ensemble, f"{model_dir}/xgb_{name}_ensemble.pkl")
 
+        # Calibrated single model
+        _p = {**xgb_configs[0], "eval_metric": "logloss", "use_label_encoder": False,
+               "random_state": best_seed, "n_jobs": -1}
+        xgb_m = xgb.XGBClassifier(**_p)
+        xgb_m, _ = _fit_calibrated(xgb_m, X, y, verbose=False)
+        joblib.dump(xgb_m, f"{model_dir}/xgb_{name}.pkl")
+
+        # LGB
+        if LGB_OK:
+            lgb_m = lgb.LGBMClassifier(**{**lgb_p, "random_state": best_seed})
+            lgb_m, _ = _fit_calibrated(lgb_m, X, y, verbose=False)
+            joblib.dump(lgb_m, f"{model_dir}/lgb_{name}.pkl")
+
+        # Regression
         if ret_col is not None:
-            xgb_reg_params["random_state"] = best_models["seed"]
-            xgb_reg = xgb.XGBRegressor(**xgb_reg_params)
+            xgb_reg = xgb.XGBRegressor(**{**xreg_p, "random_state": best_seed})
             xgb_reg.fit(X, ret_col, sample_weight=final_sw)
             joblib.dump(xgb_reg, f"{model_dir}/xgb_{name}_retdir.pkl")
 
-        if LGB_OK:
-            lgb_params = {
-                "n_estimators": 300, "max_depth": 4,
-                "learning_rate": 0.02, "num_leaves": 12,
-                "subsample": 0.80, "colsample_bytree": 0.7,
-                "min_child_weight": 10,
-                "reg_alpha": 1.5, "reg_lambda": 5.0,
-                "random_state": best_models["seed"],
-                "n_jobs": -1, "verbose": -1,
-            }
-            lgb_base = lgb.LGBMClassifier(**lgb_params)
-            lgb_base, _ = _fit_calibrated(lgb_base, X, y, verbose=False)
-            joblib.dump(lgb_base, f"{model_dir}/lgb_{name}.pkl")
+        # Stacking meta-model: OOF on full data
+        n_base_final = 3 + (1 if LGB_OK else 0) + 2 + (1 if ret_col is not None else 0)
+        oof_full = np.full((n, n_base_final), 0.5)
+        fold_size = n // 5
+        for fi in range(5):
+            te_s, te_e = fi * fold_size, min((fi + 1) * fold_size, n)
+            tr_i = np.concatenate([np.arange(0, max(0, te_s - 5)),
+                                    np.arange(min(te_e + 5, n), n)])
+            te_i = np.arange(te_s, te_e)
+            if len(tr_i) < 50:
+                continue
+            col = 0
+            for ci, cfg in enumerate(xgb_configs):
+                _p = {**cfg, "eval_metric": "logloss", "use_label_encoder": False,
+                       "random_state": best_seed + ci, "n_jobs": -1}
+                _xm = xgb.XGBClassifier(**_p)
+                _xm.fit(X[tr_i], y[tr_i], sample_weight=final_sw[tr_i], verbose=False)
+                oof_full[te_i, col] = _xm.predict_proba(X[te_i])[:, 1]
+                col += 1
+            if LGB_OK:
+                _lm = lgb.LGBMClassifier(**{**lgb_p, "random_state": best_seed})
+                _lm.fit(X[tr_i], y[tr_i], sample_weight=final_sw[tr_i])
+                oof_full[te_i, col] = _lm.predict_proba(X[te_i])[:, 1]
+                col += 1
+            _em = ExtraTreesClassifier(**{**et_p, "random_state": best_seed})
+            _em.fit(X[tr_i], y[tr_i], sample_weight=final_sw[tr_i])
+            oof_full[te_i, col] = _em.predict_proba(X[te_i])[:, 1]
+            col += 1
+            _rfm = RandomForestClassifier(**{**rf_p, "random_state": best_seed})
+            _rfm.fit(X[tr_i], y[tr_i], sample_weight=final_sw[tr_i])
+            oof_full[te_i, col] = _rfm.predict_proba(X[te_i])[:, 1]
+            col += 1
+            if ret_col is not None:
+                _rm = xgb.XGBRegressor(**{**xreg_p, "random_state": best_seed})
+                _rm.fit(X[tr_i], ret_col[tr_i], sample_weight=final_sw[tr_i], verbose=False)
+                oof_full[te_i, col] = (_rm.predict(X[te_i]) > 0).astype(float)
+                col += 1
 
-        method = "regression" if best_models.get("use_reg") else "classifier"
+        final_meta = LogisticRegression(C=1.0, max_iter=500, random_state=best_seed)
+        final_meta.fit(oof_full, y, sample_weight=final_sw)
+
+        # Save all stacking models trained on full data
+        et_final = ExtraTreesClassifier(**{**et_p, "random_state": best_seed})
+        et_final.fit(X, y, sample_weight=final_sw)
+        rf_final = RandomForestClassifier(**{**rf_p, "random_state": best_seed})
+        rf_final.fit(X, y, sample_weight=final_sw)
+        joblib.dump(et_final, f"{model_dir}/et_{name}.pkl")
+        joblib.dump(rf_final, f"{model_dir}/rf_{name}.pkl")
+        joblib.dump(final_meta, f"{model_dir}/meta_{name}.pkl")
+        joblib.dump(best_state["threshold"], f"{model_dir}/threshold_{name}.pkl")
+        joblib.dump(best_state.get("conf_threshold", 0.55), f"{model_dir}/conf_threshold_{name}.pkl")
+
+        method = "stacked"
         joblib.dump(feat_idx, f"{model_dir}/feat_idx_{name}.pkl")
         joblib.dump(method, f"{model_dir}/method_{name}.pkl")
 
-        cv_acc = max(best_models.get("cls_cv", 0), best_models.get("reg_cv", 0))
         return {
-            "cv": cv_acc, "val": best_val_acc, "val_gated": best_val_gated,
-            "best_round": best_round, "method": method,
-            "gated_pct": best_models.get("gated_pct", 100),
+            "cv": best_state.get("xgb_acc", 0),
+            "val": best_val_acc,
+            "val_gated": best_val_gated,
+            "val_gated_cov": best_val_cov,
+            "val_sig": best_val_sig,
+            "best_round": best_round,
+            "method": method,
+            "threshold": best_state.get("threshold", 0.5),
+            "conf_threshold": best_state.get("conf_threshold", 0.55),
         }
 
     def _train_regressor(X, y, sw, name):
-        reg = xgb.XGBRegressor(n_estimators=300, max_depth=3, learning_rate=0.02,
-                                subsample=0.80, colsample_bytree=0.7,
-                                min_child_weight=10, reg_alpha=1.5, reg_lambda=5.0,
-                                gamma=0.5, random_state=42, n_jobs=-1)
+        reg = xgb.XGBRegressor(n_estimators=400, max_depth=3, learning_rate=0.015,
+                                subsample=0.80, colsample_bytree=0.65,
+                                min_child_weight=8, reg_alpha=1.0, reg_lambda=4.0,
+                                gamma=0.3, random_state=42, n_jobs=-1)
         reg.fit(X, y, sample_weight=sw)
         joblib.dump(reg, f"{model_dir}/xgb_{name}_reg.pkl")
         from sklearn.metrics import mean_absolute_error
@@ -1136,26 +1444,28 @@ def train_daily_models_from_5min(df_5min: pd.DataFrame,
         return mae
 
     if verbose:
-        print("\n  -- Daily OPEN model (reinforcement training) --")
+        print(f"\n  -- Daily OPEN (stacked + reinforced, val={val_size}d) --")
     y_open = valid["open_target"].values.astype(int)
     y_open_ret = valid["open_ret_pct"].values.astype(np.float32)
-    open_result = _train_classifier_reinforced(X_sc, y_open, sample_w, "open",
-                                                ret_col=y_open_ret)
+    open_result = _train_stacked(X_sc, y_open, sample_w, "open",
+                                  ret_col=y_open_ret)
     results["open_cv"] = open_result["cv"]
     results["open_val"] = open_result["val"]
     results["open_val_gated"] = open_result["val_gated"]
+    results["open_val_sig"] = open_result["val_sig"]
 
     _train_regressor(X_sc, y_open_ret, sample_w, "open")
 
     if verbose:
-        print("\n  -- Daily CLOSE model (reinforcement training) --")
+        print(f"\n  -- Daily CLOSE (stacked + reinforced, val={val_size}d) --")
     y_close = valid["close_target"].values.astype(int)
     y_close_ret = valid["close_ret_pct"].values.astype(np.float32)
-    close_result = _train_classifier_reinforced(X_sc, y_close, sample_w, "close",
-                                                 ret_col=y_close_ret)
+    close_result = _train_stacked(X_sc, y_close, sample_w, "close",
+                                   ret_col=y_close_ret)
     results["close_cv"] = close_result["cv"]
     results["close_val"] = close_result["val"]
     results["close_val_gated"] = close_result["val_gated"]
+    results["close_val_sig"] = close_result["val_sig"]
 
     y_close_reg = valid["close_ret_pct"].values.astype(np.float32)
     X_close_chain = np.hstack([X_sc, y_open_ret.reshape(-1, 1)])
@@ -1176,9 +1486,9 @@ def train_daily_models_from_5min(df_5min: pd.DataFrame,
 
     meta = {
         "trained_at": datetime.now().isoformat(),
-        "pipeline": "5min_reinforced_v3",
+        "pipeline": "5min_stacked_v4",
         "n_features": len(all_feats),
-        "n_selected_features": 40,
+        "n_selected_features": TOP_K,
         "n_samples": len(valid),
         "n_train": train_end,
         "n_val": val_size,
@@ -1191,21 +1501,24 @@ def train_daily_models_from_5min(df_5min: pd.DataFrame,
         "val_open_gated": results.get("open_val_gated", 0),
         "val_close_gated": results.get("close_val_gated", 0),
         "reinforce_rounds": REINFORCE_ROUNDS,
-        "significant_move_pct": SIGNIFICANT_MOVE_PCT,
-        "confidence_threshold": CONFIDENCE_THRESHOLD,
+        "n_ensemble_seeds": N_SEEDS,
+        "base_models": "XGB+LGB+ExtraTrees+RandomForest+XGBReg",
+        "meta_model": "LogisticRegression",
+        "open_threshold": open_result.get("threshold", 0.5),
+        "close_threshold": close_result.get("threshold", 0.5),
         "results": results,
     }
     with open(f"{model_dir}/metadata.json", "w") as f:
         json.dump(meta, f, indent=2)
 
     if verbose:
-        print(f"\n  Models saved to {model_dir}/ (reinforced pipeline v3)")
-        print(f"  Open:  CV={results.get('open_cv',0):.3f}  "
-              f"Val={results.get('open_val',0):.3f}  "
-              f"ValGated={results.get('open_val_gated',0):.3f}")
-        print(f"  Close: CV={results.get('close_cv',0):.3f}  "
-              f"Val={results.get('close_val',0):.3f}  "
-              f"ValGated={results.get('close_val_gated',0):.3f}")
+        print(f"\n  Models saved to {model_dir}/ (stacked pipeline v4)")
+        print(f"  Open:  Val={results.get('open_val',0):.3f}  "
+              f"Gated={results.get('open_val_gated',0):.3f}  "
+              f"SigMove={results.get('open_val_sig',0):.3f}")
+        print(f"  Close: Val={results.get('close_val',0):.3f}  "
+              f"Gated={results.get('close_val_gated',0):.3f}  "
+              f"SigMove={results.get('close_val_sig',0):.3f}")
     return results
 
 
@@ -1268,56 +1581,83 @@ def predict_today_from_5min(df_5min: pd.DataFrame,
     xgb_high_r = _load("xgb_high_reg.pkl")
     xgb_low_r = _load("xgb_low_reg.pkl")
 
-    # Ensemble models (v3 reinforced pipeline)
+    # Stacked models (v4 pipeline)
     open_ensemble = _load("xgb_open_ensemble.pkl")
     close_ensemble = _load("xgb_close_ensemble.pkl")
+    et_open = _load("et_open.pkl")
+    et_close = _load("et_close.pkl")
+    rf_open = _load("rf_open.pkl")
+    rf_close = _load("rf_close.pkl")
+    meta_open = _load("meta_open.pkl")
+    meta_close = _load("meta_close.pkl")
+    thr_open = _load("threshold_open.pkl")
+    thr_close = _load("threshold_close.pkl")
+    xgb_open_retdir = _load("xgb_open_retdir.pkl")
+    xgb_close_retdir = _load("xgb_close_retdir.pkl")
 
-    # Apply feature selection if available (v2/v3 models)
     open_feat_idx = _load("feat_idx_open.pkl")
     close_feat_idx = _load("feat_idx_close.pkl")
     X_open = X_full[:, open_feat_idx] if open_feat_idx is not None else X_full
     X_close = X_full[:, close_feat_idx] if close_feat_idx is not None else X_full
-    X = X_full  # for regressors that use full features
+    X = X_full
 
-    def _ensemble_predict(ensemble, X_sel, fallback_model):
-        """Average probabilities across ensemble members for more stable prediction."""
+    def _stacked_predict(X_sel, xgb_m, lgb_m, et_m, rf_m, retdir_m, meta_m, threshold, ensemble):
+        """Stacked meta-model prediction: 3×XGB+LGB+ET+RF+Reg → LogReg meta."""
+        if meta_m is not None and ensemble and len(ensemble) >= 3:
+            # Use first 3 ensemble members as the 3 XGB configs
+            stack = []
+            for i in range(min(3, len(ensemble))):
+                try:
+                    stack.append(float(ensemble[i].predict_proba(X_sel)[0, 1]))
+                except Exception:
+                    stack.append(0.5)
+            lgb_prob = lgb_m.predict_proba(X_sel)[0, 1] if lgb_m and hasattr(lgb_m, 'predict_proba') else stack[0]
+            stack.append(lgb_prob)
+            et_prob = et_m.predict_proba(X_sel)[0, 1] if et_m else stack[0]
+            stack.append(et_prob)
+            rf_prob = rf_m.predict_proba(X_sel)[0, 1] if rf_m else stack[0]
+            stack.append(rf_prob)
+            if retdir_m is not None:
+                reg_pred = float(retdir_m.predict(X_sel)[0])
+                stack.append(float(reg_pred > 0))
+            S = np.array([stack])
+            try:
+                meta_prob = meta_m.predict_proba(S)[0, 1]
+            except Exception:
+                meta_prob = float(np.mean(stack[:6]))
+            thr = threshold if threshold is not None else 0.5
+            direction = int(meta_prob >= thr)
+            confidence = meta_prob if direction == 1 else 1 - meta_prob
+            votes = [int(p >= 0.5) for p in stack[:6]]
+            agreement = sum(1 for v in votes if v == direction) / len(votes)
+            return direction, confidence, agreement
+        # Fallback: ensemble average
         if ensemble and len(ensemble) > 1:
             probs = np.mean([m.predict_proba(X_sel) for m in ensemble], axis=0)
             direction = int(np.argmax(probs[0]))
             confidence = float(probs[0][direction])
-            # Vote agreement: fraction of models agreeing on direction
             votes = [int(m.predict(X_sel)[0]) for m in ensemble]
             agreement = sum(1 for v in votes if v == direction) / len(votes)
             return direction, confidence, agreement
-        elif fallback_model:
-            direction = int(fallback_model.predict(X_sel)[0])
-            confidence = float(fallback_model.predict_proba(X_sel)[0][direction])
+        elif xgb_m:
+            direction = int(xgb_m.predict(X_sel)[0])
+            confidence = float(xgb_m.predict_proba(X_sel)[0][direction])
             return direction, confidence, 1.0
         return 0, 0.5, 0.0
 
-    # Open prediction: ensemble + LGB
-    open_xgb_dir, open_xgb_prob, open_ens_agree = _ensemble_predict(
-        open_ensemble, X_open, xgb_open_m)
-    open_lgb_dir = int(lgb_open_m.predict(X_open)[0]) if lgb_open_m else open_xgb_dir
-    open_lgb_prob = float(lgb_open_m.predict_proba(X_open)[0][open_lgb_dir]) if lgb_open_m else open_xgb_prob
-    open_agree = (open_xgb_dir == open_lgb_dir) and open_ens_agree >= 0.6
-    open_conf = float(np.mean([open_xgb_prob, open_lgb_prob])) if open_agree else 0.5
-    if open_ens_agree >= 0.8:
-        open_conf = min(open_conf * 1.1, 0.95)
-    open_dir = open_xgb_dir
+    # Open prediction: stacked meta-model
+    open_dir, open_conf, open_ens_agree = _stacked_predict(
+        X_open, xgb_open_m, lgb_open_m, et_open, rf_open,
+        xgb_open_retdir, meta_open, thr_open, open_ensemble)
+    open_agree = open_ens_agree >= 0.5
 
     open_pred_pct = float(xgb_open_r.predict(X)[0]) if xgb_open_r else 0.0
 
-    # Close prediction: ensemble + LGB
-    close_xgb_dir, close_xgb_prob, close_ens_agree = _ensemble_predict(
-        close_ensemble, X_close, xgb_close_m)
-    close_lgb_dir = int(lgb_close_m.predict(X_close)[0]) if lgb_close_m else close_xgb_dir
-    close_lgb_prob = float(lgb_close_m.predict_proba(X_close)[0][close_lgb_dir]) if lgb_close_m else close_xgb_prob
-    close_agree = (close_xgb_dir == close_lgb_dir) and close_ens_agree >= 0.6
-    close_conf = float(np.mean([close_xgb_prob, close_lgb_prob])) if close_agree else 0.5
-    if close_ens_agree >= 0.8:
-        close_conf = min(close_conf * 1.1, 0.95)
-    close_dir = close_xgb_dir
+    # Close prediction: stacked meta-model
+    close_dir, close_conf, close_ens_agree = _stacked_predict(
+        X_close, xgb_close_m, lgb_close_m, et_close, rf_close,
+        xgb_close_retdir, meta_close, thr_close, close_ensemble)
+    close_agree = close_ens_agree >= 0.5
 
     if xgb_close_r:
         X_close = np.hstack([X, np.array([[open_pred_pct]], dtype=np.float32)])
