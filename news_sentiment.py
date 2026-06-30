@@ -527,12 +527,12 @@ def aggregate(scored: list[dict]) -> dict:
 # MAIN ENTRY POINT
 # ─────────────────────────────────────────────────────────────────────────────
 
-def _fetch_via_scraper(max_age_hours: int = 24) -> list[dict]:
+def _fetch_via_scraper(max_age_hours: int = 72) -> list[dict]:
     """Primary pipeline: RSS scraper (free, unlimited)."""
     try:
         import news_scraper
         articles = news_scraper.scrape_all(
-            fetch_body=False, max_age_hours=max_age_hours
+            fetch_body=False, max_age_hours=max_age_hours, fresh=True
         )
         if articles:
             news_scraper.save_scraped(articles)
@@ -595,7 +595,9 @@ def get_market_sentiment(
                 pass
 
     # Phase 1: RSS Scraper (primary — no API key needed)
-    articles = _fetch_via_scraper(max_age_hours=24 if days is None else days * 24)
+    _, cfg_days, _, _ = _gnews_cfg()
+    scrape_hours = (days if days else cfg_days) * 24  # default 3 days = 72h
+    articles = _fetch_via_scraper(max_age_hours=scrape_hours)
 
     # Phase 2: GNews fallback (free tier) if scraper got too few
     if len(articles) < MIN_SCRAPER_ARTICLES:

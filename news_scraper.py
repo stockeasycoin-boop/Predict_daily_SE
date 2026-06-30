@@ -448,8 +448,9 @@ def scrape_google_news(seen: set, max_age_hours: int = 72) -> list[dict]:
 
 # ── Orchestrator ───────────────────────────────────────────────────────────────
 def scrape_all(fetch_body: bool = False, max_age_hours: int = 72,
-               sources: list[str] | None = None) -> list[dict]:
-    seen = _load_seen()
+               sources: list[str] | None = None,
+               fresh: bool = False) -> list[dict]:
+    seen = set() if fresh else _load_seen()
     all_articles = []
     targets = sources or list(RSS_FEEDS.keys())
 
