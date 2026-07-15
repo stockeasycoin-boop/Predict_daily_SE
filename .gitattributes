@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Shell scripts must keep LF so the shebang works on Linux/Cloud
+*.sh text eol=lf
