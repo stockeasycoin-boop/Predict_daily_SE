@@ -266,23 +266,38 @@ def fetch_fii_nsdl(days: int = 730) -> pd.DataFrame | None:
 # 5. LIVE QUOTES & OPTIONS CHAIN
 # ─────────────────────────────────────────────────────────────────────────────
 
-def fetch_live_quote_breeze(breeze) -> dict | None:
-    try:
-        resp = breeze.get_quotes(
-            stock_code="NIFTY", exchange_code="NSE",
-            product_type="cash", expiry_date="", right="", strike_price="",
-        )
-        if resp.get("Status") == 200 and resp.get("Success"):
-            d = resp["Success"][0]
-            return {
-                "ltp":        float(d.get("ltp",              0) or 0),
-                "open":       float(d.get("open",             0) or 0),
-                "high":       float(d.get("high",             0) or 0),
-                "low":        float(d.get("low",              0) or 0),
-                "prev_close": float(d.get("previous_close",   0) or 0),
-            }
-    except Exception as e:
-        print(f"[Breeze] live quote failed: {e}")
+def fetch_live_quote_breeze(breeze, retries: int = 3, backoff: float = 0.6) -> dict | None:
+    """Fetch the live NIFTY cash quote from Breeze.
+
+    Breeze's get_quotes intermittently returns an empty/non-JSON body, which
+    surfaces as "Expecting value: line 1 column 1 (char 0)" (a JSON decode error)
+    or a non-200 Status. These are transient, so retry a few times with a short
+    exponential backoff before giving up.
+    """
+    last_err = None
+    for attempt in range(1, retries + 1):
+        try:
+            resp = breeze.get_quotes(
+                stock_code="NIFTY", exchange_code="NSE",
+                product_type="cash", expiry_date="", right="", strike_price="",
+            )
+            if resp.get("Status") == 200 and resp.get("Success"):
+                d = resp["Success"][0]
+                return {
+                    "ltp":        float(d.get("ltp",              0) or 0),
+                    "open":       float(d.get("open",             0) or 0),
+                    "high":       float(d.get("high",             0) or 0),
+                    "low":        float(d.get("low",              0) or 0),
+                    "prev_close": float(d.get("previous_close",   0) or 0),
+                }
+            # Reached Breeze but got an unexpected payload — retryable.
+            last_err = str(resp.get("Error") or resp.get("Status") or "empty response")
+        except Exception as e:
+            # Empty body -> JSONDecodeError ("Expecting value..."), timeouts, etc.
+            last_err = str(e)
+        if attempt < retries:
+            time.sleep(backoff * attempt)  # 0.6s, 1.2s, ...
+    print(f"[Breeze] live quote failed after {retries} attempts: {last_err}")
     return None
 
 

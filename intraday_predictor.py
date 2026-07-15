@@ -674,18 +674,29 @@ def predict_all_horizons(df_5min: pd.DataFrame,
             continue
 
         xgb_m   = joblib.load(xgb_path)
-        xgb_dir = int(xgb_m.predict(X)[0])
-        xgb_prob= float(xgb_m.predict_proba(X)[0][xgb_dir])
+        xgb_up  = float(xgb_m.predict_proba(X)[0][1])   # P(up)
+        xgb_dir = int(xgb_up >= 0.5)
+        xgb_prob= xgb_up if xgb_dir == 1 else 1 - xgb_up
 
         lgb_dir, lgb_prob, ensemble_agree = xgb_dir, xgb_prob, True
+        lgb_up  = xgb_up
         if lgb_path.exists() and LGB_OK:
             lgb_m   = joblib.load(lgb_path)
-            lgb_dir = int(lgb_m.predict(X)[0])
-            lgb_prob= float(lgb_m.predict_proba(X)[0][lgb_dir])
+            lgb_up  = float(lgb_m.predict_proba(X)[0][1])
+            lgb_dir = int(lgb_up >= 0.5)
+            lgb_prob= lgb_up if lgb_dir == 1 else 1 - lgb_up
             ensemble_agree = (xgb_dir == lgb_dir)
 
         conf  = float(np.mean([xgb_prob, lgb_prob])) if ensemble_agree else 0.5
         label = "↑ Up" if xgb_dir == 1 else "↓ Down"
+
+        # Meta-labeling: P(this direction call is correct). None if not trained.
+        meta_conf = None
+        try:
+            import meta_labeling as _ml
+            meta_conf = _ml.meta_predict(horizon, X[0], xgb_up, lgb_up, model_dir)
+        except Exception:
+            meta_conf = None
 
         # Target time + target price estimate
         if n_candles is not None:
@@ -704,6 +715,7 @@ def predict_all_horizons(df_5min: pd.DataFrame,
         predictions[horizon] = {
             "direction":      xgb_dir,
             "confidence":     round(conf, 4),
+            "meta_confidence": round(meta_conf, 4) if meta_conf is not None else None,
             "label":          label,
             "ensemble_agree": ensemble_agree,
             "target_time":    target_str,

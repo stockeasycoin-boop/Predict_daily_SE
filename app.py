@@ -18,6 +18,15 @@ from pathlib import Path
 
 # ── Logging setup ─────────────────────────────────────────────────────────────
 # Stream to stdout so Streamlit Community Cloud captures it in "Manage app" logs.
+# On Windows the console defaults to cp1252, which can't encode ₹, →, emojis, etc.
+# Force stdout/stderr to UTF-8 so log messages with those chars don't raise
+# UnicodeEncodeError. (No-op on platforms whose streams are already UTF-8.)
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError):
+        pass
+
 # force=True overrides handlers Streamlit/uvicorn may have installed first.
 logging.basicConfig(
     level=logging.INFO,
@@ -32,6 +41,22 @@ log = logging.getLogger("nifty_app")
 for _noisy in ["breeze_connect", "urllib3", "requests", "httpx", "httpcore",
                "APILogger", "huggingface_hub", "transformers", "filelock"]:
     logging.getLogger(_noisy).setLevel(logging.CRITICAL)
+
+# Silence Streamlit's repeated "missing ScriptRunContext!" warnings emitted on
+# every st.* call when the script runs in bare mode (python app.py). Streamlit
+# keeps its loggers pinned at INFO regardless of level overrides (it resets the
+# level when each logger is created, some lazily), so raising the level does not
+# stick. A logger-level filter does: Streamlit's logger re-init only touches level
+# and handlers, never filters, so this drop rule survives. Attaching it by name
+# creates the logger object now; Streamlit reuses that same object later.
+class _DropMissingCtxWarning(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        return "missing ScriptRunContext" not in record.getMessage()
+
+
+logging.getLogger(
+    "streamlit.runtime.scriptrunner_utils.script_run_context"
+).addFilter(_DropMissingCtxWarning())
 
 
 def log_step(msg: str, level: str = "info") -> None:
@@ -328,6 +353,59 @@ def load_settings() -> dict:
 def save_settings(d: dict) -> None:
     with open(SETTINGS_FILE, "w") as f:
         json.dump(d, f, indent=2)
+
+
+@st.cache_data
+def load_gate_config() -> dict:
+    """Per-horizon confidence-gate thresholds from the walk-forward backtest.
+
+    Returns {horizon: {conf_gate, exp_acc, coverage}}. A signal is HIGH-CONVICTION
+    when its confidence (prob on the predicted side) clears conf_gate; exp_acc is
+    the backtested directional accuracy on those gated signals.
+    """
+    path = Path(__file__).parent / "models" / "gate_config.json"
+    try:
+        with open(path) as f:
+            return json.load(f).get("horizons", {})
+    except Exception:
+        return {}
+
+
+@st.cache_data
+def load_meta_gate_config() -> dict:
+    """Per-horizon meta-labeling gate: {horizon: {meta_gate, exp_acc, coverage}}.
+
+    When present and a prediction carries meta_confidence, the meta gate (learned
+    P(direction correct)) is preferred over the raw-confidence gate.
+    """
+    path = Path(__file__).parent / "models" / "meta_config.json"
+    try:
+        with open(path) as f:
+            return json.load(f).get("horizons", {})
+    except Exception:
+        return {}
+
+
+def eval_gate(pred: dict, conf_cfg: dict, meta_cfg: dict) -> dict | None:
+    """Decide if a horizon prediction is high-conviction.
+
+    Prefers the meta gate (learned) when a meta model produced meta_confidence;
+    otherwise falls back to the raw-confidence gate. Returns
+    {is_high, exp_acc, coverage, basis, threshold, value} or None if no gate.
+    """
+    mc = pred.get("meta_confidence")
+    mg = meta_cfg.get(pred.get("_hz", ""))
+    if mc is not None and mg:
+        return {"is_high": mc >= mg["meta_gate"], "exp_acc": mg["exp_acc"],
+                "coverage": mg["coverage"], "basis": "meta",
+                "threshold": mg["meta_gate"], "value": mc}
+    cg = conf_cfg.get(pred.get("_hz", ""))
+    if cg:
+        v = pred.get("confidence", 0)
+        return {"is_high": v >= cg["conf_gate"], "exp_acc": cg["exp_acc"],
+                "coverage": cg["coverage"], "basis": "confidence",
+                "threshold": cg["conf_gate"], "value": v}
+    return None
 
 
 # ── Module imports (done inside try so app still loads if deps missing) ───────
@@ -714,6 +792,14 @@ with tab1:
                                 log_step(f"Options chain OFI calc failed: {_ofi_err}", "warning")
                         ofi_vote = sa.vote_from_ofi(ofi_data)
                         log_step(f"OFI: {ofi_vote.reason}")
+
+                        # Persist snapshot to build OFI/options-flow history for a
+                        # future retrain (models were trained on OHLCV only).
+                        try:
+                            import ofi_logger
+                            ofi_logger.log_ofi_snapshot(ofi_data, spot)
+                        except Exception:
+                            pass
 
                         # 4) News sentiment vote
                         log_step("Step 6/6 — fetching news sentiment…")
@@ -1904,6 +1990,35 @@ with tab2:
                 _calib_today = le.get_calibration_summary()
                 _ph = _calib_today.get("per_horizon", {})
                 _mag = _calib_today.get("magnitude", {})
+                _gate_cfg = load_gate_config()
+                _meta_cfg = load_meta_gate_config()
+
+                # Show the strongest gated signal at the top, if any cleared its gate
+                _gated_hits = []
+                for _h in _available:
+                    _hp = dict(_preds_live[_h]); _hp["_hz"] = _h
+                    _gs = eval_gate(_hp, _gate_cfg, _meta_cfg)
+                    if _gs and _gs["is_high"]:
+                        _gated_hits.append((_h, _gs))
+                if _gated_hits:
+                    _best_h, _best_g = max(_gated_hits, key=lambda x: x[1]["exp_acc"])
+                    _bp = _preds_live[_best_h]
+                    _bdir = "UP ↑" if _bp["direction"] == 1 else "DOWN ↓"
+                    _bcol = "#27500A" if _bp["direction"] == 1 else "#A32D2D"
+                    _basis_lbl = "meta-model" if _best_g["basis"] == "meta" else "confidence"
+                    st.markdown(
+                        f"<div style='border:2px solid #185FA5;border-radius:10px;padding:12px 16px;"
+                        f"margin-bottom:12px;background:#E6F1FB'>"
+                        f"<span style='font-size:13px;font-weight:600;color:#0C447C'>🎯 High-conviction signal</span>"
+                        f"<span style='font-size:15px;font-weight:600;color:{_bcol};margin-left:10px'>"
+                        f"{_hz_labels.get(_best_h,_best_h)} {_bdir}</span>"
+                        f"<span style='font-size:13px;color:#0C447C;margin-left:10px'>"
+                        f"~{_best_g['exp_acc']}% backtested accuracy · fires ~{_best_g['coverage']*100:.0f}% "
+                        f"of the time · gated by {_basis_lbl}</span>"
+                        f"</div>", unsafe_allow_html=True)
+                else:
+                    st.caption("⚪ No high-conviction signal right now — every horizon is below its "
+                               "gate. Best to stay flat until one clears.")
 
                 for _hz in _available:
                     _p = _preds_live[_hz]
@@ -1919,6 +2034,20 @@ with tab2:
                     _agree_badge = "✅ Both models agree" if _agree else "⚠️ Models disagree"
                     _move_pts = (_tgt_price - _entry_price) if _tgt_price else 0
 
+                    # Gate badge — prefers the learned meta gate, else confidence gate
+                    _pp = dict(_p); _pp["_hz"] = _hz
+                    _gs = eval_gate(_pp, _gate_cfg, _meta_cfg)
+                    if _gs and _gs["is_high"]:
+                        _gate_badge = (f"<span style='background:#E6F1FB;color:#0C447C;font-size:12px;"
+                                       f"font-weight:600;padding:3px 10px;border-radius:20px'>"
+                                       f"🎯 High-conviction · ~{_gs['exp_acc']}%</span>")
+                    elif _gs:
+                        _gate_badge = (f"<span style='background:#F1EFE8;color:#5F5E5A;font-size:12px;"
+                                       f"padding:3px 10px;border-radius:20px'>"
+                                       f"below gate · skip</span>")
+                    else:
+                        _gate_badge = ""
+
                     # Historical accuracy for this horizon
                     _hz_acc = _ph.get(_hz, {}).get("accuracy")
                     _hz_mae = _mag.get(_hz, {}).get("mae_pts")
@@ -1933,6 +2062,7 @@ with tab2:
                         f"<span style='background:{_dir_bg};color:{_dir_color};font-size:15px;font-weight:600;"
                         f"padding:3px 12px;border-radius:20px'>{_dir_word}</span>"
                         f"<span style='font-size:14px;color:var(--color-text-primary)'>{_conf:.0%} confidence</span>"
+                        f"{_gate_badge}"
                         f"<span style='font-size:12px;color:var(--color-text-secondary)'>{_agree_badge}</span>"
                         f"<span style='margin-left:auto;font-size:12px;color:var(--color-text-secondary)'>by {_tt}</span>"
                         f"</div>"
