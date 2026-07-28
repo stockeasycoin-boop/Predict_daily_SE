@@ -1915,10 +1915,22 @@ with tab2:
                     st.error(_err)
                     return
 
-                # Anchor = live spot (authoritative); log predictions for verification
+                # Anchor = live spot (authoritative); log predictions for verification.
+                # Guard against STALE / FROZEN feed: on a frozen data feed (e.g. Breeze
+                # returning one stale quote all day, as on Jul 6-8 2026) every logged
+                # prediction shares one anchor price and grades ~16% — garbage that
+                # poisons the live scorecard. Skip logging when the candle is stale OR
+                # the anchor hasn't moved since the last logged candle.
                 _entry_log = _anchor_px
-                if le.is_market_open() and _entry_log:
+                _last_anchor = st.session_state.get("_last_logged_anchor")
+                _frozen_anchor = (_last_anchor is not None and _entry_log
+                                  and abs(_entry_log - _last_anchor) < 0.01)
+                if le.is_market_open() and _entry_log and not _stale and not _frozen_anchor:
                     le.log_predictions_batch(_preds_live, _entry_log)
+                    st.session_state["_last_logged_anchor"] = _entry_log
+                elif _stale or _frozen_anchor:
+                    log_step("Skipped logging predictions — data feed is stale/frozen "
+                             f"(anchor ₹{_entry_log:,.0f}).", "warning")
 
                 # Warn if candle data is stale (Breeze hasn't streamed today's bars)
                 if _stale:
