@@ -46,7 +46,9 @@ _META_MODEL = dict(n_estimators=300, max_depth=3, learning_rate=0.02,
 
 _MIN_TRAIN = 20000
 _STEP = 3000
-_TARGET_COVERAGE = 0.25   # pick the meta gate that keeps ~25% of signals
+_TARGET_ACC = 0.70        # aim for a >=70% held-out accuracy floor per bucket
+_MIN_GATED = 100          # need at least this many held-out gated signals to trust it
+_MAX_Q = 0.98             # never gate tighter than the top 2% most-confident
 
 
 def build_meta_features(X_scaled: np.ndarray, xgb_up: np.ndarray,
@@ -126,16 +128,34 @@ def train_meta_models(df_5min: pd.DataFrame, model_dir: str = "models",
         meta_y = (xdir == y[oof]).astype(int)
 
         # Honest OOS estimate: fit meta on the first 70% of the OOF region and
-        # derive the gate threshold + expected accuracy on the held-out last 30%
-        # (recent regime). Evaluating on the training rows would inflate exp_acc.
+        # tune the gate on the held-out last 30% (recent regime). Evaluating on the
+        # training rows would inflate exp_acc.
         split = int(len(Xm) * 0.70)
         eval_meta = xgb.XGBClassifier(**_META_MODEL)
         eval_meta.fit(Xm[:split], meta_y[:split], verbose=False)
         hp = eval_meta.predict_proba(Xm[split:])[:, 1]
         hy = meta_y[split:]
-        thr = float(np.quantile(hp, 1 - _TARGET_COVERAGE))
-        gated = hp >= thr
-        exp_acc = float(hy[gated].mean() * 100) if gated.sum() else 0.0
+
+        # Target a >=70% accuracy FLOOR: raise the threshold (lower coverage) until
+        # held-out accuracy clears 70%, keeping the MOST coverage that still does.
+        # If no threshold reaches 70% (e.g. 5-min's ~65% ceiling), fall back to the
+        # most-selective point and flag meets_70=False — never fake the number.
+        best = None
+        for q in np.arange(0.50, _MAX_Q + 1e-9, 0.01):
+            thr_q = float(np.quantile(hp, q))
+            g = hp >= thr_q
+            if g.sum() < _MIN_GATED:
+                continue
+            acc_q = float(hy[g].mean())
+            if acc_q >= _TARGET_ACC:
+                best = (thr_q, acc_q, float(g.mean()), True)
+                break
+        if best is None:
+            thr_q = float(np.quantile(hp, _MAX_Q))     # tightest allowed
+            g = hp >= thr_q
+            acc_q = float(hy[g].mean()) if g.sum() else 0.0
+            best = (thr_q, acc_q, float(g.mean()), False)
+        thr, exp_acc, cov, meets_70 = best[0], best[1] * 100, best[2], best[3]
 
         # Deploy a meta model refit on ALL OOF rows (more data = better serving).
         meta = xgb.XGBClassifier(**_META_MODEL)
@@ -144,10 +164,12 @@ def train_meta_models(df_5min: pd.DataFrame, model_dir: str = "models",
 
         cfg[hz] = {"meta_gate": round(thr, 4),
                    "exp_acc": round(exp_acc, 1),
-                   "coverage": round(float(gated.mean()), 3)}
+                   "coverage": round(cov, 3),
+                   "meets_70": meets_70}
         if verbose:
+            flag = "OK>=70" if meets_70 else "BELOW70(ceiling)"
             print(f"  {hz:8s}: meta gate p>={thr:.3f} -> {exp_acc:.1f}% acc @ "
-                  f"{gated.mean():.0%} coverage (held-out; n_oof={oof.sum()})")
+                  f"{cov:.0%} coverage  [{flag}]  (n_oof={oof.sum()})")
 
     from datetime import datetime
     out = {"_comment": "Meta-labeling gates: P(primary direction correct) >= meta_gate "

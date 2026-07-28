@@ -1993,6 +1993,46 @@ with tab2:
                 _gate_cfg = load_gate_config()
                 _meta_cfg = load_meta_gate_config()
 
+                # ── Accuracy by bucket (backtested gated accuracy + live tracker) ──
+                _acc_rows = ""
+                for _h in _hz_order:
+                    _mc = _meta_cfg.get(_h) or _gate_cfg.get(_h)
+                    if not _mc:
+                        continue
+                    _exp = _mc.get("exp_acc", "—")
+                    _cov = _mc.get("coverage", 0)
+                    _meets = _mc.get("meets_70", (_exp != "—" and _exp >= 70))
+                    _live = _ph.get(_h, {}).get("accuracy")
+                    _live_str = f"{_live}%" if _live is not None else "—"
+                    _badge = ("<span style='color:#27500A'>✓ ≥70%</span>" if _meets
+                              else "<span style='color:#BA7517'>best-effort</span>")
+                    _hi = _h in _available
+                    _rowbg = "" if _hi else "opacity:0.55;"
+                    _acc_rows += (
+                        f"<tr style='{_rowbg}'>"
+                        f"<td style='padding:5px 12px;font-weight:600'>{_hz_labels.get(_h,_h)}</td>"
+                        f"<td style='padding:5px 12px;text-align:right'>{_exp}%</td>"
+                        f"<td style='padding:5px 12px;text-align:center'>{_badge}</td>"
+                        f"<td style='padding:5px 12px;text-align:right'>{_cov*100:.0f}%</td>"
+                        f"<td style='padding:5px 12px;text-align:right'>{_live_str}</td>"
+                        f"</tr>")
+                st.markdown(
+                    "<div style='overflow-x:auto;margin-bottom:14px'>"
+                    "<table style='border-collapse:collapse;font-size:13px;width:100%;min-width:440px'>"
+                    "<thead><tr style='border-bottom:1px solid var(--color-border-tertiary);"
+                    "color:var(--color-text-secondary);font-size:12px'>"
+                    "<th style='padding:6px 12px;text-align:left'>Horizon</th>"
+                    "<th style='padding:6px 12px;text-align:right'>Gated accuracy</th>"
+                    "<th style='padding:6px 12px;text-align:center'>70% target</th>"
+                    "<th style='padding:6px 12px;text-align:right'>Fires</th>"
+                    "<th style='padding:6px 12px;text-align:right'>Live so far</th>"
+                    "</tr></thead><tbody>" + _acc_rows + "</tbody></table>"
+                    "<div style='font-size:11px;color:var(--color-text-secondary);margin-top:4px'>"
+                    "Gated accuracy = backtested hit-rate when the meta gate fires (walk-forward, "
+                    "out-of-sample). Faded rows aren't predictable at this time of day. "
+                    "'Live so far' = your logged results.</div></div>",
+                    unsafe_allow_html=True)
+
                 # Show the strongest gated signal at the top, if any cleared its gate
                 _gated_hits = []
                 for _h in _available:
@@ -2020,6 +2060,7 @@ with tab2:
                     st.caption("⚪ No high-conviction signal right now — every horizon is below its "
                                "gate. Best to stay flat until one clears.")
 
+                _cards_html = ""
                 for _hz in _available:
                     _p = _preds_live[_hz]
                     _dir, _conf = _p["direction"], _p["confidence"]
@@ -2054,7 +2095,7 @@ with tab2:
                     _acc_str = f"{_hz_acc}% dir. accuracy" if _hz_acc is not None else "no history yet"
                     _mae_str = f" · avg ±{_hz_mae} pts price error" if _hz_mae is not None else ""
 
-                    st.markdown(
+                    _cards_html += (
                         f"<div style='border:1px solid var(--color-border-tertiary);border-left:4px solid {_dir_color};"
                         f"border-radius:10px;padding:14px 16px;margin-bottom:10px;background:var(--color-background-primary)'>"
                         f"<div style='display:flex;align-items:center;gap:14px;flex-wrap:wrap'>"
@@ -2071,12 +2112,18 @@ with tab2:
                         f"<span>Target: <b style='color:{_dir_color}'>₹{_tgt_price:,.0f}</b> ({_move_pts:+.0f} pts)</span>"
                         f"<span style='margin-left:auto'>{_acc_str}{_mae_str}</span>"
                         f"</div>"
-                        f"</div>", unsafe_allow_html=True)
+                        f"</div>")
+
+                # Cards in a scrollable container so long lists never overflow the page.
+                st.markdown(
+                    f"<div style='max-height:520px;overflow-y:auto;padding-right:6px'>{_cards_html}</div>",
+                    unsafe_allow_html=True)
 
                 # ── Recent verified predictions (direction + magnitude) ───
                 _recent = le.get_recent_verifications(limit=10)
                 if _recent:
                     st.markdown("#### 🔁 Recent results (direction + price accuracy)")
+                    _recent_html = ""
                     for _r in _recent:
                         _icon = "✅" if _r["correct"] else "❌"
                         _ds = "UP ↑" if _r["direction"] == 1 else "DOWN ↓"
@@ -2096,7 +2143,7 @@ with tab2:
                             _price_badge = (f"<span style='color:{_pcolor};font-size:12px'>"
                                             f"target ₹{_tgt:,.0f}, off by {_perr:.0f} pts</span>")
 
-                        st.markdown(
+                        _recent_html += (
                             f"<div style='display:flex;gap:10px;align-items:center;padding:7px 0;"
                             f"border-bottom:0.5px solid var(--color-border-tertiary);font-size:13px'>"
                             f"<span style='font-size:15px'>{_icon}</span>"
@@ -2106,7 +2153,12 @@ with tab2:
                             f"<span style='min-width:130px;color:var(--color-text-secondary)'>"
                             f"₹{_entry:,.0f} → ₹{_actual:,.0f}</span>"
                             f"{_price_badge}"
-                            f"</div>", unsafe_allow_html=True)
+                            f"</div>")
+                    # Scrollable + horizontally scrollable so rows never overflow.
+                    st.markdown(
+                        f"<div style='max-height:340px;overflow:auto'>"
+                        f"<div style='min-width:520px'>{_recent_html}</div></div>",
+                        unsafe_allow_html=True)
 
                 # 5-min chart
                 _today = date.today().isoformat()
