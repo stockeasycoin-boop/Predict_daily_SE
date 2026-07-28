@@ -166,6 +166,7 @@ def log_predictions_batch(predictions: dict, entry_price: float) -> int:
                 "horizon":      horizon,
                 "direction":    p["direction"],
                 "confidence":   p["confidence"],
+                "meta_confidence": p.get("meta_confidence"),
                 "entry_price":  round(entry_price, 2),
                 "target_price": p.get("target_price", 0),
                 "target_ts":    target_iso,
@@ -424,6 +425,79 @@ def get_calibration_summary(target_date: str = None) -> dict:
         "calibration": calibration,
         "magnitude":   magnitude,
     }
+
+
+def get_live_bucket_evaluation(model_dir: str = "models") -> dict:
+    """
+    LIVE scorecard from trades/live_predictions.jsonl — realized per-bucket
+    accuracy from your ACTUAL logged predictions (all history, verified only),
+    compared to the backtested gate expectation.
+
+    Per horizon returns:
+      n           verified non-flat predictions
+      acc         realized accuracy over all of them
+      gated_n     of those, how many cleared the gate (meta gate if the record
+                  has meta_confidence, else the confidence gate)
+      gated_acc   realized accuracy on the gated subset (None if none fired)
+      expected    backtested gated accuracy for this bucket (predicted vs actual)
+      meets_70    did the backtest expect this bucket to clear 70%
+    Also "_overall": {n, acc}.  Returns {} if nothing verified yet.
+    """
+    if not LIVE_LOG_FILE.exists():
+        return {}
+    rows = []
+    with open(LIVE_LOG_FILE) as f:
+        for line in f:
+            try:
+                rows.append(json.loads(line))
+            except Exception:
+                pass
+    if not rows:
+        return {}
+
+    df = pd.DataFrame(rows)
+    df = df[pd.to_numeric(df.get("correct"), errors="coerce").notna()].copy()
+    if len(df) == 0:
+        return {}
+    df["correct"] = pd.to_numeric(df["correct"], errors="coerce")
+
+    # Load gate configs to decide which records "fired" the gate.
+    meta_cfg, conf_cfg = {}, {}
+    try:
+        meta_cfg = json.load(open(Path(model_dir) / "meta_config.json")).get("horizons", {})
+    except Exception:
+        pass
+    try:
+        conf_cfg = json.load(open(Path(model_dir) / "gate_config.json")).get("horizons", {})
+    except Exception:
+        pass
+
+    has_meta_col = "meta_confidence" in df.columns
+    out = {}
+    for hz in df["horizon"].unique():
+        sub = df[df["horizon"] == hz]
+        mc, cc = meta_cfg.get(hz), conf_cfg.get(hz)
+
+        fired = pd.Series(False, index=sub.index)
+        mconf = pd.to_numeric(sub["meta_confidence"], errors="coerce") if has_meta_col else None
+        cconf = pd.to_numeric(sub["confidence"], errors="coerce")
+        if mc and mconf is not None:
+            fired = fired | (mconf >= mc["meta_gate"])
+        if cc:  # confidence-gate fallback for records with no meta_confidence
+            no_meta = mconf.isna() if mconf is not None else pd.Series(True, index=sub.index)
+            fired = fired | (no_meta & (cconf >= cc["conf_gate"]))
+
+        gsub = sub[fired]
+        out[hz] = {
+            "n":         int(len(sub)),
+            "acc":       round(float(sub["correct"].mean()) * 100, 1),
+            "gated_n":   int(len(gsub)),
+            "gated_acc": round(float(gsub["correct"].mean()) * 100, 1) if len(gsub) else None,
+            "expected":  (mc or cc or {}).get("exp_acc"),
+            "meets_70":  (mc or {}).get("meets_70"),
+        }
+    out["_overall"] = {"n": int(len(df)), "acc": round(float(df["correct"].mean()) * 100, 1)}
+    return out
 
 
 def list_history_dates() -> list:

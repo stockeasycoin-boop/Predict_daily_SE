@@ -2033,6 +2033,53 @@ with tab2:
                     "'Live so far' = your logged results.</div></div>",
                     unsafe_allow_html=True)
 
+                # ── Live scorecard: realized accuracy from your ACTUAL logged
+                #    predictions (trades/live_predictions.jsonl), vs backtest ──
+                _live_eval = le.get_live_bucket_evaluation()
+                if _live_eval:
+                    _ov = _live_eval.get("_overall", {})
+                    _le_rows = ""
+                    for _h in _hz_order:
+                        _e = _live_eval.get(_h)
+                        if not _e:
+                            continue
+                        _exp = _e.get("expected")
+                        _exp_s = f"{_exp}%" if _exp is not None else "—"
+                        _ga, _gn = _e.get("gated_acc"), _e.get("gated_n", 0)
+                        if _ga is not None:
+                            _gc = "#27500A" if (_exp is None or _ga >= _exp - 5) else "#A32D2D"
+                            _ga_s = (f"<b style='color:{_gc}'>{_ga}%</b> "
+                                     f"<span style='color:var(--color-text-secondary)'>(n={_gn})</span>")
+                        else:
+                            _ga_s = f"<span style='color:var(--color-text-secondary)'>— (n={_gn})</span>"
+                        _le_rows += (
+                            f"<tr><td style='padding:5px 12px;font-weight:600'>{_hz_labels.get(_h,_h)}</td>"
+                            f"<td style='padding:5px 12px;text-align:right'>{_exp_s}</td>"
+                            f"<td style='padding:5px 12px;text-align:right'>{_e['acc']}% "
+                            f"<span style='color:var(--color-text-secondary)'>(n={_e['n']})</span></td>"
+                            f"<td style='padding:5px 12px;text-align:right'>{_ga_s}</td></tr>")
+                    st.markdown("#### 📋 Live scorecard — your logged predictions vs backtest")
+                    st.markdown(
+                        f"<div style='overflow-x:auto;margin-bottom:14px'>"
+                        f"<div style='font-size:13px;margin-bottom:6px'>Overall live accuracy: "
+                        f"<b>{_ov.get('acc','—')}%</b> over {_ov.get('n',0)} verified predictions</div>"
+                        "<table style='border-collapse:collapse;font-size:13px;width:100%;min-width:460px'>"
+                        "<thead><tr style='border-bottom:1px solid var(--color-border-tertiary);"
+                        "color:var(--color-text-secondary);font-size:12px'>"
+                        "<th style='padding:6px 12px;text-align:left'>Horizon</th>"
+                        "<th style='padding:6px 12px;text-align:right'>Backtest expected</th>"
+                        "<th style='padding:6px 12px;text-align:right'>Live (all)</th>"
+                        "<th style='padding:6px 12px;text-align:right'>Live (gated)</th>"
+                        "</tr></thead><tbody>" + _le_rows + "</tbody></table>"
+                        "<div style='font-size:11px;color:var(--color-text-secondary);margin-top:4px'>"
+                        "Realized hit-rate from trades/live_predictions.jsonl (verified, non-flat). "
+                        "'Live (gated)' counts only predictions that cleared the gate. Green = at/above "
+                        "backtest expectation. Small n is noisy — trust it as more days accumulate.</div></div>",
+                        unsafe_allow_html=True)
+                else:
+                    st.caption("📋 Live scorecard: no verified live predictions yet — this fills in as the "
+                               "app logs and verifies predictions during market hours (trades/live_predictions.jsonl).")
+
                 # Show the strongest gated signal at the top, if any cleared its gate
                 _gated_hits = []
                 for _h in _available:
