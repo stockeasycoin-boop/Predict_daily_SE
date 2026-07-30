@@ -2005,7 +2005,10 @@ with tab2:
                 _gate_cfg = load_gate_config()
                 _meta_cfg = load_meta_gate_config()
 
-                # ── Accuracy by bucket (backtested gated accuracy + live tracker) ──
+                # ── ONE per-bucket accuracy table: backtest target vs your live results ──
+                _live_eval = le.get_live_bucket_evaluation() or {}
+                _excl = _live_eval.get("_excluded", {})
+                _ov = _live_eval.get("_overall", {})
                 _acc_rows = ""
                 for _h in _hz_order:
                     _mc = _meta_cfg.get(_h) or _gate_cfg.get(_h)
@@ -2013,95 +2016,57 @@ with tab2:
                         continue
                     _exp = _mc.get("exp_acc", "—")
                     _cov = _mc.get("coverage", 0)
-                    _meets = _mc.get("meets_70", (_exp != "—" and _exp >= 70))
-                    _live = _ph.get(_h, {}).get("accuracy")
-                    _live_str = f"{_live}%" if _live is not None else "—"
-                    _badge = ("<span style='color:#27500A'>✓ ≥70%</span>" if _meets
+                    _meets = _mc.get("meets_70", (isinstance(_exp, (int, float)) and _exp >= 70))
+                    _badge = ("<span style='color:#27500A'>✓&nbsp;70%</span>" if _meets
                               else "<span style='color:#BA7517'>best-effort</span>")
-                    _hi = _h in _available
-                    _rowbg = "" if _hi else "opacity:0.55;"
+                    _e = _live_eval.get(_h) or {}
+                    _la = (f"{_e['acc']}% <span style='color:var(--color-text-secondary)'>(n={_e['n']})</span>"
+                           if _e else "—")
+                    _lg_val = _e.get("gated_acc")
+                    if _lg_val is not None:
+                        _lgc = "#27500A" if (not isinstance(_exp, (int, float)) or _lg_val >= _exp - 5) else "#A32D2D"
+                        _lg = (f"<b style='color:{_lgc}'>{_lg_val}%</b> "
+                               f"<span style='color:var(--color-text-secondary)'>(n={_e.get('gated_n',0)})</span>")
+                    elif _e:
+                        _lg = f"<span style='color:var(--color-text-secondary)'>— (n={_e.get('gated_n',0)})</span>"
+                    else:
+                        _lg = "—"
+                    _fade = "" if _h in _available else "opacity:0.5;"
                     _acc_rows += (
-                        f"<tr style='{_rowbg}'>"
+                        f"<tr style='{_fade}'>"
                         f"<td style='padding:5px 12px;font-weight:600'>{_hz_labels.get(_h,_h)}</td>"
                         f"<td style='padding:5px 12px;text-align:right'>{_exp}%</td>"
                         f"<td style='padding:5px 12px;text-align:center'>{_badge}</td>"
                         f"<td style='padding:5px 12px;text-align:right'>{_cov*100:.0f}%</td>"
-                        f"<td style='padding:5px 12px;text-align:right'>{_live_str}</td>"
+                        f"<td style='padding:5px 12px;text-align:right'>{_la}</td>"
+                        f"<td style='padding:5px 12px;text-align:right'>{_lg}</td>"
                         f"</tr>")
+                _ov_line = (f"Your live results so far: <b>{_ov.get('acc')}%</b> over "
+                            f"{_ov.get('n',0)} verified predictions. " if _ov else "")
+                _excl_note = (f"Excluded {_excl['n']} predictions from {len(_excl['days'])} stale-feed "
+                              f"day(s) ({', '.join(_excl['days'])}) — frozen data, not real signals. "
+                              if _excl.get("n") else "")
+                st.markdown("#### Accuracy by horizon")
                 st.markdown(
                     "<div style='overflow-x:auto;margin-bottom:14px'>"
-                    "<table style='border-collapse:collapse;font-size:13px;width:100%;min-width:440px'>"
+                    "<table style='border-collapse:collapse;font-size:13px;width:100%;min-width:520px'>"
                     "<thead><tr style='border-bottom:1px solid var(--color-border-tertiary);"
                     "color:var(--color-text-secondary);font-size:12px'>"
                     "<th style='padding:6px 12px;text-align:left'>Horizon</th>"
-                    "<th style='padding:6px 12px;text-align:right'>Gated accuracy</th>"
-                    "<th style='padding:6px 12px;text-align:center'>70% target</th>"
+                    "<th style='padding:6px 12px;text-align:right'>Backtest</th>"
+                    "<th style='padding:6px 12px;text-align:center'>70%</th>"
                     "<th style='padding:6px 12px;text-align:right'>Fires</th>"
-                    "<th style='padding:6px 12px;text-align:right'>Live so far</th>"
+                    "<th style='padding:6px 12px;text-align:right'>Live (all)</th>"
+                    "<th style='padding:6px 12px;text-align:right'>Live (gated)</th>"
                     "</tr></thead><tbody>" + _acc_rows + "</tbody></table>"
                     "<div style='font-size:11px;color:var(--color-text-secondary);margin-top:4px'>"
-                    "Gated accuracy = backtested hit-rate when the meta gate fires (walk-forward, "
-                    "out-of-sample). Faded rows aren't predictable at this time of day. "
-                    "'Live so far' = your logged results.</div></div>",
+                    + _ov_line +
+                    "<b>Backtest</b> = gated hit-rate in walk-forward test. <b>Fires</b> = how often "
+                    "the gate triggers. <b>Live</b> = your logged results (all vs gate-cleared only); "
+                    "green = at/above backtest. Faded rows aren't predictable at this time of day. "
+                    + _excl_note +
+                    "Small live n is noisy — trust it as more days accumulate.</div></div>",
                     unsafe_allow_html=True)
-
-                # ── Live scorecard: realized accuracy from your ACTUAL logged
-                #    predictions (trades/live_predictions.jsonl), vs backtest ──
-                _live_eval = le.get_live_bucket_evaluation()
-                _excl = (_live_eval or {}).get("_excluded", {})
-                if _live_eval and _live_eval.get("_overall"):
-                    _ov = _live_eval.get("_overall", {})
-                    _le_rows = ""
-                    for _h in _hz_order:
-                        _e = _live_eval.get(_h)
-                        if not _e:
-                            continue
-                        _exp = _e.get("expected")
-                        _exp_s = f"{_exp}%" if _exp is not None else "—"
-                        _ga, _gn = _e.get("gated_acc"), _e.get("gated_n", 0)
-                        if _ga is not None:
-                            _gc = "#27500A" if (_exp is None or _ga >= _exp - 5) else "#A32D2D"
-                            _ga_s = (f"<b style='color:{_gc}'>{_ga}%</b> "
-                                     f"<span style='color:var(--color-text-secondary)'>(n={_gn})</span>")
-                        else:
-                            _ga_s = f"<span style='color:var(--color-text-secondary)'>— (n={_gn})</span>"
-                        _le_rows += (
-                            f"<tr><td style='padding:5px 12px;font-weight:600'>{_hz_labels.get(_h,_h)}</td>"
-                            f"<td style='padding:5px 12px;text-align:right'>{_exp_s}</td>"
-                            f"<td style='padding:5px 12px;text-align:right'>{_e['acc']}% "
-                            f"<span style='color:var(--color-text-secondary)'>(n={_e['n']})</span></td>"
-                            f"<td style='padding:5px 12px;text-align:right'>{_ga_s}</td></tr>")
-                    st.markdown("#### 📋 Live scorecard — your logged predictions vs backtest")
-                    st.markdown(
-                        f"<div style='overflow-x:auto;margin-bottom:14px'>"
-                        f"<div style='font-size:13px;margin-bottom:6px'>Overall live accuracy: "
-                        f"<b>{_ov.get('acc','—')}%</b> over {_ov.get('n',0)} verified predictions</div>"
-                        "<table style='border-collapse:collapse;font-size:13px;width:100%;min-width:460px'>"
-                        "<thead><tr style='border-bottom:1px solid var(--color-border-tertiary);"
-                        "color:var(--color-text-secondary);font-size:12px'>"
-                        "<th style='padding:6px 12px;text-align:left'>Horizon</th>"
-                        "<th style='padding:6px 12px;text-align:right'>Backtest expected</th>"
-                        "<th style='padding:6px 12px;text-align:right'>Live (all)</th>"
-                        "<th style='padding:6px 12px;text-align:right'>Live (gated)</th>"
-                        "</tr></thead><tbody>" + _le_rows + "</tbody></table>"
-                        "<div style='font-size:11px;color:var(--color-text-secondary);margin-top:4px'>"
-                        "Realized hit-rate from trades/live_predictions.jsonl (verified, non-flat). "
-                        "'Live (gated)' counts only predictions that cleared the gate. Green = at/above "
-                        "backtest expectation. Small n is noisy — trust it as more days accumulate."
-                        + (f" Excluded {_excl['n']} predictions from {len(_excl['days'])} stale-feed "
-                           f"day(s) ({', '.join(_excl['days'])}) — frozen data, not real signals."
-                           if _excl.get("n") else "")
-                        + "</div></div>",
-                        unsafe_allow_html=True)
-                else:
-                    _msg = ("📋 Live scorecard: no verified live predictions yet — this fills in as the "
-                            "app logs and verifies predictions during market hours (trades/live_predictions.jsonl).")
-                    if _excl.get("n"):
-                        _msg = (f"📋 Live scorecard: all verified records so far come from "
-                                f"{len(_excl['days'])} stale-feed day(s) ({', '.join(_excl['days'])}) and were "
-                                f"excluded as frozen-data artifacts. Real per-bucket accuracy will show once "
-                                f"clean predictions are logged.")
-                    st.caption(_msg)
 
                 # Show the strongest gated signal at the top, if any cleared its gate
                 _gated_hits = []
