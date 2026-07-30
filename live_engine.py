@@ -461,6 +461,20 @@ def get_live_bucket_evaluation(model_dir: str = "models") -> dict:
         return {}
     df["correct"] = pd.to_numeric(df["correct"], errors="coerce")
 
+    # ── Exclude stale/frozen-feed days from the DISPLAYED accuracy (non-destructive
+    #    — the raw log is untouched). Signature: a day with many predictions but a
+    #    degenerate number of distinct entry prices means the feed was frozen and
+    #    every prediction shared one stale anchor (garbage, ~16% accuracy).
+    df["_date"] = df["ts"].astype(str).str[:10]
+    df["_ep"] = pd.to_numeric(df.get("entry_price"), errors="coerce")
+    _uep = df.groupby("_date")["_ep"].nunique()
+    _cnt = df.groupby("_date")["_ep"].size()
+    _stale_days = set(_uep[(_cnt >= 50) & (_uep <= 3)].index)
+    excluded_n = int(df["_date"].isin(_stale_days).sum())
+    df = df[~df["_date"].isin(_stale_days)].copy()
+    if len(df) == 0:
+        return {"_excluded": {"n": excluded_n, "days": sorted(_stale_days)}}
+
     # Load gate configs to decide which records "fired" the gate.
     meta_cfg, conf_cfg = {}, {}
     try:
@@ -497,6 +511,7 @@ def get_live_bucket_evaluation(model_dir: str = "models") -> dict:
             "meets_70":  (mc or {}).get("meets_70"),
         }
     out["_overall"] = {"n": int(len(df)), "acc": round(float(df["correct"].mean()) * 100, 1)}
+    out["_excluded"] = {"n": excluded_n, "days": sorted(_stale_days)}
     return out
 
 

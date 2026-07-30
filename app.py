@@ -2048,7 +2048,8 @@ with tab2:
                 # ── Live scorecard: realized accuracy from your ACTUAL logged
                 #    predictions (trades/live_predictions.jsonl), vs backtest ──
                 _live_eval = le.get_live_bucket_evaluation()
-                if _live_eval:
+                _excl = (_live_eval or {}).get("_excluded", {})
+                if _live_eval and _live_eval.get("_overall"):
                     _ov = _live_eval.get("_overall", {})
                     _le_rows = ""
                     for _h in _hz_order:
@@ -2086,11 +2087,21 @@ with tab2:
                         "<div style='font-size:11px;color:var(--color-text-secondary);margin-top:4px'>"
                         "Realized hit-rate from trades/live_predictions.jsonl (verified, non-flat). "
                         "'Live (gated)' counts only predictions that cleared the gate. Green = at/above "
-                        "backtest expectation. Small n is noisy — trust it as more days accumulate.</div></div>",
+                        "backtest expectation. Small n is noisy — trust it as more days accumulate."
+                        + (f" Excluded {_excl['n']} predictions from {len(_excl['days'])} stale-feed "
+                           f"day(s) ({', '.join(_excl['days'])}) — frozen data, not real signals."
+                           if _excl.get("n") else "")
+                        + "</div></div>",
                         unsafe_allow_html=True)
                 else:
-                    st.caption("📋 Live scorecard: no verified live predictions yet — this fills in as the "
-                               "app logs and verifies predictions during market hours (trades/live_predictions.jsonl).")
+                    _msg = ("📋 Live scorecard: no verified live predictions yet — this fills in as the "
+                            "app logs and verifies predictions during market hours (trades/live_predictions.jsonl).")
+                    if _excl.get("n"):
+                        _msg = (f"📋 Live scorecard: all verified records so far come from "
+                                f"{len(_excl['days'])} stale-feed day(s) ({', '.join(_excl['days'])}) and were "
+                                f"excluded as frozen-data artifacts. Real per-bucket accuracy will show once "
+                                f"clean predictions are logged.")
+                    st.caption(_msg)
 
                 # Show the strongest gated signal at the top, if any cleared its gate
                 _gated_hits = []
