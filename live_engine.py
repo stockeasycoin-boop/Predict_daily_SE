@@ -556,4 +556,16 @@ def run_eod_retrain(breeze, model_dir: str = "models", verbose: bool = True) -> 
         return {"error": "Not enough intraday data"}
     if verbose:
         print(f"[EOD] Retraining on {len(df_5min)} candles…")
-    return ip.train_intraday_models(df_5min, model_dir=model_dir, verbose=verbose)
+    # Intraday horizon models — recency-weighted so they track the current regime.
+    res = ip.train_intraday_models(df_5min, model_dir=model_dir, verbose=verbose)
+    # Meta-labeling models MUST retrain too, else the gated signals grade against a
+    # stale primary and the high-conviction gate drifts.
+    try:
+        import meta_labeling as ml
+        if verbose:
+            print("[EOD] Retraining meta-labeling models…")
+        ml.train_meta_models(df_5min, model_dir=model_dir, verbose=verbose)
+    except Exception as e:
+        if verbose:
+            print(f"[EOD] Meta retrain skipped: {e}")
+    return res

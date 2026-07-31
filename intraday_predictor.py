@@ -452,7 +452,7 @@ def build_horizon_targets(feat_df: pd.DataFrame) -> pd.DataFrame:
 # TRAINING
 # ─────────────────────────────────────────────────────────────────────────────
 
-def _fit_calibrated(base_model, X, y, verbose=False):
+def _fit_calibrated(base_model, X, y, verbose=False, sample_weight=None):
     """
     Fit a model then wrap it in isotonic calibration using a chronological holdout.
 
@@ -479,15 +479,17 @@ def _fit_calibrated(base_model, X, y, verbose=False):
         min(np.bincount(y_cal)) >= 20   # at least 20 of each class
     )
 
+    sw_tr = sample_weight[:split] if sample_weight is not None else None
+
     if not can_calibrate:
         # Not enough data to calibrate safely — return plain model fit on all data
-        base_model.fit(X, y)
+        base_model.fit(X, y, sample_weight=sample_weight)
         if verbose:
             print(f"      (uncalibrated — only {len(X_cal)} calibration rows)")
         return base_model, False
 
     # Fit base on training portion, then calibrate on recent holdout
-    base_model.fit(X_tr, y_tr)
+    base_model.fit(X_tr, y_tr, sample_weight=sw_tr)
 
     # sklearn >= 1.6 removed cv="prefit" in favor of FrozenEstimator.
     # Try the modern approach first, fall back to legacy for older sklearn.
@@ -525,6 +527,19 @@ def train_intraday_models(df_5min: pd.DataFrame,
     X_all  = X_raw.values.astype(np.float32)
     X_sc   = scaler.fit_transform(X_all)
 
+    # ── Recency weighting: recent candles matter more so the model tracks the
+    #    current regime instead of getting stuck in a stale (e.g. bearish) bias.
+    #    Exponential decay by calendar age; ~90-day scale keeps older data useful
+    #    while letting the last few weeks dominate. Requires a same-day retrain to
+    #    stay fresh (daily auto-retrain).
+    if "trading_date" in feat_df.columns:
+        _ref = feat_df["trading_date"].max()
+        _days_ago = (_ref - feat_df["trading_date"]).dt.days.values.astype(float)
+        sw_all = np.exp(-_days_ago / 90.0).astype(np.float32)
+        sw_all = sw_all / sw_all.mean()
+    else:
+        sw_all = np.ones(len(feat_df), dtype=np.float32)
+
     joblib.dump(scaler, f"{model_dir}/intraday_scaler.pkl")
     joblib.dump(avail,  f"{model_dir}/intraday_features.pkl")
 
@@ -537,6 +552,7 @@ def train_intraday_models(df_5min: pd.DataFrame,
         valid = feat_df[col].notna()
         X = X_sc[valid]
         y = feat_df.loc[valid, col].values.astype(int)
+        sw = sw_all[valid.values]
 
         if len(X) < 200:
             if verbose: print(f"  {horizon}: insufficient data ({len(X)} rows), skipping")
@@ -560,7 +576,7 @@ def train_intraday_models(df_5min: pd.DataFrame,
                                       subsample=0.75, colsample_bytree=0.75,
                                       eval_metric="logloss", use_label_encoder=False,
                                       random_state=42, n_jobs=-1)
-        xgb_m, xgb_cal = _fit_calibrated(xgb_base, X, y, verbose=verbose)
+        xgb_m, xgb_cal = _fit_calibrated(xgb_base, X, y, verbose=verbose, sample_weight=sw)
         joblib.dump(xgb_m, f"{model_dir}/intraday_xgb_{horizon}.pkl")
 
         # LightGBM — fit + isotonic calibration
@@ -569,7 +585,7 @@ def train_intraday_models(df_5min: pd.DataFrame,
             lgb_base = lgb.LGBMClassifier(n_estimators=300, max_depth=5, learning_rate=0.04,
                                            num_leaves=40, subsample=0.75, colsample_bytree=0.75,
                                            random_state=42, n_jobs=-1, verbose=-1)
-            lgb_m, lgb_cal = _fit_calibrated(lgb_base, X, y, verbose=verbose)
+            lgb_m, lgb_cal = _fit_calibrated(lgb_base, X, y, verbose=verbose, sample_weight=sw)
             joblib.dump(lgb_m, f"{model_dir}/intraday_lgb_{horizon}.pkl")
 
         results[horizon] = {
