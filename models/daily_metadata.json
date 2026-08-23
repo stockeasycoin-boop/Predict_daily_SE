@@ -1,0 +1,10 @@
+{
+  "trained_at": "2026-06-14T22:41:09.031444",
+  "pipeline": "5min_unified",
+  "n_features": 81,
+  "n_days": 494,
+  "results": {
+    "open_cv": 0.484,
+    "close_cv": 0.496
+  }
+}

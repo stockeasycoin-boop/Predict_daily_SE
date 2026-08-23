@@ -1,0 +1,608 @@
+{
+  "score": 0.0774,
+  "label": "slightly bullish",
+  "n_articles": 35,
+  "n_positive": 14,
+  "n_negative": 14,
+  "n_neutral": 7,
+  "pct_positive": 40.0,
+  "pct_negative": 40.0,
+  "n_macro": 13,
+  "n_market_events": 6,
+  "n_general": 16,
+  "macro_sentiment": 0.294,
+  "market_sentiment": -0.32,
+  "general_sentiment": 0.036,
+  "backend": "vader",
+  "top_headlines": [
+    {
+      "title": "Hero Passion+ Disc launched at Rs. 84,128",
+      "sentiment": 0.9349,
+      "source": "BikeWale",
+      "url": "https://www.bikewale.com/news/hero-passion-disc-launched-at-rs-84128/",
+      "publishedAt": "2026-06-27T06:49:51Z",
+      "publishedIST": "2026-06-27 12:19 IST",
+      "impact_type": "general",
+      "weight_mult": 1.0,
+      "query": "top:business"
+    },
+    {
+      "title": "Good news for India amid US-Iran ceasefire; Goldman Sachs raises GDP growth forecast for 2026 to 6.8 percent",
+      "sentiment": 0.9287,
+      "source": "India.com",
+      "url": "https://www.india.com/business/good-news-for-india-amid-us-iran-ceasefire-goldman-sachs-raises-gdp-growth-forecast-for-2026-to-6-8-percent-west-asia-crude-oil-indian-economy-fuel-prices-oil-prices-8458355/",
+      "publishedAt": "2026-06-26T12:54:09Z",
+      "publishedIST": "2026-06-26 18:24 IST",
+      "impact_type": "macro",
+      "weight_mult": 1.5,
+      "query": "India GDP growth"
+    },
+    {
+      "title": "Iran war day 120: Tehran condemns US strikes, says it violates MoU",
+      "sentiment": -0.9186,
+      "source": "Al Jazeera",
+      "url": "https://www.aljazeera.com/news/2026/6/27/iran-war-day-120-tehran-condemns-us-strikes-says-its-violation-of-mou",
+      "publishedAt": "2026-06-27T07:26:09Z",
+      "publishedIST": "2026-06-27 12:56 IST",
+      "impact_type": "market_event",
+      "weight_mult": 1.3,
+      "query": "top:world"
+    },
+    {
+      "title": "Wall Street Week Ahead: Jobs data, rate bets in focus as US stocks close solid first half",
+      "sentiment": 0.9163,
+      "source": "The Economic Times",
+      "url": "https://economictimes.indiatimes.com/markets/us-stocks/news/wall-street-week-ahead-jobs-data-rate-bets-in-focus-as-us-stocks-close-solid-first-half/articleshow/132028322.cms",
+      "publishedAt": "2026-06-27T03:59:00Z",
+      "publishedIST": "2026-06-27 09:29 IST",
+      "impact_type": "macro",
+      "weight_mult": 1.5,
+      "query": "US Federal Reserve rate"
+    },
+    {
+      "title": "West Asia war LIVE: Lebanon, Israel and U.S. sign trilateral framework pact",
+      "sentiment": -0.9136,
+      "source": "The Hindu",
+      "url": "https://www.thehindu.com/news/international/west-asia-war-iran-us-conflict-washington-tehran-ceasefire-strait-of-hormuz-israel-lebanon-peace-deal-live-updates-june-27-2026/article71153161.ece",
+      "publishedAt": "2026-06-27T01:45:58Z",
+      "publishedIST": "2026-06-27 07:15 IST",
+      "impact_type": "market_event",
+      "weight_mult": 1.3,
+      "query": "top:world"
+    },
+    {
+      "title": "Hero Xoom 125 Adventure Design Patented - Launch Soon?",
+      "sentiment": 0.8957,
+      "source": "RushLane",
+      "url": "https://www.rushlane.com/hero-xoom-125-adventure-design-patented-launch-soon-12549982.html",
+      "publishedAt": "2026-06-27T08:28:25Z",
+      "publishedIST": "2026-06-27 13:58 IST",
+      "impact_type": "general",
+      "weight_mult": 1.0,
+      "query": "top:business"
+    },
+    {
+      "title": "India\u2019s FY27 GDP Growth Projected at 6.6-6.8% As Energy Markets Normalise: EY Report",
+      "sentiment": 0.8934,
+      "source": "Deccan Chronicle",
+      "url": "https://www.deccanchronicle.com/nation/indias-fy27-gdp-growth-projected-at-6668-as-energy-markets-normalise-ey-report-1966442",
+      "publishedAt": "2026-06-26T13:19:28Z",
+      "publishedIST": "2026-06-26 18:49 IST",
+      "impact_type": "macro",
+      "weight_mult": 1.5,
+      "query": "India GDP growth"
+    },
+    {
+      "title": "Make use of FTAs, other schemes to boost shipments, government tells businesses",
+      "sentiment": 0.8779,
+      "source": "Times of India",
+      "url": "https://timesofindia.indiatimes.com/business/india-business/make-use-of-ftas-other-schemes-to-boost-shipments-government-tells-businesses/articleshow/132027112.cms",
+      "publishedAt": "2026-06-27T01:16:00Z",
+      "publishedIST": "2026-06-27 06:46 IST",
+      "impact_type": "general",
+      "weight_mult": 1.0,
+      "query": "India trade export"
+    },
+    {
+      "title": "350cc to 450cc Motorcycle Sales May 2026 - Royal Enfield, Triumph, Honda, KTM, Bajaj, Jawa, Aprilia",
+      "sentiment": 0.8583,
+      "source": "RushLane",
+      "url": "https://www.rushlane.com/350cc-to-450cc-motorcycle-sales-may-2026-royal-enfield-triumph-honda-12549984.html",
+      "publishedAt": "2026-06-27T06:30:13Z",
+      "publishedIST": "2026-06-27 12:00 IST",
+      "impact_type": "general",
+      "weight_mult": 1.0,
+      "query": "top:business"
+    },
+    {
+      "title": "India growth momentum reviving on West Asia peace: EY",
+      "sentiment": 0.8271,
+      "source": "The Financial Express",
+      "url": "https://www.financialexpress.com/policy/economy/india-growth-momentum-revivingnbspon-west-asia-peace-ey/4277196/",
+      "publishedAt": "2026-06-26T12:19:18Z",
+      "publishedIST": "2026-06-26 17:49 IST",
+      "impact_type": "macro",
+      "weight_mult": 1.5,
+      "query": "India GDP growth"
+    }
+  ],
+  "latest_headlines": [
+    {
+      "title": "Higher Nominal GDP Growth To Help India Maintain Fiscal Discipline In FY27 Despite Global Risks: EY",
+      "sentiment": 0.7589,
+      "source": "News18",
+      "url": "https://www.news18.com/business/economy/higher-nominal-gdp-growth-to-help-india-maintain-fiscal-discipline-in-fy27-despite-global-risks-ey-ws-l-10177065.html",
+      "publishedAt": "2026-06-27T09:54:10Z",
+      "publishedIST": "2026-06-27 15:24 IST",
+      "impact_type": "macro",
+      "weight_mult": 1.5,
+      "query": "India GDP growth"
+    },
+    {
+      "title": "India's higher nominal GDP growth may help contain fiscal pressures despite global risks: EY",
+      "sentiment": 0.8151,
+      "source": "The Tribune",
+      "url": "https://www.tribuneindia.com/news/business/indias-higher-nominal-gdp-growth-may-help-contain-fiscal-pressures-despite-global-risks-ey/",
+      "publishedAt": "2026-06-27T09:43:11Z",
+      "publishedIST": "2026-06-27 15:13 IST",
+      "impact_type": "macro",
+      "weight_mult": 1.5,
+      "query": "India GDP growth"
+    },
+    {
+      "title": "Crude below $75: What Brent\u2019s sharp drop means for India\u2019s FY27 Inflation and GDP runway",
+      "sentiment": -0.3818,
+      "source": "The Financial Express",
+      "url": "https://www.financialexpress.com/policy/economy/crude-below-75-what-brents-sharp-drop-means-for-indias-fy27-inflation-and-gdp-runway/4277767/",
+      "publishedAt": "2026-06-27T09:02:51Z",
+      "publishedIST": "2026-06-27 14:32 IST",
+      "impact_type": "macro",
+      "weight_mult": 1.5,
+      "query": "India GDP growth"
+    },
+    {
+      "title": "Hero Xoom 125 Adventure Design Patented - Launch Soon?",
+      "sentiment": 0.8957,
+      "source": "RushLane",
+      "url": "https://www.rushlane.com/hero-xoom-125-adventure-design-patented-launch-soon-12549982.html",
+      "publishedAt": "2026-06-27T08:28:25Z",
+      "publishedIST": "2026-06-27 13:58 IST",
+      "impact_type": "general",
+      "weight_mult": 1.0,
+      "query": "top:business"
+    },
+    {
+      "title": "FEMA rules revision: Exporters flag at least half-a-dozen worries",
+      "sentiment": -0.6808,
+      "source": "The Economic Times",
+      "url": "https://economictimes.indiatimes.com/news/economy/foreign-trade/fema-rules-revision-exporters-flag-at-least-half-a-dozen-worries/articleshow/132031154.cms",
+      "publishedAt": "2026-06-27T08:21:00Z",
+      "publishedIST": "2026-06-27 13:51 IST",
+      "impact_type": "general",
+      "weight_mult": 1.0,
+      "query": "India trade export"
+    },
+    {
+      "title": "Goldman Sachs\u2019 India bets: 8 stocks rally up to 85% in CY26; one new addition",
+      "sentiment": -0.4019,
+      "source": "The Economic Times",
+      "url": "https://economictimes.indiatimes.com/markets/stocks/news/goldman-sachs-india-bets-8-stocks-rally-up-to-85-in-cy26-one-new-addition/mixed-stock-performance/slideshow/132030875.cms?from=mdr",
+      "publishedAt": "2026-06-27T07:49:58Z",
+      "publishedIST": "2026-06-27 13:19 IST",
+      "impact_type": "market_event",
+      "weight_mult": 1.3,
+      "query": "top:business"
+    },
+    {
+      "title": "Iran war day 120: Tehran condemns US strikes, says it violates MoU",
+      "sentiment": -0.9186,
+      "source": "Al Jazeera",
+      "url": "https://www.aljazeera.com/news/2026/6/27/iran-war-day-120-tehran-condemns-us-strikes-says-its-violation-of-mou",
+      "publishedAt": "2026-06-27T07:26:09Z",
+      "publishedIST": "2026-06-27 12:56 IST",
+      "impact_type": "market_event",
+      "weight_mult": 1.3,
+      "query": "top:world"
+    },
+    {
+      "title": "\u2018Speak up with moral clarity\u2019: Rahul Gandhi backs Sonia Gandhi over Gaza op-ed, calls on India to 'reclaim its independent foreign policy'",
+      "sentiment": -0.4767,
+      "source": "The Times of India",
+      "url": "https://timesofindia.indiatimes.com/india/speak-up-with-moral-clarity-rahul-gandhi-backs-sonia-gandhi-calls-on-india-to-reclaim-its-independent-foreign-policy/articleshow/132029842.cms",
+      "publishedAt": "2026-06-27T06:54:00Z",
+      "publishedIST": "2026-06-27 12:24 IST",
+      "impact_type": "general",
+      "weight_mult": 1.0,
+      "query": "top:world"
+    },
+    {
+      "title": "Hero Passion+ Disc launched at Rs. 84,128",
+      "sentiment": 0.9349,
+      "source": "BikeWale",
+      "url": "https://www.bikewale.com/news/hero-passion-disc-launched-at-rs-84128/",
+      "publishedAt": "2026-06-27T06:49:51Z",
+      "publishedIST": "2026-06-27 12:19 IST",
+      "impact_type": "general",
+      "weight_mult": 1.0,
+      "query": "top:business"
+    },
+    {
+      "title": "350cc to 450cc Motorcycle Sales May 2026 - Royal Enfield, Triumph, Honda, KTM, Bajaj, Jawa, Aprilia",
+      "sentiment": 0.8583,
+      "source": "RushLane",
+      "url": "https://www.rushlane.com/350cc-to-450cc-motorcycle-sales-may-2026-royal-enfield-triumph-honda-12549984.html",
+      "publishedAt": "2026-06-27T06:30:13Z",
+      "publishedIST": "2026-06-27 12:00 IST",
+      "impact_type": "general",
+      "weight_mult": 1.0,
+      "query": "top:business"
+    }
+  ],
+  "macro_headlines": [
+    {
+      "title": "Good news for India amid US-Iran ceasefire; Goldman Sachs raises GDP growth forecast for 2026 to 6.8 percent",
+      "sentiment": 0.9287,
+      "source": "India.com",
+      "url": "https://www.india.com/business/good-news-for-india-amid-us-iran-ceasefire-goldman-sachs-raises-gdp-growth-forecast-for-2026-to-6-8-percent-west-asia-crude-oil-indian-economy-fuel-prices-oil-prices-8458355/",
+      "publishedAt": "2026-06-26T12:54:09Z",
+      "publishedIST": "2026-06-26 18:24 IST",
+      "impact_type": "macro",
+      "weight_mult": 1.5,
+      "query": "India GDP growth"
+    },
+    {
+      "title": "Iran war day 120: Tehran condemns US strikes, says it violates MoU",
+      "sentiment": -0.9186,
+      "source": "Al Jazeera",
+      "url": "https://www.aljazeera.com/news/2026/6/27/iran-war-day-120-tehran-condemns-us-strikes-says-its-violation-of-mou",
+      "publishedAt": "2026-06-27T07:26:09Z",
+      "publishedIST": "2026-06-27 12:56 IST",
+      "impact_type": "market_event",
+      "weight_mult": 1.3,
+      "query": "top:world"
+    },
+    {
+      "title": "Wall Street Week Ahead: Jobs data, rate bets in focus as US stocks close solid first half",
+      "sentiment": 0.9163,
+      "source": "The Economic Times",
+      "url": "https://economictimes.indiatimes.com/markets/us-stocks/news/wall-street-week-ahead-jobs-data-rate-bets-in-focus-as-us-stocks-close-solid-first-half/articleshow/132028322.cms",
+      "publishedAt": "2026-06-27T03:59:00Z",
+      "publishedIST": "2026-06-27 09:29 IST",
+      "impact_type": "macro",
+      "weight_mult": 1.5,
+      "query": "US Federal Reserve rate"
+    },
+    {
+      "title": "West Asia war LIVE: Lebanon, Israel and U.S. sign trilateral framework pact",
+      "sentiment": -0.9136,
+      "source": "The Hindu",
+      "url": "https://www.thehindu.com/news/international/west-asia-war-iran-us-conflict-washington-tehran-ceasefire-strait-of-hormuz-israel-lebanon-peace-deal-live-updates-june-27-2026/article71153161.ece",
+      "publishedAt": "2026-06-27T01:45:58Z",
+      "publishedIST": "2026-06-27 07:15 IST",
+      "impact_type": "market_event",
+      "weight_mult": 1.3,
+      "query": "top:world"
+    },
+    {
+      "title": "India\u2019s FY27 GDP Growth Projected at 6.6-6.8% As Energy Markets Normalise: EY Report",
+      "sentiment": 0.8934,
+      "source": "Deccan Chronicle",
+      "url": "https://www.deccanchronicle.com/nation/indias-fy27-gdp-growth-projected-at-6668-as-energy-markets-normalise-ey-report-1966442",
+      "publishedAt": "2026-06-26T13:19:28Z",
+      "publishedIST": "2026-06-26 18:49 IST",
+      "impact_type": "macro",
+      "weight_mult": 1.5,
+      "query": "India GDP growth"
+    },
+    {
+      "title": "India growth momentum reviving on West Asia peace: EY",
+      "sentiment": 0.8271,
+      "source": "The Financial Express",
+      "url": "https://www.financialexpress.com/policy/economy/india-growth-momentum-revivingnbspon-west-asia-peace-ey/4277196/",
+      "publishedAt": "2026-06-26T12:19:18Z",
+      "publishedIST": "2026-06-26 17:49 IST",
+      "impact_type": "macro",
+      "weight_mult": 1.5,
+      "query": "India GDP growth"
+    },
+    {
+      "title": "India's higher nominal GDP growth may help contain fiscal pressures despite global risks: EY",
+      "sentiment": 0.8151,
+      "source": "The Tribune",
+      "url": "https://www.tribuneindia.com/news/business/indias-higher-nominal-gdp-growth-may-help-contain-fiscal-pressures-despite-global-risks-ey/",
+      "publishedAt": "2026-06-27T09:43:11Z",
+      "publishedIST": "2026-06-27 15:13 IST",
+      "impact_type": "macro",
+      "weight_mult": 1.5,
+      "query": "India GDP growth"
+    },
+    {
+      "title": "Higher Nominal GDP Growth To Help India Maintain Fiscal Discipline In FY27 Despite Global Risks: EY",
+      "sentiment": 0.7589,
+      "source": "News18",
+      "url": "https://www.news18.com/business/economy/higher-nominal-gdp-growth-to-help-india-maintain-fiscal-discipline-in-fy27-despite-global-risks-ey-ws-l-10177065.html",
+      "publishedAt": "2026-06-27T09:54:10Z",
+      "publishedIST": "2026-06-27 15:24 IST",
+      "impact_type": "macro",
+      "weight_mult": 1.5,
+      "query": "India GDP growth"
+    },
+    {
+      "title": "Chartist Talk: Reclaiming 24,500-24,600 may not be easy for Nifty 50; Sudeep Shah recommends two stocks for next week",
+      "sentiment": 0.6902,
+      "source": "Moneycontrol",
+      "url": "https://www.moneycontrol.com/news/business/markets/chartist-talk-reclaiming-24-500-24-600-may-not-be-easy-for-nifty-50-sudeep-shah-recommends-two-stocks-for-next-week-13959825.html",
+      "publishedAt": "2026-06-27T02:24:51Z",
+      "publishedIST": "2026-06-27 07:54 IST",
+      "impact_type": "market_event",
+      "weight_mult": 1.3,
+      "query": "Nifty 50"
+    },
+    {
+      "title": "What is the US-Israel-Lebanon deal? Hezbollah warns of 'civil war' over 'disarmament of non-state armed groups'",
+      "sentiment": -0.6486,
+      "source": "The Times of India",
+      "url": "https://timesofindia.indiatimes.com/world/middle-east/what-is-the-us-israel-lebanon-deal-hezbollah-warns-of-civil-war-over-disarmament-of-non-state-armed-groups/articleshow/132027257.cms",
+      "publishedAt": "2026-06-27T02:19:00Z",
+      "publishedIST": "2026-06-27 07:49 IST",
+      "impact_type": "market_event",
+      "weight_mult": 1.3,
+      "query": "top:world"
+    }
+  ],
+  "category_breakdown": {
+    "India GDP growth": {
+      "count": 10,
+      "avg_sentiment": 0.272,
+      "label": "bullish"
+    },
+    "top:business": {
+      "count": 10,
+      "avg_sentiment": 0.193,
+      "label": "bullish"
+    },
+    "top:world": {
+      "count": 10,
+      "avg_sentiment": -0.398,
+      "label": "bearish"
+    },
+    "India trade export": {
+      "count": 2,
+      "avg_sentiment": 0.099,
+      "label": "neutral"
+    },
+    "US Federal Reserve rate": {
+      "count": 2,
+      "avg_sentiment": 0.458,
+      "label": "bullish"
+    },
+    "Nifty 50": {
+      "count": 1,
+      "avg_sentiment": 0.69,
+      "label": "bullish"
+    }
+  },
+  "articles": [
+    {
+      "query": "Nifty 50",
+      "title": "Chartist Talk: Reclaiming 24,500-24,600 may not be easy for Nifty 50; Sudeep Shah recommends two sto",
+      "source": "Moneycontrol",
+      "sentiment": 0.6902,
+      "label": "[+] BULLISH",
+      "impact": "market_event",
+      "weight": 1.3,
+      "time": "07:54 IST",
+      "url": "https://www.moneycontrol.com/news/business/markets/chartist-talk-reclaiming-24-500-24-600-may-not-be-easy-for-nifty-50-sudeep-shah-recommends-two-stocks-for-next-week-13959825.html"
+    },
+    {
+      "query": "India GDP growth",
+      "title": "Higher Nominal GDP Growth To Help India Maintain Fiscal Discipline In FY27 Despite Global Risks: EY",
+      "source": "News18",
+      "sentiment": 0.7589,
+      "label": "[+] BULLISH",
+      "impact": "macro",
+      "weight": 1.5,
+      "time": "15:24 IST",
+      "url": "https://www.news18.com/business/economy/higher-nominal-gdp-growth-to-help-india-maintain-fiscal-discipline-in-fy27-despite-global-risks-ey-ws-l-10177065.html"
+    },
+    {
+      "query": "India GDP growth",
+      "title": "India's higher nominal GDP growth may help contain fiscal pressures despite global risks: EY",
+      "source": "The Tribune",
+      "sentiment": 0.8151,
+      "label": "[+] BULLISH",
+      "impact": "macro",
+      "weight": 1.5,
+      "time": "15:13 IST",
+      "url": "https://www.tribuneindia.com/news/business/indias-higher-nominal-gdp-growth-may-help-contain-fiscal-pressures-despite-global-risks-ey/"
+    },
+    {
+      "query": "India GDP growth",
+      "title": "Crude below $75: What Brent\u2019s sharp drop means for India\u2019s FY27 Inflation and GDP runway",
+      "source": "The Financial Expres",
+      "sentiment": -0.3818,
+      "label": "[-] BEARISH",
+      "impact": "macro",
+      "weight": 1.5,
+      "time": "14:32 IST",
+      "url": "https://www.financialexpress.com/policy/economy/crude-below-75-what-brents-sharp-drop-means-for-indias-fy27-inflation-and-gdp-runway/4277767/"
+    },
+    {
+      "query": "India GDP growth",
+      "title": "Fitch, Moody\u2019s and S&P have been unfair to India: Piyush Goyal",
+      "source": "The Indian Express",
+      "sentiment": -0.5574,
+      "label": "[-] BEARISH",
+      "impact": "macro",
+      "weight": 1.5,
+      "time": "06:46 IST",
+      "url": "https://indianexpress.com/article/business/economy/fitch-moodys-and-sp-have-been-unfair-to-india-piyush-goyal-10759585/"
+    },
+    {
+      "query": "India GDP growth",
+      "title": "India's education spending remains at 4% of GDP, below NEP\u2019s 6% target",
+      "source": "The Tribune",
+      "sentiment": -0.1779,
+      "label": "[-] Sl.Bear",
+      "impact": "macro",
+      "weight": 1.5,
+      "time": "19:14 IST",
+      "url": "https://www.tribuneindia.com/news/india/indias-education-spending-remains-at-4-of-gdp-below-neps-6-target/"
+    },
+    {
+      "query": "US Federal Reserve rate",
+      "title": "Wall Street Week Ahead: Jobs data, rate bets in focus as US stocks close solid first half",
+      "source": "The Economic Times",
+      "sentiment": 0.9163,
+      "label": "[+] BULLISH",
+      "impact": "macro",
+      "weight": 1.5,
+      "time": "09:29 IST",
+      "url": "https://economictimes.indiatimes.com/markets/us-stocks/news/wall-street-week-ahead-jobs-data-rate-bets-in-focus-as-us-stocks-close-solid-first-half/articleshow/132028322.cms"
+    },
+    {
+      "query": "US Federal Reserve rate",
+      "title": "Gold, silver rate today (June 27): Gold prices remain volatile; check latest 18K, 22K, 24K rates in ",
+      "source": "Business Today",
+      "sentiment": 0.0,
+      "label": "[ ] Neutral",
+      "impact": "macro",
+      "weight": 1.5,
+      "time": "09:26 IST",
+      "url": "https://www.businesstoday.in/personal-finance/investment/story/gold-silver-rate-today-june-27-gold-prices-remain-volatile-check-latest-18k-22k-24k-rates-in-major-cities-539500-2026-06-27"
+    },
+    {
+      "query": "India trade export",
+      "title": "FEMA rules revision: Exporters flag at least half-a-dozen worries",
+      "source": "The Economic Times",
+      "sentiment": -0.6808,
+      "label": "[-] BEARISH",
+      "impact": "general",
+      "weight": 1.0,
+      "time": "13:51 IST",
+      "url": "https://economictimes.indiatimes.com/news/economy/foreign-trade/fema-rules-revision-exporters-flag-at-least-half-a-dozen-worries/articleshow/132031154.cms"
+    },
+    {
+      "query": "India trade export",
+      "title": "Make use of FTAs, other schemes to boost shipments, government tells businesses",
+      "source": "Times of India",
+      "sentiment": 0.8779,
+      "label": "[+] BULLISH",
+      "impact": "general",
+      "weight": 1.0,
+      "time": "06:46 IST",
+      "url": "https://timesofindia.indiatimes.com/business/india-business/make-use-of-ftas-other-schemes-to-boost-shipments-government-tells-businesses/articleshow/132027112.cms"
+    },
+    {
+      "query": "top:business",
+      "title": "Hero Xoom 125 Adventure Design Patented - Launch Soon?",
+      "source": "RushLane",
+      "sentiment": 0.8957,
+      "label": "[+] BULLISH",
+      "impact": "general",
+      "weight": 1.0,
+      "time": "13:58 IST",
+      "url": "https://www.rushlane.com/hero-xoom-125-adventure-design-patented-launch-soon-12549982.html"
+    },
+    {
+      "query": "top:business",
+      "title": "Goldman Sachs\u2019 India bets: 8 stocks rally up to 85% in CY26; one new addition",
+      "source": "The Economic Times",
+      "sentiment": -0.4019,
+      "label": "[-] BEARISH",
+      "impact": "market_event",
+      "weight": 1.3,
+      "time": "13:19 IST",
+      "url": "https://economictimes.indiatimes.com/markets/stocks/news/goldman-sachs-india-bets-8-stocks-rally-up-to-85-in-cy26-one-new-addition/mixed-stock-performance/slideshow/132030875.cms?from=mdr"
+    },
+    {
+      "query": "top:business",
+      "title": "Hero Passion+ Disc launched at Rs. 84,128",
+      "source": "BikeWale",
+      "sentiment": 0.9349,
+      "label": "[+] BULLISH",
+      "impact": "general",
+      "weight": 1.0,
+      "time": "12:19 IST",
+      "url": "https://www.bikewale.com/news/hero-passion-disc-launched-at-rs-84128/"
+    },
+    {
+      "query": "top:business",
+      "title": "350cc to 450cc Motorcycle Sales May 2026 - Royal Enfield, Triumph, Honda, KTM, Bajaj, Jawa, Aprilia",
+      "source": "RushLane",
+      "sentiment": 0.8583,
+      "label": "[+] BULLISH",
+      "impact": "general",
+      "weight": 1.0,
+      "time": "12:00 IST",
+      "url": "https://www.rushlane.com/350cc-to-450cc-motorcycle-sales-may-2026-royal-enfield-triumph-honda-12549984.html"
+    },
+    {
+      "query": "top:business",
+      "title": "Meet Shankh Mitra: Indian-Origin CEO Earning $821 Million, Just Behind Elon Musk",
+      "source": "NDTV",
+      "sentiment": -0.1027,
+      "label": "[-] Sl.Bear",
+      "impact": "general",
+      "weight": 1.0,
+      "time": "11:56 IST",
+      "url": "https://www.ndtv.com/feature/meet-shankh-mitra-indian-origin-ceo-earning-821-million-just-behind-elon-musk-11694232"
+    },
+    {
+      "query": "top:world",
+      "title": "Iran war day 120: Tehran condemns US strikes, says it violates MoU",
+      "source": "Al Jazeera",
+      "sentiment": -0.9186,
+      "label": "[-] BEARISH",
+      "impact": "market_event",
+      "weight": 1.3,
+      "time": "12:56 IST",
+      "url": "https://www.aljazeera.com/news/2026/6/27/iran-war-day-120-tehran-condemns-us-strikes-says-its-violation-of-mou"
+    },
+    {
+      "query": "top:world",
+      "title": "\u2018Speak up with moral clarity\u2019: Rahul Gandhi backs Sonia Gandhi over Gaza op-ed, calls on India to 'r",
+      "source": "The Times of India",
+      "sentiment": -0.4767,
+      "label": "[-] BEARISH",
+      "impact": "general",
+      "weight": 1.0,
+      "time": "12:24 IST",
+      "url": "https://timesofindia.indiatimes.com/india/speak-up-with-moral-clarity-rahul-gandhi-backs-sonia-gandhi-calls-on-india-to-reclaim-its-independent-foreign-policy/articleshow/132029842.cms"
+    },
+    {
+      "query": "top:world",
+      "title": "\u2018Yielded nothing but Modi-Netanyahu friendship\u2019: Sonia on Centre's 'Gaza silence'",
+      "source": "Hindustan Times",
+      "sentiment": 0.0,
+      "label": "[ ] Neutral",
+      "impact": "general",
+      "weight": 1.0,
+      "time": "11:33 IST",
+      "url": "https://www.hindustantimes.com/india-news/indias-silence-on-gaza-cannot-be-explained-sonia-gandhi-gaza-op-ed-sharp-attack-modi-govt-101782536398227.html"
+    },
+    {
+      "query": "top:world",
+      "title": "Exclusive: In Africa, A City Waits For The Massacre Everyone Sees Coming",
+      "source": "NDTV",
+      "sentiment": 0.2732,
+      "label": "[+] BULLISH",
+      "impact": "market_event",
+      "weight": 1.3,
+      "time": "09:57 IST",
+      "url": "https://www.ndtv.com/world-news/sudan-el-obeid-el-fasher-rsf-hemeti-africa-genocide-exclusive-in-africa-a-city-waits-for-the-massacre-everyone-sees-coming-11693418"
+    },
+    {
+      "query": "top:world",
+      "title": "Trump unveils new U.S. passport featuring his image",
+      "source": "The Hindu",
+      "sentiment": 0.0,
+      "label": "[ ] Neutral",
+      "impact": "general",
+      "weight": 1.0,
+      "time": "09:46 IST",
+      "url": "https://www.thehindu.com/news/international/trump-unveils-new-us-passport-featuring-his-image/article71153325.ece"
+    }
+  ],
+  "fetched_at": "2026-06-27T10:53:42.715256"
+}

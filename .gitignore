@@ -5,14 +5,21 @@ __pycache__/
 *.joblib
 
 # Model weights & data (large binaries, fetched at runtime)
-models/
-data/
+# NOTE: on the `deployment` branch, models/ and data/ ARE committed (as a
+# snapshot) so Streamlit Community Cloud has something to serve without
+# running a full Breeze fetch + training job on first boot. Only the
+# raw scraped-news dump and backup copies are excluded below.
 logs/
 trades/
 backtest_results/
+data/scraped_news/
+*.bak
+!models/*.pkl
+!models/*.joblib
 
 # Secrets — never commit API keys
 settings.json
+.streamlit/secrets.toml
 
 # Temp / crash dumps
 *.stackdump

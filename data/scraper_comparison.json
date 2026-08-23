@@ -1,0 +1,414 @@
+{
+  "result": {
+    "score": 0.3314,
+    "label": "bullish",
+    "n_articles": 104,
+    "n_positive": 68,
+    "n_negative": 17,
+    "n_neutral": 19,
+    "pct_positive": 65.4,
+    "pct_negative": 16.3,
+    "n_macro": 20,
+    "n_market_events": 30,
+    "n_general": 54,
+    "macro_sentiment": 0.373,
+    "market_sentiment": 0.38,
+    "general_sentiment": 0.282,
+    "backend": "vader",
+    "top_headlines": [
+      {
+        "title": "Mcap of 6 of top-10 most valued firms climbs Rs 88,678 cr; ICICI Bank biggest winner",
+        "sentiment": 0.9561,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/mcap-of-6-of-top-10-most-valued-firms-climbs-rs-88678-cr-icici-bank-biggest-winner/articleshow/132046789.cms",
+        "publishedAt": "2026-06-28T06:59:37Z",
+        "publishedIST": "2026-06-28 12:29 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "Iran's inflation surges to 88.6% as war deepens economic crisis",
+        "sentiment": -0.9423,
+        "source": "The Times of India",
+        "url": "https://timesofindia.indiatimes.com/business/international-business/irans-inflation-surges-to-88-6-as-war-deepens-economic-crisis/articleshow/132037963.cms",
+        "publishedAt": "2026-06-27T15:45:10Z",
+        "publishedIST": "2026-06-27 21:15 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Times of India"
+      },
+      {
+        "title": "Six of top-10 most valued firms gain \u20b988,678 cr in market value last week; ICICI Bank biggest winner",
+        "sentiment": 0.9377,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/six-of-top-10-most-valued-firms-gain-88678-cr-in-market-value-last-week-icici-bank-biggest-winner/article71157263.ece",
+        "publishedAt": "2026-06-28T06:58:08Z",
+        "publishedIST": "2026-06-28 12:28 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "India's higher nominal GDP growth may help contain fiscal pressures despite global risks: EY",
+        "sentiment": 0.9373,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/news/economy/indicators/indias-higher-nominal-gdp-growth-may-help-contain-fiscal-pressures-despite-global-risks-ey/articleshow/132033702.cms",
+        "publishedAt": "2026-06-27T11:26:57Z",
+        "publishedIST": "2026-06-27 16:56 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "China\u2019s industrial profit growth slows as domestic demand remains weak",
+        "sentiment": 0.9349,
+        "source": "Zee Business",
+        "url": "https://zeenews.india.com/economy/china-s-industrial-profit-growth-slows-as-domestic-demand-remains-weak-3058154.html",
+        "publishedAt": "",
+        "publishedIST": "",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:Zee Business"
+      },
+      {
+        "title": "Aam in Aam, Indians in US savour taste of home",
+        "sentiment": 0.9217,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/news/economy/agriculture/aam-in-aam-indians-in-us-savour-taste-of-home/articleshow/132041359.cms",
+        "publishedAt": "2026-06-28T00:00:00Z",
+        "publishedIST": "2026-06-28 05:30 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "India's vision is to make Indian Ocean an \u2018ocean of opportunity\u2019: Modi in Seychelles",
+        "sentiment": 0.9217,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/news/indias-vision-is-to-make-indian-ocean-an-ocean-of-opportunity-modi-in-seychelles/article71157498.ece",
+        "publishedAt": "2026-06-28T09:58:46Z",
+        "publishedIST": "2026-06-28 15:28 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "When to book profits and when to sit tight: Timeless investing lessons from Jesse Livermore",
+        "sentiment": 0.9169,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/us-stocks/news/when-to-book-profits-and-when-to-sit-tight-timeless-investing-lessons-from-jesse-livermore/articleshow/132046055.cms",
+        "publishedAt": "2026-06-28T05:33:40Z",
+        "publishedIST": "2026-06-28 11:03 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "The hidden reason global capital is looking beyond India for future growth",
+        "sentiment": 0.9118,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/the-hidden-reason-global-capital-is-looking-beyond-india-for-future-growth/articleshow/132045506.cms",
+        "publishedAt": "2026-06-28T04:43:44Z",
+        "publishedIST": "2026-06-28 10:13 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "Turtlemint IPO set for weak debut as grey market premium turns negative",
+        "sentiment": -0.9081,
+        "source": "CNBC TV18",
+        "url": "https://www.cnbctv18.com/market/turtlemint-ipo-set-for-weak-debut-as-gmp-grey-market-premium-turns-negative-19933574.htm",
+        "publishedAt": "2026-06-28T04:36:03Z",
+        "publishedIST": "2026-06-28 10:06 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:CNBC TV18"
+      }
+    ],
+    "latest_headlines": [
+      {
+        "title": "Stocks to Watch for June 29: HDFC Bank, Kotak Mahindra Bank, Dr Reddy\u2019s and more",
+        "sentiment": 0.7269,
+        "source": "CNBC TV18",
+        "url": "https://www.cnbctv18.com/photos/market/stocks-to-watch-for-june-29-hdfc-bank-kotak-mahindra-bank-power-grid-persistent-systems-dr-reddys-and-more-19932665.htm",
+        "publishedAt": "2026-06-28T10:45:01Z",
+        "publishedIST": "2026-06-28 16:15 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:CNBC TV18"
+      },
+      {
+        "title": "India, Seychelles unveil 19 outcomes spanning defence, digital payments, space, health",
+        "sentiment": 0.5267,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/economy/india-seychelles-unveil-19-outcomes-spanning-defence-digital-payments-space-health/article71157593.ece",
+        "publishedAt": "2026-06-28T10:44:37Z",
+        "publishedIST": "2026-06-28 16:14 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "'They thought it was a picnic': Ex-cricketer tears into Team India after Ireland shock",
+        "sentiment": -0.891,
+        "source": "The Times of India",
+        "url": "https://timesofindia.indiatimes.com/sports/cricket/india-vs-ireland/they-thought-it-was-a-picnic-ex-cricketer-tears-into-team-india-after-ireland-shock/articleshow/132049398.cms",
+        "publishedAt": "2026-06-28T10:43:39Z",
+        "publishedIST": "2026-06-28 16:13 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:The Times of India"
+      },
+      {
+        "title": "India's debt market not ready to fund next growth phase: Report",
+        "sentiment": 0.6798,
+        "source": "The Times of India",
+        "url": "https://timesofindia.indiatimes.com/business/india-business/indias-debt-market-not-ready-to-fund-next-growth-phase-report/articleshow/132049172.cms",
+        "publishedAt": "2026-06-28T10:32:47Z",
+        "publishedIST": "2026-06-28 16:02 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Times of India"
+      },
+      {
+        "title": "Gold, silver rate outlook: Prices face key test next week as US dollar, Iran tensions and jobs data take centre stage",
+        "sentiment": -0.3818,
+        "source": "The Times of India",
+        "url": "https://timesofindia.indiatimes.com/business/india-business/gold-silver-rate-outlook-prices-face-key-test-next-week-as-us-dollar-iran-tensions-and-jobs-data-take-centre-stage/articleshow/132049115.cms",
+        "publishedAt": "2026-06-28T10:25:00Z",
+        "publishedIST": "2026-06-28 15:55 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Times of India"
+      },
+      {
+        "title": "Gold, silver may face a tough week ahead. Here\u2019s what analysts are saying",
+        "sentiment": -0.128,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/gold/gold-silver-may-face-a-tough-week-ahead-heres-what-analysts-are-saying/article71157523.ece",
+        "publishedAt": "2026-06-28T10:24:49Z",
+        "publishedIST": "2026-06-28 15:54 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "India, Seychelles seal 19-point partnership pact",
+        "sentiment": 0.0,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/news/economy/foreign-trade/india-seychelles-unveil-19-outcomes-spanning-defence-digital-payments-space-health/articleshow/132049152.cms",
+        "publishedAt": "2026-06-28T10:23:50Z",
+        "publishedIST": "2026-06-28 15:53 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "From auto payments to multi-device chaos: do OTT users always know what they're paying for?",
+        "sentiment": -0.5719,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/industry/media/ott-subscription-rules-auto-renewal-device-limits-11782630939434.html",
+        "publishedAt": "2026-06-28T10:19:52Z",
+        "publishedIST": "2026-06-28 15:49 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "Move beyond \u2018Made in India\u2019 to \u2018designed in India\u2019: Minister Sharan Prakash Patil",
+        "sentiment": 0.0,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/multimedia/video/move-beyond-made-in-india-to-designed-in-india-minister-sharan-prakash-patil/article71157459.ece",
+        "publishedAt": "2026-06-28T10:04:56Z",
+        "publishedIST": "2026-06-28 15:34 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "Missed declaring FD income last year? Here's how you can rectify it and what happens if you ignore it",
+        "sentiment": 0.3716,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/money/personal-finance/missed-declaring-fd-income-last-year-heres-how-you-can-rectify-it-and-what-happens-if-you-ignore-it-11782637941885.html",
+        "publishedAt": "2026-06-28T10:04:24Z",
+        "publishedIST": "2026-06-28 15:34 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:Livemint"
+      }
+    ],
+    "macro_headlines": [
+      {
+        "title": "Mcap of 6 of top-10 most valued firms climbs Rs 88,678 cr; ICICI Bank biggest winner",
+        "sentiment": 0.9561,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/mcap-of-6-of-top-10-most-valued-firms-climbs-rs-88678-cr-icici-bank-biggest-winner/articleshow/132046789.cms",
+        "publishedAt": "2026-06-28T06:59:37Z",
+        "publishedIST": "2026-06-28 12:29 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "Iran's inflation surges to 88.6% as war deepens economic crisis",
+        "sentiment": -0.9423,
+        "source": "The Times of India",
+        "url": "https://timesofindia.indiatimes.com/business/international-business/irans-inflation-surges-to-88-6-as-war-deepens-economic-crisis/articleshow/132037963.cms",
+        "publishedAt": "2026-06-27T15:45:10Z",
+        "publishedIST": "2026-06-27 21:15 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Times of India"
+      },
+      {
+        "title": "India's higher nominal GDP growth may help contain fiscal pressures despite global risks: EY",
+        "sentiment": 0.9373,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/news/economy/indicators/indias-higher-nominal-gdp-growth-may-help-contain-fiscal-pressures-despite-global-risks-ey/articleshow/132033702.cms",
+        "publishedAt": "2026-06-27T11:26:57Z",
+        "publishedIST": "2026-06-27 16:56 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "China\u2019s industrial profit growth slows as domestic demand remains weak",
+        "sentiment": 0.9349,
+        "source": "Zee Business",
+        "url": "https://zeenews.india.com/economy/china-s-industrial-profit-growth-slows-as-domestic-demand-remains-weak-3058154.html",
+        "publishedAt": "",
+        "publishedIST": "",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:Zee Business"
+      },
+      {
+        "title": "Aam in Aam, Indians in US savour taste of home",
+        "sentiment": 0.9217,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/news/economy/agriculture/aam-in-aam-indians-in-us-savour-taste-of-home/articleshow/132041359.cms",
+        "publishedAt": "2026-06-28T00:00:00Z",
+        "publishedIST": "2026-06-28 05:30 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "The hidden reason global capital is looking beyond India for future growth",
+        "sentiment": 0.9118,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/the-hidden-reason-global-capital-is-looking-beyond-india-for-future-growth/articleshow/132045506.cms",
+        "publishedAt": "2026-06-28T04:43:44Z",
+        "publishedIST": "2026-06-28 10:13 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "As GST turns 10, focus shifts to AI-led compliance, faster refunds, simpler tax processes",
+        "sentiment": 0.8979,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/news/economy/policy/as-gst-turns-10-focus-shifts-to-ai-led-compliance-faster-refunds-simpler-tax-processes/articleshow/132046464.cms",
+        "publishedAt": "2026-06-28T06:12:00Z",
+        "publishedIST": "2026-06-28 11:42 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "Shivraj Singh Chouhan seeks inputs from states to push fresh rural reforms",
+        "sentiment": 0.8934,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/news/economy/policy/shivraj-singh-chouhan-seeks-inputs-from-states-to-push-fresh-rural-reforms/articleshow/132048505.cms",
+        "publishedAt": "2026-06-28T09:23:05Z",
+        "publishedIST": "2026-06-28 14:53 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "Ahead of Market: 10 things that will decide D-Street action on Monday",
+        "sentiment": 0.8519,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/ahead-of-market-10-things-that-will-decide-d-street-action-on-monday/articleshow/132048171.cms",
+        "publishedAt": "2026-06-28T09:07:20Z",
+        "publishedIST": "2026-06-28 14:37 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "India approves 12 chip manufacturing projects with Rs 1.64 lakh crore investment pipeline",
+        "sentiment": 0.8225,
+        "source": "Zee Business",
+        "url": "https://zeenews.india.com/economy/india-approves-12-chip-manufacturing-projects-with-rs-1-64-lakh-crore-investment-pipeline-3058092.html",
+        "publishedAt": "",
+        "publishedIST": "",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:Zee Business"
+      }
+    ],
+    "category_breakdown": {
+      "rss:The Hindu Business Line": {
+        "count": 22,
+        "avg_sentiment": 0.202,
+        "label": "bullish"
+      },
+      "rss:The Economic Times": {
+        "count": 20,
+        "avg_sentiment": 0.631,
+        "label": "bullish"
+      },
+      "rss:The Times of India": {
+        "count": 18,
+        "avg_sentiment": 0.057,
+        "label": "neutral"
+      },
+      "rss:Livemint": {
+        "count": 17,
+        "avg_sentiment": 0.297,
+        "label": "bullish"
+      },
+      "rss:Zee Business": {
+        "count": 12,
+        "avg_sentiment": 0.424,
+        "label": "bullish"
+      },
+      "rss:CNBC TV18": {
+        "count": 7,
+        "avg_sentiment": 0.357,
+        "label": "bullish"
+      },
+      "rss:News18": {
+        "count": 5,
+        "avg_sentiment": 0.438,
+        "label": "bullish"
+      },
+      "rss:ThePrint": {
+        "count": 2,
+        "avg_sentiment": 0.69,
+        "label": "bullish"
+      },
+      "rss:The Indian Express": {
+        "count": 1,
+        "avg_sentiment": -0.178,
+        "label": "bearish"
+      }
+    }
+  },
+  "n_sources": 9,
+  "sources": {
+    "The Hindu Business Line": 22,
+    "The Economic Times": 20,
+    "The Times of India": 18,
+    "Livemint": 17,
+    "Zee Business": 12,
+    "CNBC TV18": 7,
+    "News18": 5,
+    "ThePrint": 2,
+    "The Indian Express": 1
+  }
+}

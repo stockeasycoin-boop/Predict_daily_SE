@@ -1,0 +1,4519 @@
+{
+  "2026-06-15": {
+    "score": 0.1992,
+    "label": "slightly bullish",
+    "n_articles": 144,
+    "n_positive": 75,
+    "n_negative": 38,
+    "n_neutral": 31,
+    "n_macro": 47,
+    "macro_sentiment": 0.213,
+    "backend": "finbert",
+    "top_headlines": [
+      {
+        "title": "Oil prices plunge as Trump announces Iran deal complete; Brent falls to $84 a barrel",
+        "sentiment": -0.9719,
+        "source": "The Times of India",
+        "url": "https://timesofindia.indiatimes.com/business/international-business/oil-prices-plunge-as-trump-announces-iran-deal-complete-brent-falls-to-84-a-barrel/articleshow/131730563.cms",
+        "publishedAt": "2026-06-14T22:56:00Z",
+        "publishedIST": "2026-06-15 04:26 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "top:business"
+      },
+      {
+        "title": "India's productivity gap with China widens despite strong GDP growth; manufacturing leap still missing: Report",
+        "sentiment": -0.9692,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/news/economy/indicators/indias-productivity-gap-with-china-widens-despite-strong-gdp-growth-manufacturing-leap-still-missing-report/articleshow/131699403.cms",
+        "publishedAt": "2026-06-13T06:57:00Z",
+        "publishedIST": "2026-06-13 12:27 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "India GDP growth"
+      },
+      {
+        "title": "As global capital chases AI, are Indian large caps valuations now attractive?",
+        "sentiment": -0.968,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/money/personal-finance/large-cap-stocks-india-fii-selling-india-11781259604382.html",
+        "publishedAt": "2026-06-14T01:30:18Z",
+        "publishedIST": "2026-06-14 07:00 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "Nifty 50"
+      },
+      {
+        "title": "Oil Prices Plunge as U.S. and Iran Reach Deal to Reopen Strait of Hormuz",
+        "sentiment": -0.9667,
+        "source": "Crude Oil Prices Today | OilPrice.com",
+        "url": "https://oilprice.com/Latest-Energy-News/World-News/Oil-Prices-Plunge-as-US-and-Iran-Reach-Deal-to-Reopen-Strait-of-Hormuz.html",
+        "publishedAt": "2026-06-15T01:05:54Z",
+        "publishedIST": "2026-06-15 06:35 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "top:business"
+      },
+      {
+        "title": "Raghuram Rajan Questions Whether India\u2019s High GDP Growth Reflects Ground Reality",
+        "sentiment": -0.9629,
+        "source": "Free Press Journal",
+        "url": "https://www.freepressjournal.in/business/raghuram-rajan-questions-whether-indias-high-gdp-growth-reflects-ground-reality",
+        "publishedAt": "2026-06-12T09:44:21Z",
+        "publishedIST": "2026-06-12 15:14 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "India GDP growth"
+      }
+    ],
+    "macro_headlines": [
+      {
+        "title": "Oil prices plunge as Trump announces Iran deal complete; Brent falls to $84 a barrel",
+        "sentiment": -0.9719,
+        "source": "The Times of India",
+        "url": "https://timesofindia.indiatimes.com/business/international-business/oil-prices-plunge-as-trump-announces-iran-deal-complete-brent-falls-to-84-a-barrel/articleshow/131730563.cms",
+        "publishedAt": "2026-06-14T22:56:00Z",
+        "publishedIST": "2026-06-15 04:26 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "top:business"
+      },
+      {
+        "title": "India's productivity gap with China widens despite strong GDP growth; manufacturing leap still missing: Report",
+        "sentiment": -0.9692,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/news/economy/indicators/indias-productivity-gap-with-china-widens-despite-strong-gdp-growth-manufacturing-leap-still-missing-report/articleshow/131699403.cms",
+        "publishedAt": "2026-06-13T06:57:00Z",
+        "publishedIST": "2026-06-13 12:27 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "India GDP growth"
+      },
+      {
+        "title": "As global capital chases AI, are Indian large caps valuations now attractive?",
+        "sentiment": -0.968,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/money/personal-finance/large-cap-stocks-india-fii-selling-india-11781259604382.html",
+        "publishedAt": "2026-06-14T01:30:18Z",
+        "publishedIST": "2026-06-14 07:00 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "Nifty 50"
+      },
+      {
+        "title": "Oil Prices Plunge as U.S. and Iran Reach Deal to Reopen Strait of Hormuz",
+        "sentiment": -0.9667,
+        "source": "Crude Oil Prices Today | OilPrice.com",
+        "url": "https://oilprice.com/Latest-Energy-News/World-News/Oil-Prices-Plunge-as-US-and-Iran-Reach-Deal-to-Reopen-Strait-of-Hormuz.html",
+        "publishedAt": "2026-06-15T01:05:54Z",
+        "publishedIST": "2026-06-15 06:35 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "top:business"
+      },
+      {
+        "title": "Raghuram Rajan Questions Whether India\u2019s High GDP Growth Reflects Ground Reality",
+        "sentiment": -0.9629,
+        "source": "Free Press Journal",
+        "url": "https://www.freepressjournal.in/business/raghuram-rajan-questions-whether-indias-high-gdp-growth-reflects-ground-reality",
+        "publishedAt": "2026-06-12T09:44:21Z",
+        "publishedIST": "2026-06-12 15:14 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "India GDP growth"
+      }
+    ],
+    "category_breakdown": {
+      "Nifty 50": {
+        "count": 25,
+        "avg_sentiment": 0.468,
+        "label": "bullish"
+      },
+      "top:business": {
+        "count": 25,
+        "avg_sentiment": 0.071,
+        "label": "neutral"
+      },
+      "top:world": {
+        "count": 25,
+        "avg_sentiment": -0.382,
+        "label": "bearish"
+      },
+      "Sensex BSE": {
+        "count": 19,
+        "avg_sentiment": 0.886,
+        "label": "bullish"
+      },
+      "India GDP growth": {
+        "count": 16,
+        "avg_sentiment": 0.151,
+        "label": "bullish"
+      },
+      "Reliance Industries": {
+        "count": 8,
+        "avg_sentiment": -0.047,
+        "label": "neutral"
+      },
+      "India trade export": {
+        "count": 8,
+        "avg_sentiment": 0.934,
+        "label": "bullish"
+      },
+      "US Federal Reserve rate": {
+        "count": 5,
+        "avg_sentiment": -0.197,
+        "label": "bearish"
+      },
+      "crude oil price India": {
+        "count": 5,
+        "avg_sentiment": 0.315,
+        "label": "bullish"
+      },
+      "Indian stock market today": {
+        "count": 3,
+        "avg_sentiment": 0.521,
+        "label": "bullish"
+      },
+      "dollar rupee exchange": {
+        "count": 3,
+        "avg_sentiment": 0.616,
+        "label": "bullish"
+      },
+      "RBI interest rate India": {
+        "count": 2,
+        "avg_sentiment": -0.02,
+        "label": "neutral"
+      }
+    },
+    "fetched_at": "2026-06-15T07:51:12.911414"
+  },
+  "2026-06-16": {
+    "score": 0.3131,
+    "label": "bullish",
+    "n_articles": 169,
+    "n_positive": 93,
+    "n_negative": 32,
+    "n_neutral": 44,
+    "n_macro": 42,
+    "macro_sentiment": 0.287,
+    "backend": "finbert",
+    "top_headlines": [
+      {
+        "title": "Hindalco, NALCO, Vedanta Aluminium shares decline up to 5%, here is why aluminium makers are falling",
+        "sentiment": -0.9736,
+        "source": "Upstox",
+        "url": "https://upstox.com/news/market-news/stocks/hindalco-nalco-vedanta-aluminium-shares-fall-up-to-5-here-is-why-aluminium-makers-are-falling/article-195412/",
+        "publishedAt": "2026-06-16T06:12:02Z",
+        "publishedIST": "2026-06-16 11:42 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "top:business"
+      },
+      {
+        "title": "Day Rally as Traders Seek Clarity on US",
+        "sentiment": -0.9711,
+        "source": "Outlook Business",
+        "url": "https://www.outlookbusiness.com/news/silver-futures-snap-3-day-rally-as-traders-seek-clarity-on-us-iran-pact",
+        "publishedAt": "2026-06-16T11:12:06Z",
+        "publishedIST": "2026-06-16 16:42 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "US Federal Reserve rate"
+      },
+      {
+        "title": "US Iran peace deal: India VIX returns to pre war level, crashes 50% from recent high",
+        "sentiment": -0.9698,
+        "source": "Business Today",
+        "url": "https://www.businesstoday.in/markets/stocks/story/us-iran-peace-deal-india-vix-returns-to-pre-war-level-crashes-50-percent-from-52-week-high-536940-2026-06-15",
+        "publishedAt": "2026-06-15T09:30:56Z",
+        "publishedIST": "2026-06-15 15:00 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "India VIX volatility"
+      },
+      {
+        "title": "HCL Technologies share emerges top gainer on Nifty 50 and Sensex after Sarvam AI investment move",
+        "sentiment": -0.9692,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/hcl-technologies-share-emerges-top-gainer-on-nifty-50-and-sensex-after-sarvam-ai-investment-move-11781584628758.html",
+        "publishedAt": "2026-06-16T04:42:35Z",
+        "publishedIST": "2026-06-16 10:12 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "Nifty 50"
+      },
+      {
+        "title": "ChatGPT's market share slips below 50% for first time",
+        "sentiment": -0.9688,
+        "source": "TechCrunch",
+        "url": "https://techcrunch.com/2026/06/16/chatgpts-market-share-slips-below-50-for-first-time/",
+        "publishedAt": "2026-06-16T10:30:00Z",
+        "publishedIST": "2026-06-16 16:00 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "top:business"
+      }
+    ],
+    "macro_headlines": [
+      {
+        "title": "Day Rally as Traders Seek Clarity on US",
+        "sentiment": -0.9711,
+        "source": "Outlook Business",
+        "url": "https://www.outlookbusiness.com/news/silver-futures-snap-3-day-rally-as-traders-seek-clarity-on-us-iran-pact",
+        "publishedAt": "2026-06-16T11:12:06Z",
+        "publishedIST": "2026-06-16 16:42 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "US Federal Reserve rate"
+      },
+      {
+        "title": "US Iran peace deal: India VIX returns to pre war level, crashes 50% from recent high",
+        "sentiment": -0.9698,
+        "source": "Business Today",
+        "url": "https://www.businesstoday.in/markets/stocks/story/us-iran-peace-deal-india-vix-returns-to-pre-war-level-crashes-50-percent-from-52-week-high-536940-2026-06-15",
+        "publishedAt": "2026-06-15T09:30:56Z",
+        "publishedIST": "2026-06-15 15:00 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "India VIX volatility"
+      },
+      {
+        "title": "Rs 8L cr richer! Sensex zooms 1,100 pts, Nifty tops 24K. US-Iran truce among 5 drivers behind bull run",
+        "sentiment": 0.9557,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/why-is-market-rising-today-sensex-zooms-1100-pts-nifty-tops-24k-iran-us-peace-deal-among-5-drivers-behind-bull-run/articleshow/131732640.cms",
+        "publishedAt": "2026-06-15T04:02:00Z",
+        "publishedIST": "2026-06-15 09:32 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "Sensex BSE"
+      },
+      {
+        "title": "India\u2019s engineering exports surge 24.5% in May to $12.31 billion despite global trade disruptions",
+        "sentiment": 0.955,
+        "source": "CNBC TV18",
+        "url": "https://www.cnbctv18.com/economy/india-engineering-sector-exports-maintain-strong-momentum-fy27-ws-l-19925996.htm",
+        "publishedAt": "2026-06-15T18:33:09Z",
+        "publishedIST": "2026-06-16 00:03 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "India trade export"
+      },
+      {
+        "title": "Top Gainers & Losers on June 15: Aarti Industries, Gabriel India, Apar Industries, HFCL, HPCL among top gainers",
+        "sentiment": 0.952,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/top-gainers-losers-on-june-15-aarti-industries-gabriel-india-apar-industries-hfcl-apollo-tyres-among-top-gain-11781516432854.html",
+        "publishedAt": "2026-06-15T10:23:20Z",
+        "publishedIST": "2026-06-15 15:53 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "Nifty 50"
+      }
+    ],
+    "category_breakdown": {
+      "Nifty 50": {
+        "count": 25,
+        "avg_sentiment": 0.554,
+        "label": "bullish"
+      },
+      "top:world": {
+        "count": 25,
+        "avg_sentiment": -0.225,
+        "label": "bearish"
+      },
+      "top:business": {
+        "count": 24,
+        "avg_sentiment": 0.066,
+        "label": "neutral"
+      },
+      "Reliance Industries": {
+        "count": 18,
+        "avg_sentiment": 0.296,
+        "label": "bullish"
+      },
+      "Sensex BSE": {
+        "count": 17,
+        "avg_sentiment": 0.897,
+        "label": "bullish"
+      },
+      "India trade export": {
+        "count": 16,
+        "avg_sentiment": 0.9,
+        "label": "bullish"
+      },
+      "Indian stock market today": {
+        "count": 11,
+        "avg_sentiment": 0.719,
+        "label": "bullish"
+      },
+      "crude oil price India": {
+        "count": 9,
+        "avg_sentiment": 0.011,
+        "label": "neutral"
+      },
+      "US Federal Reserve rate": {
+        "count": 8,
+        "avg_sentiment": -0.2,
+        "label": "bearish"
+      },
+      "India GDP growth": {
+        "count": 7,
+        "avg_sentiment": 0.281,
+        "label": "bullish"
+      },
+      "dollar rupee exchange": {
+        "count": 4,
+        "avg_sentiment": 0.937,
+        "label": "bullish"
+      },
+      "Asia markets today": {
+        "count": 2,
+        "avg_sentiment": 0.14,
+        "label": "bullish"
+      },
+      "RBI interest rate India": {
+        "count": 1,
+        "avg_sentiment": 0.0,
+        "label": "neutral"
+      },
+      "HDFC Bank results": {
+        "count": 1,
+        "avg_sentiment": 0.0,
+        "label": "neutral"
+      },
+      "India VIX volatility": {
+        "count": 1,
+        "avg_sentiment": -0.97,
+        "label": "bearish"
+      }
+    },
+    "fetched_at": "2026-06-16T12:46:47.096316"
+  },
+  "2026-06-17": {
+    "score": 0.1054,
+    "label": "slightly bullish",
+    "n_articles": 195,
+    "n_positive": 94,
+    "n_negative": 51,
+    "n_neutral": 50,
+    "n_macro": 60,
+    "macro_sentiment": -0.02,
+    "backend": "finbert",
+    "top_headlines": [
+      {
+        "title": "RIL Dividend Details: What The AGM Notice Says On Rs 6/Share Payout",
+        "sentiment": -0.9778,
+        "source": "NDTV Profit",
+        "url": "https://www.ndtvprofit.com/markets/ril-dividend-details-what-the-agm-notice-says-on-rs-6-share-payout-11644496",
+        "publishedAt": "2026-06-16T12:47:59Z",
+        "publishedIST": "2026-06-16 18:17 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "Reliance Industries"
+      },
+      {
+        "title": "Crude Oil Price Dips Below $80 at 3-Month Low, Records 16% Decline In 4 Days",
+        "sentiment": -0.9727,
+        "source": "Times Now",
+        "url": "https://www.timesnownews.com/business-economy/economy/crude-oil-price-dips-below-80-at-3-month-low-records-16-decline-in-4-days-article-154651332",
+        "publishedAt": "2026-06-17T03:16:37Z",
+        "publishedIST": "2026-06-17 08:46 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "crude oil price India"
+      },
+      {
+        "title": "Day Rally as Traders Seek Clarity on US",
+        "sentiment": -0.9711,
+        "source": "Outlook Business",
+        "url": "https://www.outlookbusiness.com/news/silver-futures-snap-3-day-rally-as-traders-seek-clarity-on-us-iran-pact",
+        "publishedAt": "2026-06-16T11:12:06Z",
+        "publishedIST": "2026-06-16 16:42 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "US Federal Reserve rate"
+      },
+      {
+        "title": "US Iran peace deal: India VIX returns to pre war level, crashes 50% from recent high",
+        "sentiment": -0.9698,
+        "source": "Business Today",
+        "url": "https://www.businesstoday.in/markets/stocks/story/us-iran-peace-deal-india-vix-returns-to-pre-war-level-crashes-50-percent-from-52-week-high-536940-2026-06-15",
+        "publishedAt": "2026-06-15T09:30:56Z",
+        "publishedIST": "2026-06-15 15:00 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "India VIX volatility"
+      },
+      {
+        "title": "HCL Technologies share emerges top gainer on Nifty 50 and Sensex after Sarvam AI investment move",
+        "sentiment": -0.9692,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/hcl-technologies-share-emerges-top-gainer-on-nifty-50-and-sensex-after-sarvam-ai-investment-move-11781584628758.html",
+        "publishedAt": "2026-06-16T04:42:35Z",
+        "publishedIST": "2026-06-16 10:12 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "Nifty 50"
+      }
+    ],
+    "macro_headlines": [
+      {
+        "title": "Crude Oil Price Dips Below $80 at 3-Month Low, Records 16% Decline In 4 Days",
+        "sentiment": -0.9727,
+        "source": "Times Now",
+        "url": "https://www.timesnownews.com/business-economy/economy/crude-oil-price-dips-below-80-at-3-month-low-records-16-decline-in-4-days-article-154651332",
+        "publishedAt": "2026-06-17T03:16:37Z",
+        "publishedIST": "2026-06-17 08:46 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "crude oil price India"
+      },
+      {
+        "title": "Day Rally as Traders Seek Clarity on US",
+        "sentiment": -0.9711,
+        "source": "Outlook Business",
+        "url": "https://www.outlookbusiness.com/news/silver-futures-snap-3-day-rally-as-traders-seek-clarity-on-us-iran-pact",
+        "publishedAt": "2026-06-16T11:12:06Z",
+        "publishedIST": "2026-06-16 16:42 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "US Federal Reserve rate"
+      },
+      {
+        "title": "US Iran peace deal: India VIX returns to pre war level, crashes 50% from recent high",
+        "sentiment": -0.9698,
+        "source": "Business Today",
+        "url": "https://www.businesstoday.in/markets/stocks/story/us-iran-peace-deal-india-vix-returns-to-pre-war-level-crashes-50-percent-from-52-week-high-536940-2026-06-15",
+        "publishedAt": "2026-06-15T09:30:56Z",
+        "publishedIST": "2026-06-15 15:00 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "India VIX volatility"
+      },
+      {
+        "title": "US stocks: Nasdaq and S&P 500 slip while Dow hits record high ahead of Fed rate decision",
+        "sentiment": -0.9589,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/us-stocks/news/us-stocks-nasdaq-and-sp-500-slip-while-dow-hits-record-high-ahead-of-fed-rate-decision/articleshow/131781287.cms",
+        "publishedAt": "2026-06-16T20:01:00Z",
+        "publishedIST": "2026-06-17 01:31 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "US Federal Reserve rate"
+      },
+      {
+        "title": "Dixon to BEL - Jay Thakkar suggests 3 stocks to buy or sell for short-term in F&O segment",
+        "sentiment": 0.9558,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/dixon-to-bel-jay-thakkar-suggests-3-stocks-to-buy-or-sell-for-short-term-in-f-o-segment-11781667591760.html",
+        "publishedAt": "2026-06-17T04:03:02Z",
+        "publishedIST": "2026-06-17 09:33 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "Nifty 50"
+      }
+    ],
+    "category_breakdown": {
+      "Nifty 50": {
+        "count": 25,
+        "avg_sentiment": 0.606,
+        "label": "bullish"
+      },
+      "top:world": {
+        "count": 25,
+        "avg_sentiment": -0.301,
+        "label": "bearish"
+      },
+      "Reliance Industries": {
+        "count": 24,
+        "avg_sentiment": 0.062,
+        "label": "neutral"
+      },
+      "top:business": {
+        "count": 24,
+        "avg_sentiment": -0.004,
+        "label": "neutral"
+      },
+      "Sensex BSE": {
+        "count": 20,
+        "avg_sentiment": 0.781,
+        "label": "bullish"
+      },
+      "US Federal Reserve rate": {
+        "count": 18,
+        "avg_sentiment": -0.368,
+        "label": "bearish"
+      },
+      "Indian stock market today": {
+        "count": 16,
+        "avg_sentiment": 0.5,
+        "label": "bullish"
+      },
+      "India trade export": {
+        "count": 14,
+        "avg_sentiment": 0.882,
+        "label": "bullish"
+      },
+      "crude oil price India": {
+        "count": 11,
+        "avg_sentiment": -0.214,
+        "label": "bearish"
+      },
+      "India GDP growth": {
+        "count": 7,
+        "avg_sentiment": 0.074,
+        "label": "neutral"
+      },
+      "dollar rupee exchange": {
+        "count": 5,
+        "avg_sentiment": 0.936,
+        "label": "bullish"
+      },
+      "Asia markets today": {
+        "count": 3,
+        "avg_sentiment": -0.18,
+        "label": "bearish"
+      },
+      "RBI interest rate India": {
+        "count": 1,
+        "avg_sentiment": 0.0,
+        "label": "neutral"
+      },
+      "HDFC Bank results": {
+        "count": 1,
+        "avg_sentiment": 0.0,
+        "label": "neutral"
+      },
+      "India VIX volatility": {
+        "count": 1,
+        "avg_sentiment": -0.97,
+        "label": "bearish"
+      }
+    },
+    "fetched_at": "2026-06-17T09:57:13.466339"
+  },
+  "2026-06-18": {
+    "score": 0.0136,
+    "label": "neutral",
+    "n_articles": 210,
+    "n_positive": 95,
+    "n_negative": 67,
+    "n_neutral": 48,
+    "n_macro": 83,
+    "macro_sentiment": -0.072,
+    "backend": "finbert",
+    "top_headlines": [
+      {
+        "title": "RIL Dividend Details: What The AGM Notice Says On Rs 6/Share Payout",
+        "sentiment": -0.9778,
+        "source": "NDTV Profit",
+        "url": "https://www.ndtvprofit.com/markets/ril-dividend-details-what-the-agm-notice-says-on-rs-6-share-payout-11644496",
+        "publishedAt": "2026-06-16T12:47:59Z",
+        "publishedIST": "2026-06-16 18:17 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "Reliance Industries"
+      },
+      {
+        "title": "Tata Motors PV Stock Tumbles Nearly 10% - Here's Why",
+        "sentiment": -0.9751,
+        "source": "NDTV Profit",
+        "url": "https://www.ndtvprofit.com/markets/tata-motors-pv-stock-tumbles-nearly-10-heres-why-11648694",
+        "publishedAt": "2026-06-17T09:47:25Z",
+        "publishedIST": "2026-06-17 15:17 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "Nifty 50"
+      },
+      {
+        "title": "Rupee falls 21 paise to 94.71 against US dollar in early trade",
+        "sentiment": -0.9745,
+        "source": "The New Indian Express",
+        "url": "https://www.newindianexpress.com/business/2026/Jun/18/rupee-falls-21-paise-to-9471-against-us-dollar-in-early-trade",
+        "publishedAt": "2026-06-18T04:41:54Z",
+        "publishedIST": "2026-06-18 10:11 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "dollar rupee exchange"
+      },
+      {
+        "title": "Rupee slips again: Currency tumbles 21 paise to 94.66 against US dollar",
+        "sentiment": -0.9745,
+        "source": "The Times of India",
+        "url": "https://timesofindia.indiatimes.com/business/india-business/rupee-slips-again-currency-tumbles-21-paise-to-94-66-against-us-dollar/articleshow/131817303.cms",
+        "publishedAt": "2026-06-18T04:34:00Z",
+        "publishedIST": "2026-06-18 10:04 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "top:business"
+      },
+      {
+        "title": "IT stocks drag Nifty despite firm broader market; Infosys, TCS, HCL Tech fall as Fed signals rate hike risk",
+        "sentiment": -0.9745,
+        "source": "Moneycontrol.com",
+        "url": "https://www.moneycontrol.com/news/business/markets/it-stocks-drag-nifty-despite-firm-broader-market-infosys-tcs-hcl-tech-fall-as-fed-signals-rate-hike-risk-13952643.html",
+        "publishedAt": "2026-06-18T03:54:17Z",
+        "publishedIST": "2026-06-18 09:24 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "top:business"
+      }
+    ],
+    "macro_headlines": [
+      {
+        "title": "Rupee falls 21 paise to 94.71 against US dollar in early trade",
+        "sentiment": -0.9745,
+        "source": "The New Indian Express",
+        "url": "https://www.newindianexpress.com/business/2026/Jun/18/rupee-falls-21-paise-to-9471-against-us-dollar-in-early-trade",
+        "publishedAt": "2026-06-18T04:41:54Z",
+        "publishedIST": "2026-06-18 10:11 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "dollar rupee exchange"
+      },
+      {
+        "title": "Rupee slips again: Currency tumbles 21 paise to 94.66 against US dollar",
+        "sentiment": -0.9745,
+        "source": "The Times of India",
+        "url": "https://timesofindia.indiatimes.com/business/india-business/rupee-slips-again-currency-tumbles-21-paise-to-94-66-against-us-dollar/articleshow/131817303.cms",
+        "publishedAt": "2026-06-18T04:34:00Z",
+        "publishedIST": "2026-06-18 10:04 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "top:business"
+      },
+      {
+        "title": "IT stocks drag Nifty despite firm broader market; Infosys, TCS, HCL Tech fall as Fed signals rate hike risk",
+        "sentiment": -0.9745,
+        "source": "Moneycontrol.com",
+        "url": "https://www.moneycontrol.com/news/business/markets/it-stocks-drag-nifty-despite-firm-broader-market-infosys-tcs-hcl-tech-fall-as-fed-signals-rate-hike-risk-13952643.html",
+        "publishedAt": "2026-06-18T03:54:17Z",
+        "publishedIST": "2026-06-18 09:24 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "top:business"
+      },
+      {
+        "title": "Infosys, TCS, Wipro, other IT stocks fall up to 3% after Fed's hawkish tone. What's ahead?",
+        "sentiment": -0.9735,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/infosys-tcs-wipro-other-it-stocks-fall-up-to-3-after-feds-hawkish-tone-whats-ahead/articleshow/131821682.cms",
+        "publishedAt": "2026-06-18T07:35:00Z",
+        "publishedIST": "2026-06-18 13:05 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "US Federal Reserve rate"
+      },
+      {
+        "title": "Crude Oil Price Dips Below $80 at 3-Month Low, Records 16% Decline In 4 Days",
+        "sentiment": -0.9727,
+        "source": "Times Now",
+        "url": "https://www.timesnownews.com/business-economy/economy/crude-oil-price-dips-below-80-at-3-month-low-records-16-decline-in-4-days-article-154651332",
+        "publishedAt": "2026-06-17T03:16:37Z",
+        "publishedIST": "2026-06-17 08:46 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "crude oil price India"
+      }
+    ],
+    "category_breakdown": {
+      "Nifty 50": {
+        "count": 25,
+        "avg_sentiment": 0.291,
+        "label": "bullish"
+      },
+      "US Federal Reserve rate": {
+        "count": 25,
+        "avg_sentiment": -0.511,
+        "label": "bearish"
+      },
+      "Reliance Industries": {
+        "count": 25,
+        "avg_sentiment": 0.15,
+        "label": "bullish"
+      },
+      "top:world": {
+        "count": 25,
+        "avg_sentiment": -0.128,
+        "label": "bearish"
+      },
+      "top:business": {
+        "count": 24,
+        "avg_sentiment": -0.199,
+        "label": "bearish"
+      },
+      "Sensex BSE": {
+        "count": 22,
+        "avg_sentiment": 0.704,
+        "label": "bullish"
+      },
+      "Indian stock market today": {
+        "count": 20,
+        "avg_sentiment": 0.349,
+        "label": "bullish"
+      },
+      "India trade export": {
+        "count": 15,
+        "avg_sentiment": 0.635,
+        "label": "bullish"
+      },
+      "RBI interest rate India": {
+        "count": 9,
+        "avg_sentiment": 0.073,
+        "label": "neutral"
+      },
+      "crude oil price India": {
+        "count": 7,
+        "avg_sentiment": -0.054,
+        "label": "neutral"
+      },
+      "dollar rupee exchange": {
+        "count": 6,
+        "avg_sentiment": 0.238,
+        "label": "bullish"
+      },
+      "India GDP growth": {
+        "count": 3,
+        "avg_sentiment": 0.354,
+        "label": "bullish"
+      },
+      "Asia markets today": {
+        "count": 2,
+        "avg_sentiment": -0.738,
+        "label": "bearish"
+      },
+      "HDFC Bank results": {
+        "count": 1,
+        "avg_sentiment": 0.0,
+        "label": "neutral"
+      },
+      "Infosys TCS IT sector": {
+        "count": 1,
+        "avg_sentiment": 0.935,
+        "label": "bullish"
+      }
+    },
+    "fetched_at": "2026-06-18T09:56:16.143993"
+  },
+  "2026-06-19": {
+    "score": -0.1863,
+    "label": "slightly bearish",
+    "n_articles": 207,
+    "n_positive": 63,
+    "n_negative": 89,
+    "n_neutral": 55,
+    "n_macro": 78,
+    "macro_sentiment": -0.096,
+    "backend": "finbert",
+    "top_headlines": [
+      {
+        "title": "Market crash: Sensex tanks 831pts intraday, Nifty below 23,950; key reasons",
+        "sentiment": -0.9761,
+        "source": "Business Standard",
+        "url": "https://www.business-standard.com/markets/news/market-crash-sensex-tanks-831pts-intraday-nifty-below-23-950-key-reasons-126061900267_1.html",
+        "publishedAt": "2026-06-19T04:54:44Z",
+        "publishedIST": "2026-06-19 10:24 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "Nifty 50"
+      },
+      {
+        "title": "Gold, Silver rates today: MCX gold rate falls near \u20b91.47 lakh per 10 grams, silver prices crash by \u20b96,000 per kg",
+        "sentiment": -0.9751,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/commodities/gold-silver-rates-today-mcx-gold-rate-falls-near-rs-1-47-lakh-per-10-grams-silver-prices-crashes-by-rs-6-000-per-kg-11781840396666.html",
+        "publishedAt": "2026-06-19T03:41:33Z",
+        "publishedIST": "2026-06-19 09:11 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "US Federal Reserve rate"
+      },
+      {
+        "title": "IT stocks sink: Nifty IT tumbles 6% as Infosys, TCS, HCL Tech slump after Accenture cuts guidance",
+        "sentiment": -0.9751,
+        "source": "Upstox",
+        "url": "https://upstox.com/news/market-news/stocks/infosys-tcs-hcl-tech-other-it-stocks-in-focus-after-accenture-lowers-revenue-guidance/article-195628/",
+        "publishedAt": "2026-06-19T03:41:54Z",
+        "publishedIST": "2026-06-19 09:11 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "top:business"
+      },
+      {
+        "title": "Indian IT stocks fall as much as 8% after Accenture slashes revenue guidance",
+        "sentiment": -0.9749,
+        "source": "The Indian Express",
+        "url": "https://indianexpress.com/shorts/business/indian-it-stocks-fall-accenture-slashes-revenue-guidance-10747467/",
+        "publishedAt": "2026-06-19T07:31:02Z",
+        "publishedIST": "2026-06-19 13:01 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "Infosys TCS IT sector"
+      },
+      {
+        "title": "Sensex Declines 831 Points, Nifty Slips Nearly 1% As Accenture's Weak Guidance Triggers IT Sell-Off",
+        "sentiment": -0.9748,
+        "source": "Free Press Journal",
+        "url": "https://www.freepressjournal.in/business/sensex-declines-831-points-nifty-slips-nearly-1-as-accentures-weak-guidance-triggers-it-sell-off",
+        "publishedAt": "2026-06-19T05:35:14Z",
+        "publishedIST": "2026-06-19 11:05 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "Sensex BSE"
+      }
+    ],
+    "macro_headlines": [
+      {
+        "title": "Market crash: Sensex tanks 831pts intraday, Nifty below 23,950; key reasons",
+        "sentiment": -0.9761,
+        "source": "Business Standard",
+        "url": "https://www.business-standard.com/markets/news/market-crash-sensex-tanks-831pts-intraday-nifty-below-23-950-key-reasons-126061900267_1.html",
+        "publishedAt": "2026-06-19T04:54:44Z",
+        "publishedIST": "2026-06-19 10:24 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "Nifty 50"
+      },
+      {
+        "title": "Gold, Silver rates today: MCX gold rate falls near \u20b91.47 lakh per 10 grams, silver prices crash by \u20b96,000 per kg",
+        "sentiment": -0.9751,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/commodities/gold-silver-rates-today-mcx-gold-rate-falls-near-rs-1-47-lakh-per-10-grams-silver-prices-crashes-by-rs-6-000-per-kg-11781840396666.html",
+        "publishedAt": "2026-06-19T03:41:33Z",
+        "publishedIST": "2026-06-19 09:11 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "US Federal Reserve rate"
+      },
+      {
+        "title": "IT stocks sink: Nifty IT tumbles 6% as Infosys, TCS, HCL Tech slump after Accenture cuts guidance",
+        "sentiment": -0.9751,
+        "source": "Upstox",
+        "url": "https://upstox.com/news/market-news/stocks/infosys-tcs-hcl-tech-other-it-stocks-in-focus-after-accenture-lowers-revenue-guidance/article-195628/",
+        "publishedAt": "2026-06-19T03:41:54Z",
+        "publishedIST": "2026-06-19 09:11 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "top:business"
+      },
+      {
+        "title": "Indian IT stocks fall as much as 8% after Accenture slashes revenue guidance",
+        "sentiment": -0.9749,
+        "source": "The Indian Express",
+        "url": "https://indianexpress.com/shorts/business/indian-it-stocks-fall-accenture-slashes-revenue-guidance-10747467/",
+        "publishedAt": "2026-06-19T07:31:02Z",
+        "publishedIST": "2026-06-19 13:01 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "Infosys TCS IT sector"
+      },
+      {
+        "title": "Sensex Declines 831 Points, Nifty Slips Nearly 1% As Accenture's Weak Guidance Triggers IT Sell-Off",
+        "sentiment": -0.9748,
+        "source": "Free Press Journal",
+        "url": "https://www.freepressjournal.in/business/sensex-declines-831-points-nifty-slips-nearly-1-as-accentures-weak-guidance-triggers-it-sell-off",
+        "publishedAt": "2026-06-19T05:35:14Z",
+        "publishedIST": "2026-06-19 11:05 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "Sensex BSE"
+      }
+    ],
+    "category_breakdown": {
+      "Nifty 50": {
+        "count": 25,
+        "avg_sentiment": -0.254,
+        "label": "bearish"
+      },
+      "US Federal Reserve rate": {
+        "count": 25,
+        "avg_sentiment": -0.354,
+        "label": "bearish"
+      },
+      "top:world": {
+        "count": 25,
+        "avg_sentiment": -0.221,
+        "label": "bearish"
+      },
+      "Reliance Industries": {
+        "count": 24,
+        "avg_sentiment": 0.04,
+        "label": "neutral"
+      },
+      "top:business": {
+        "count": 24,
+        "avg_sentiment": -0.325,
+        "label": "bearish"
+      },
+      "Sensex BSE": {
+        "count": 22,
+        "avg_sentiment": -0.053,
+        "label": "neutral"
+      },
+      "Indian stock market today": {
+        "count": 18,
+        "avg_sentiment": -0.149,
+        "label": "bearish"
+      },
+      "India trade export": {
+        "count": 12,
+        "avg_sentiment": 0.355,
+        "label": "bullish"
+      },
+      "RBI interest rate India": {
+        "count": 9,
+        "avg_sentiment": 0.071,
+        "label": "neutral"
+      },
+      "dollar rupee exchange": {
+        "count": 7,
+        "avg_sentiment": 0.318,
+        "label": "bullish"
+      },
+      "crude oil price India": {
+        "count": 6,
+        "avg_sentiment": 0.056,
+        "label": "neutral"
+      },
+      "India GDP growth": {
+        "count": 3,
+        "avg_sentiment": -0.108,
+        "label": "bearish"
+      },
+      "Infosys TCS IT sector": {
+        "count": 3,
+        "avg_sentiment": -0.337,
+        "label": "bearish"
+      },
+      "FII India investment": {
+        "count": 2,
+        "avg_sentiment": 0.468,
+        "label": "bullish"
+      },
+      "Asia markets today": {
+        "count": 2,
+        "avg_sentiment": -0.895,
+        "label": "bearish"
+      }
+    },
+    "fetched_at": "2026-06-19T08:31:45.671679"
+  },
+  "2026-06-25": {
+    "score": -0.0108,
+    "label": "neutral",
+    "n_articles": 223,
+    "n_positive": 83,
+    "n_negative": 96,
+    "n_neutral": 44,
+    "n_macro": 100,
+    "macro_sentiment": -0.198,
+    "backend": "finbert",
+    "top_headlines": [
+      {
+        "title": "IT index falls 2% amid AI worries; TCS, Wipro, Infosys lead losses",
+        "sentiment": -0.976,
+        "source": "Moneycontrol",
+        "url": "https://www.moneycontrol.com/news/business/markets/it-index-falls-2-amid-ai-worries-tcs-wipro-infosys-lead-losses-13956674.html",
+        "publishedAt": "2026-06-23T09:09:13Z",
+        "publishedIST": "2026-06-23 14:39 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "Infosys TCS IT sector"
+      },
+      {
+        "title": "Sensex, Nifty drop over 1 pc amid global equity rout; IT, metal shares major drag",
+        "sentiment": -0.9749,
+        "source": "ThePrint",
+        "url": "https://theprint.in/economy/sensex-nifty-drop-over-1-pc-amid-global-equity-rout-it-metal-shares-major-drag/2967666/",
+        "publishedAt": "2026-06-23T12:15:41Z",
+        "publishedIST": "2026-06-23 17:45 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "Sensex BSE"
+      },
+      {
+        "title": "Challenging times: Value of top-500 privately held cos fall 11% to $3.4 trillion",
+        "sentiment": -0.9749,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/companies/challenging-times-value-of-top-500-privately-held-cos-fall-11-to-34-trillion/article71142390.ece",
+        "publishedAt": "2026-06-24T16:23:20Z",
+        "publishedIST": "2026-06-24 21:53 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "Reliance Industries"
+      },
+      {
+        "title": "India\u2019s Top Firms Lose Rs 11 Lakh Crore in Value Amid Selective Market Growth",
+        "sentiment": -0.9748,
+        "source": "Devdiscourse",
+        "url": "https://www.devdiscourse.com/article/business/3939843-indias-top-firms-lose-rs-11-lakh-crore-in-value-amid-selective-market-growth",
+        "publishedAt": "2026-06-24T08:10:45Z",
+        "publishedIST": "2026-06-24 13:40 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "India GDP growth"
+      },
+      {
+        "title": "Why is market falling today? Sensex tanks 700 pts, Nifty below 23,900; 5 key triggers behind D-St selloff",
+        "sentiment": -0.9747,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/why-is-market-falling-today-sensex-tanks-550-pts-nifty-tests-23900-key-triggers-behind-nearly-rs-5-lakh-crore-selloff/articleshow/131929692.cms",
+        "publishedAt": "2026-06-23T07:56:00Z",
+        "publishedIST": "2026-06-23 13:26 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "Indian stock market today"
+      }
+    ],
+    "macro_headlines": [
+      {
+        "title": "Sensex, Nifty drop over 1 pc amid global equity rout; IT, metal shares major drag",
+        "sentiment": -0.9749,
+        "source": "ThePrint",
+        "url": "https://theprint.in/economy/sensex-nifty-drop-over-1-pc-amid-global-equity-rout-it-metal-shares-major-drag/2967666/",
+        "publishedAt": "2026-06-23T12:15:41Z",
+        "publishedIST": "2026-06-23 17:45 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "Sensex BSE"
+      },
+      {
+        "title": "India\u2019s Top Firms Lose Rs 11 Lakh Crore in Value Amid Selective Market Growth",
+        "sentiment": -0.9748,
+        "source": "Devdiscourse",
+        "url": "https://www.devdiscourse.com/article/business/3939843-indias-top-firms-lose-rs-11-lakh-crore-in-value-amid-selective-market-growth",
+        "publishedAt": "2026-06-24T08:10:45Z",
+        "publishedIST": "2026-06-24 13:40 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "India GDP growth"
+      },
+      {
+        "title": "Why is market falling today? Sensex tanks 700 pts, Nifty below 23,900; 5 key triggers behind D-St selloff",
+        "sentiment": -0.9747,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/why-is-market-falling-today-sensex-tanks-550-pts-nifty-tests-23900-key-triggers-behind-nearly-rs-5-lakh-crore-selloff/articleshow/131929692.cms",
+        "publishedAt": "2026-06-23T07:56:00Z",
+        "publishedIST": "2026-06-23 13:26 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "Indian stock market today"
+      },
+      {
+        "title": "Indian tech\u2019s Nifty share shrinks to record low on AI worries",
+        "sentiment": -0.9745,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/indian-techs-nifty-share-shrinks-to-record-low-on-ai-worries/articleshow/131958102.cms",
+        "publishedAt": "2026-06-24T06:50:00Z",
+        "publishedIST": "2026-06-24 12:20 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "Nifty 50"
+      },
+      {
+        "title": "Muthoot Finance, Manappuram Finance shares decline up to 3.5% as gold prices hit multi-month lows",
+        "sentiment": -0.9745,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/muthoot-finance-manappuram-finance-shares-decline-up-to-3-5-as-gold-prices-hit-multi-month-lows-11782378853026.html",
+        "publishedAt": "2026-06-25T09:38:32Z",
+        "publishedIST": "2026-06-25 15:08 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "US Federal Reserve rate"
+      }
+    ],
+    "category_breakdown": {
+      "Nifty 50": {
+        "count": 25,
+        "avg_sentiment": 0.402,
+        "label": "bullish"
+      },
+      "top:business": {
+        "count": 25,
+        "avg_sentiment": 0.118,
+        "label": "bullish"
+      },
+      "top:world": {
+        "count": 25,
+        "avg_sentiment": -0.442,
+        "label": "bearish"
+      },
+      "US Federal Reserve rate": {
+        "count": 24,
+        "avg_sentiment": -0.566,
+        "label": "bearish"
+      },
+      "Indian stock market today": {
+        "count": 22,
+        "avg_sentiment": -0.197,
+        "label": "bearish"
+      },
+      "India trade export": {
+        "count": 22,
+        "avg_sentiment": 0.453,
+        "label": "bullish"
+      },
+      "Sensex BSE": {
+        "count": 21,
+        "avg_sentiment": 0.472,
+        "label": "bullish"
+      },
+      "Reliance Industries": {
+        "count": 16,
+        "avg_sentiment": 0.345,
+        "label": "bullish"
+      },
+      "RBI interest rate India": {
+        "count": 14,
+        "avg_sentiment": -0.649,
+        "label": "bearish"
+      },
+      "India GDP growth": {
+        "count": 12,
+        "avg_sentiment": -0.409,
+        "label": "bearish"
+      },
+      "Asia markets today": {
+        "count": 5,
+        "avg_sentiment": -0.331,
+        "label": "bearish"
+      },
+      "dollar rupee exchange": {
+        "count": 4,
+        "avg_sentiment": -0.487,
+        "label": "bearish"
+      },
+      "RBI monetary policy": {
+        "count": 3,
+        "avg_sentiment": -0.309,
+        "label": "bearish"
+      },
+      "Infosys TCS IT sector": {
+        "count": 3,
+        "avg_sentiment": -0.649,
+        "label": "bearish"
+      },
+      "crude oil price India": {
+        "count": 1,
+        "avg_sentiment": -0.945,
+        "label": "bearish"
+      },
+      "HDFC Bank results": {
+        "count": 1,
+        "avg_sentiment": 0.0,
+        "label": "neutral"
+      }
+    },
+    "fetched_at": "2026-06-25T11:31:46.287980"
+  },
+  "2026-06-26": {
+    "score": 0.0,
+    "label": "neutral",
+    "n_articles": 0,
+    "n_positive": 0,
+    "n_negative": 0,
+    "n_neutral": 0,
+    "n_macro": 0,
+    "macro_sentiment": 0,
+    "backend": "finbert",
+    "top_headlines": [],
+    "macro_headlines": [],
+    "category_breakdown": {},
+    "fetched_at": "2026-06-26T09:55:32.170500"
+  },
+  "2026-06-27": {
+    "score": 0.0945,
+    "label": "slightly bullish",
+    "n_articles": 168,
+    "n_positive": 81,
+    "n_negative": 51,
+    "n_neutral": 36,
+    "n_macro": 76,
+    "macro_sentiment": 0.216,
+    "backend": "finbert",
+    "top_headlines": [
+      {
+        "title": "Challenging times: Value of top-500 privately held cos fall 11% to $3.4 trillion",
+        "sentiment": -0.9749,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/companies/challenging-times-value-of-top-500-privately-held-cos-fall-11-to-34-trillion/article71142390.ece",
+        "publishedAt": "2026-06-24T16:23:20Z",
+        "publishedIST": "2026-06-24 21:53 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "Reliance Industries"
+      },
+      {
+        "title": "Muthoot Finance, Manappuram Finance shares decline up to 3.5% as gold prices hit multi-month lows",
+        "sentiment": -0.9745,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/muthoot-finance-manappuram-finance-shares-decline-up-to-3-5-as-gold-prices-hit-multi-month-lows-11782378853026.html",
+        "publishedAt": "2026-06-25T09:38:32Z",
+        "publishedIST": "2026-06-25 15:08 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "US Federal Reserve rate"
+      },
+      {
+        "title": "Silver, gold ETFs tumble up to 8% as strong dollar and rate hike fears weigh on prices. What should investors do?",
+        "sentiment": -0.9736,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/mf/mf-news/silver-gold-etfs-tumble-up-to-8-as-strong-dollar-and-rate-hike-fears-weigh-on-prices-what-should-investors-do/articleshow/131982813.cms",
+        "publishedAt": "2026-06-25T05:02:00Z",
+        "publishedIST": "2026-06-25 10:32 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "US Federal Reserve rate"
+      },
+      {
+        "title": "Goldman Sachs\u2019 India bets: 8 stocks rally up to 85% in CY26; one new addition",
+        "sentiment": -0.9735,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/goldman-sachs-india-bets-8-stocks-rally-up-to-85-in-cy26-one-new-addition/mixed-stock-performance/slideshow/132030875.cms?from=mdr",
+        "publishedAt": "2026-06-27T07:49:58Z",
+        "publishedIST": "2026-06-27 13:19 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "top:business"
+      },
+      {
+        "title": "RBI Governor Says Premature To Discuss Interest Rate Hikes",
+        "sentiment": -0.973,
+        "source": "NDTV Profit",
+        "url": "https://www.ndtvprofit.com/economy/rbi-governor-says-premature-to-discuss-interest-rate-hikes-11681354",
+        "publishedAt": "2026-06-24T11:57:31Z",
+        "publishedIST": "2026-06-24 17:27 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "RBI interest rate India"
+      }
+    ],
+    "macro_headlines": [
+      {
+        "title": "Muthoot Finance, Manappuram Finance shares decline up to 3.5% as gold prices hit multi-month lows",
+        "sentiment": -0.9745,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/muthoot-finance-manappuram-finance-shares-decline-up-to-3-5-as-gold-prices-hit-multi-month-lows-11782378853026.html",
+        "publishedAt": "2026-06-25T09:38:32Z",
+        "publishedIST": "2026-06-25 15:08 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "US Federal Reserve rate"
+      },
+      {
+        "title": "Silver, gold ETFs tumble up to 8% as strong dollar and rate hike fears weigh on prices. What should investors do?",
+        "sentiment": -0.9736,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/mf/mf-news/silver-gold-etfs-tumble-up-to-8-as-strong-dollar-and-rate-hike-fears-weigh-on-prices-what-should-investors-do/articleshow/131982813.cms",
+        "publishedAt": "2026-06-25T05:02:00Z",
+        "publishedIST": "2026-06-25 10:32 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "US Federal Reserve rate"
+      },
+      {
+        "title": "Goldman Sachs\u2019 India bets: 8 stocks rally up to 85% in CY26; one new addition",
+        "sentiment": -0.9735,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/goldman-sachs-india-bets-8-stocks-rally-up-to-85-in-cy26-one-new-addition/mixed-stock-performance/slideshow/132030875.cms?from=mdr",
+        "publishedAt": "2026-06-27T07:49:58Z",
+        "publishedIST": "2026-06-27 13:19 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "top:business"
+      },
+      {
+        "title": "RBI Governor Says Premature To Discuss Interest Rate Hikes",
+        "sentiment": -0.973,
+        "source": "NDTV Profit",
+        "url": "https://www.ndtvprofit.com/economy/rbi-governor-says-premature-to-discuss-interest-rate-hikes-11681354",
+        "publishedAt": "2026-06-24T11:57:31Z",
+        "publishedIST": "2026-06-24 17:27 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "RBI interest rate India"
+      },
+      {
+        "title": "Gold heads for fourth weekly loss amid Fed rate hike expectations",
+        "sentiment": -0.973,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/commodities/news/gold-heads-for-fourth-weekly-loss-amid-fed-rate-hike-expectations/articleshow/132012265.cms",
+        "publishedAt": "2026-06-26T09:25:00Z",
+        "publishedIST": "2026-06-26 14:55 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "US Federal Reserve rate"
+      }
+    ],
+    "category_breakdown": {
+      "Nifty 50": {
+        "count": 25,
+        "avg_sentiment": 0.365,
+        "label": "bullish"
+      },
+      "India GDP growth": {
+        "count": 25,
+        "avg_sentiment": 0.405,
+        "label": "bullish"
+      },
+      "top:world": {
+        "count": 25,
+        "avg_sentiment": -0.52,
+        "label": "bearish"
+      },
+      "top:business": {
+        "count": 24,
+        "avg_sentiment": 0.129,
+        "label": "bullish"
+      },
+      "US Federal Reserve rate": {
+        "count": 14,
+        "avg_sentiment": -0.146,
+        "label": "bearish"
+      },
+      "India trade export": {
+        "count": 14,
+        "avg_sentiment": 0.434,
+        "label": "bullish"
+      },
+      "Sensex BSE": {
+        "count": 12,
+        "avg_sentiment": 0.784,
+        "label": "bullish"
+      },
+      "Reliance Industries": {
+        "count": 12,
+        "avg_sentiment": 0.457,
+        "label": "bullish"
+      },
+      "RBI interest rate India": {
+        "count": 6,
+        "avg_sentiment": -0.733,
+        "label": "bearish"
+      },
+      "Indian stock market today": {
+        "count": 5,
+        "avg_sentiment": 0.07,
+        "label": "neutral"
+      },
+      "RBI monetary policy": {
+        "count": 3,
+        "avg_sentiment": 0.848,
+        "label": "bullish"
+      },
+      "crude oil price India": {
+        "count": 2,
+        "avg_sentiment": 0.172,
+        "label": "bullish"
+      },
+      "Asia markets today": {
+        "count": 1,
+        "avg_sentiment": 0.858,
+        "label": "bullish"
+      }
+    },
+    "fetched_at": "2026-06-27T10:55:39.836306"
+  },
+  "2026-06-28": {
+    "score": 0.0232,
+    "label": "neutral",
+    "n_articles": 206,
+    "n_positive": 58,
+    "n_negative": 49,
+    "n_neutral": 99,
+    "n_macro": 20,
+    "macro_sentiment": -0.049,
+    "backend": "finbert",
+    "top_headlines": [
+      {
+        "title": "Bitcoin crash far from over? Experts see another 30% downside to $42,000 | Buy, sell or hold?",
+        "sentiment": -0.9754,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/money/personal-finance/bitcoin-crash-far-from-over-experts-see-another-30-downside-to-42-000-buy-sell-or-hold-11782399806850.html",
+        "publishedAt": "2026-06-28T08:45:47Z",
+        "publishedIST": "2026-06-28 14:15 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "Mukul Agrawal-owned multibagger stock will remain in focus tomorrow. Do you own?",
+        "sentiment": -0.9738,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/mukul-agrawal-owned-multibagger-stock-ptc-industries-will-remain-in-focus-tomorrow-do-you-own-11782632317053.html",
+        "publishedAt": "2026-06-28T08:37:00Z",
+        "publishedIST": "2026-06-28 14:07 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "Gold, silver may face a tough week ahead. Here\u2019s what analysts are saying",
+        "sentiment": -0.9724,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/gold/gold-silver-may-face-a-tough-week-ahead-heres-what-analysts-are-saying/article71157523.ece",
+        "publishedAt": "2026-06-28T10:24:49Z",
+        "publishedIST": "2026-06-28 15:54 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "Turtlemint IPO set for weak debut as grey market premium turns negative",
+        "sentiment": -0.9717,
+        "source": "CNBC TV18",
+        "url": "https://www.cnbctv18.com/market/turtlemint-ipo-set-for-weak-debut-as-gmp-grey-market-premium-turns-negative-19933574.htm",
+        "publishedAt": "2026-06-28T04:36:03Z",
+        "publishedIST": "2026-06-28 10:06 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:CNBC TV18"
+      },
+      {
+        "title": "ITC Rewards BAT-Linked Shareholders With Rs 3,896-Crore Dividend Despite Lower Stake",
+        "sentiment": -0.9704,
+        "source": "NDTV Profit",
+        "url": "https://www.ndtvprofit.com/markets/itc-rewards-bat-linked-shareholders-with-rs-3-896-crore-dividend-despite-lower-stake-11698743#publisher=newsstand",
+        "publishedAt": "2026-06-28T13:18:09Z",
+        "publishedIST": "2026-06-28 18:48 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:NDTV Profit"
+      }
+    ],
+    "macro_headlines": [
+      {
+        "title": "Bitcoin crash far from over? Experts see another 30% downside to $42,000 | Buy, sell or hold?",
+        "sentiment": -0.9754,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/money/personal-finance/bitcoin-crash-far-from-over-experts-see-another-30-downside-to-42-000-buy-sell-or-hold-11782399806850.html",
+        "publishedAt": "2026-06-28T08:45:47Z",
+        "publishedIST": "2026-06-28 14:15 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "ITC Rewards BAT-Linked Shareholders With Rs 3,896-Crore Dividend Despite Lower Stake",
+        "sentiment": -0.9704,
+        "source": "NDTV Profit",
+        "url": "https://www.ndtvprofit.com/markets/itc-rewards-bat-linked-shareholders-with-rs-3-896-crore-dividend-despite-lower-stake-11698743#publisher=newsstand",
+        "publishedAt": "2026-06-28T13:18:09Z",
+        "publishedIST": "2026-06-28 18:48 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:NDTV Profit"
+      },
+      {
+        "title": "Gold, silver face fresh test as US dollar, Iran crisis to shape week ahead: Analysts",
+        "sentiment": -0.9636,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/commodities/news/gold-silver-face-fresh-test-as-us-dollar-iran-crisis-to-shape-week-ahead-analysts/articleshow/132050245.cms",
+        "publishedAt": "2026-06-28T11:37:26Z",
+        "publishedIST": "2026-06-28 17:07 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "JPMorgan Warns Of Extended Slowdown For Indian IT Sector Amid AI-Led Transformation",
+        "sentiment": -0.9635,
+        "source": "NDTV Profit",
+        "url": "https://www.ndtvprofit.com/markets/jpmorgan-warns-of-extended-slowdown-for-indian-it-sector-amid-ai-led-transformation-11698548#publisher=newsstand",
+        "publishedAt": "2026-06-28T13:07:00Z",
+        "publishedIST": "2026-06-28 18:37 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:NDTV Profit"
+      },
+      {
+        "title": "Indian stock market: How are Sensex and Nifty 50 likely to perform next week amid US-Iran war?",
+        "sentiment": 0.9482,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/indian-stock-market-how-are-sensex-and-nifty-50-likely-to-perform-next-week-amid-us-iran-war-11782621997610.html",
+        "publishedAt": "2026-06-28T05:53:00Z",
+        "publishedIST": "2026-06-28 11:23 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:Livemint"
+      }
+    ],
+    "category_breakdown": {
+      "rss:The Economic Times": {
+        "count": 40,
+        "avg_sentiment": -0.006,
+        "label": "neutral"
+      },
+      "rss:The Hindu Business Line": {
+        "count": 40,
+        "avg_sentiment": 0.151,
+        "label": "bullish"
+      },
+      "rss:Livemint": {
+        "count": 34,
+        "avg_sentiment": 0.1,
+        "label": "bullish"
+      },
+      "google_news": {
+        "count": 22,
+        "avg_sentiment": 0.107,
+        "label": "bullish"
+      },
+      "rss:NDTV Profit": {
+        "count": 20,
+        "avg_sentiment": -0.216,
+        "label": "bearish"
+      },
+      "rss:The Times of India": {
+        "count": 20,
+        "avg_sentiment": 0.083,
+        "label": "neutral"
+      },
+      "rss:Business Today": {
+        "count": 16,
+        "avg_sentiment": -0.102,
+        "label": "bearish"
+      },
+      "rss:CNBC TV18": {
+        "count": 9,
+        "avg_sentiment": -0.009,
+        "label": "neutral"
+      },
+      "rss:News18": {
+        "count": 5,
+        "avg_sentiment": 0.171,
+        "label": "bullish"
+      }
+    },
+    "fetched_at": "2026-06-28T16:04:50.335178"
+  },
+  "2026-06-29": {
+    "score": 0.0272,
+    "label": "neutral",
+    "n_articles": 307,
+    "n_positive": 105,
+    "n_negative": 90,
+    "n_neutral": 112,
+    "n_macro": 46,
+    "macro_sentiment": 0.027,
+    "backend": "finbert",
+    "top_headlines": [
+      {
+        "title": "The trade-off in the Persistent-Nagarro deal is hard to ignore",
+        "sentiment": -0.9753,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/mark-to-market/persistent-systems-nagarro-acquisition-stock-analysis-11782714336441.html",
+        "publishedAt": "2026-06-29T07:44:16Z",
+        "publishedIST": "2026-06-29 13:14 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "Silver futures decline to \u20b92.22 lakh/kg",
+        "sentiment": -0.9751,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/gold/silver-futures-decline-to-222-lakhkg/article71160632.ece",
+        "publishedAt": "2026-06-29T09:06:29Z",
+        "publishedIST": "2026-06-29 14:36 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "Top Gainers & Losers on June 29: Persistent Systems, Netweb Tech, Astral, MRF, Berger Paints, OLA among top losers",
+        "sentiment": -0.9749,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/top-gainers-losers-on-june-29-persistent-systems-netweb-tech-astral-mrf-berger-paints-ola-among-top-losers-11782728130470.html",
+        "publishedAt": "2026-06-29T10:22:15Z",
+        "publishedIST": "2026-06-29 15:52 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "Gold slips as fresh US-Iran strikes boost oil, Fed rate-hike bets weigh",
+        "sentiment": -0.9749,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/gold/gold-slips-as-fresh-us-iran-strikes-boost-oil-fed-rate-hike-bets-weigh/article71159987.ece",
+        "publishedAt": "2026-06-29T03:56:28Z",
+        "publishedIST": "2026-06-29 09:26 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "Sensex drops over 400 points, Nifty slips as geopolitical tensions weigh on markets",
+        "sentiment": -0.9747,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/sensex-drops-over-400-points-nifty-slips-as-geopolitical-tensions-weigh-on-markets/article71160351.ece",
+        "publishedAt": "2026-06-29T07:11:41Z",
+        "publishedIST": "2026-06-29 12:41 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:The Hindu Business Line"
+      }
+    ],
+    "macro_headlines": [
+      {
+        "title": "Gold slips as fresh US-Iran strikes boost oil, Fed rate-hike bets weigh",
+        "sentiment": -0.9749,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/gold/gold-slips-as-fresh-us-iran-strikes-boost-oil-fed-rate-hike-bets-weigh/article71159987.ece",
+        "publishedAt": "2026-06-29T03:56:28Z",
+        "publishedIST": "2026-06-29 09:26 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "West Asian crisis hit Keralam\u2019s air cargo exports from CIAL, Calicut airports",
+        "sentiment": -0.9745,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/economy/logistics/west-asian-crisis-hit-keralams-air-cargo-exports-from-cial-calicut-airports/article71160558.ece",
+        "publishedAt": "2026-06-29T08:35:34Z",
+        "publishedIST": "2026-06-29 14:05 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "Nifty IT index crashes 28% YTD. Buy or wait, as renewed US-Iran tension may jeopardise crude oil supply again?",
+        "sentiment": -0.9744,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/nifty-it-index-crashes-28-ytd-buy-or-wait-as-renewed-us-iran-tension-may-jeopardise-crude-oil-supply-again-11782720049632.html",
+        "publishedAt": "2026-06-29T08:45:28Z",
+        "publishedIST": "2026-06-29 14:15 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "Global economic fragmentation could slash $6.9 trillion from world GDP: WEF",
+        "sentiment": -0.9736,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/economy/global-economic-fragmentation-could-slash-69-trillion-from-world-gdp-wef/article71160221.ece",
+        "publishedAt": "2026-06-29T06:48:15Z",
+        "publishedIST": "2026-06-29 12:18 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "Nifty prediction today \u2013 June 29, 2026: Futures may see temporary dip before next rally",
+        "sentiment": -0.973,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/portfolio/technical-analysis/nifty-prediction-today-june-29-2026-futures-may-see-temporary-dip-before-next-rally/article71160022.ece",
+        "publishedAt": "2026-06-29T04:28:15Z",
+        "publishedIST": "2026-06-29 09:58 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Hindu Business Line"
+      }
+    ],
+    "category_breakdown": {
+      "rss:The Economic Times": {
+        "count": 68,
+        "avg_sentiment": 0.162,
+        "label": "bullish"
+      },
+      "rss:The Hindu Business Line": {
+        "count": 54,
+        "avg_sentiment": 0.011,
+        "label": "neutral"
+      },
+      "rss:Livemint": {
+        "count": 41,
+        "avg_sentiment": 0.032,
+        "label": "neutral"
+      },
+      "google_news": {
+        "count": 36,
+        "avg_sentiment": -0.174,
+        "label": "bearish"
+      },
+      "rss:CNBC TV18": {
+        "count": 30,
+        "avg_sentiment": 0.278,
+        "label": "bullish"
+      },
+      "rss:Business Today": {
+        "count": 25,
+        "avg_sentiment": -0.109,
+        "label": "bearish"
+      },
+      "rss:The Times of India": {
+        "count": 24,
+        "avg_sentiment": -0.16,
+        "label": "bearish"
+      },
+      "rss:NDTV Profit": {
+        "count": 19,
+        "avg_sentiment": -0.084,
+        "label": "neutral"
+      },
+      "rss:News18": {
+        "count": 8,
+        "avg_sentiment": 0.142,
+        "label": "bullish"
+      },
+      "rss:The Indian Express": {
+        "count": 1,
+        "avg_sentiment": -0.454,
+        "label": "bearish"
+      },
+      "rss:ThePrint": {
+        "count": 1,
+        "avg_sentiment": -0.688,
+        "label": "bearish"
+      }
+    },
+    "fetched_at": "2026-06-29T10:51:01.006089"
+  },
+  "2026-06-30": {
+    "score": 0.0499,
+    "label": "neutral",
+    "n_articles": 425,
+    "n_positive": 149,
+    "n_negative": 119,
+    "n_neutral": 157,
+    "n_macro": 66,
+    "macro_sentiment": -0.219,
+    "backend": "finbert",
+    "top_headlines": [
+      {
+        "title": "India\u2019s kharif acreage down 23%, as deficient monsoon begins to impact sowing",
+        "sentiment": -0.9751,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/economy/agri-business/indias-kharif-acreage-down-23-as-deficient-monsoon-begins-to-impact-sowing/article71162379.ece",
+        "publishedAt": "2026-06-29T16:20:15Z",
+        "publishedIST": "2026-06-29 21:50 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "Stock markets decline as renewed geopolitical tensions unnerve investors; Sensex drops 370 pts",
+        "sentiment": -0.975,
+        "source": "ThePrint",
+        "url": "https://theprint.in/economy/stock-markets-decline-as-renewed-geopolitical-tensions-unnerve-investors-sensex-drops-370-pts/2972786/",
+        "publishedAt": "2026-06-29T12:15:22Z",
+        "publishedIST": "2026-06-29 17:45 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:ThePrint"
+      },
+      {
+        "title": "Kharif sowing drops 22.7% as weak monsoon delays planting across India",
+        "sentiment": -0.9748,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/news/economy/agriculture/kharif-sowing-drops-22-7-as-weak-monsoon-delays-planting-across-india/articleshow/132076481.cms",
+        "publishedAt": "2026-06-29T17:41:44Z",
+        "publishedIST": "2026-06-29 23:11 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "Gold faces biggest monthly drop since late 2008 on hawkish Fed stance",
+        "sentiment": -0.9748,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/gold/gold-faces-biggest-monthly-drop-since-late-2008-on-hawkish-fed-stance/article71164455.ece",
+        "publishedAt": "2026-06-30T04:59:11Z",
+        "publishedIST": "2026-06-30 10:29 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "Gold set for biggest quarterly fall since 2013 on hawkish Fed stance",
+        "sentiment": -0.974,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/gold/gold-set-for-biggest-quarterly-fall-since-2013-on-hawkish-fed-stance/article71164960.ece",
+        "publishedAt": "2026-06-30T08:21:27Z",
+        "publishedIST": "2026-06-30 13:51 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Hindu Business Line"
+      }
+    ],
+    "macro_headlines": [
+      {
+        "title": "Kharif sowing drops 22.7% as weak monsoon delays planting across India",
+        "sentiment": -0.9748,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/news/economy/agriculture/kharif-sowing-drops-22-7-as-weak-monsoon-delays-planting-across-india/articleshow/132076481.cms",
+        "publishedAt": "2026-06-29T17:41:44Z",
+        "publishedIST": "2026-06-29 23:11 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "Gold faces biggest monthly drop since late 2008 on hawkish Fed stance",
+        "sentiment": -0.9748,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/gold/gold-faces-biggest-monthly-drop-since-late-2008-on-hawkish-fed-stance/article71164455.ece",
+        "publishedAt": "2026-06-30T04:59:11Z",
+        "publishedIST": "2026-06-30 10:29 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "Gold set for biggest quarterly fall since 2013 on hawkish Fed stance",
+        "sentiment": -0.974,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/gold/gold-set-for-biggest-quarterly-fall-since-2013-on-hawkish-fed-stance/article71164960.ece",
+        "publishedAt": "2026-06-30T08:21:27Z",
+        "publishedIST": "2026-06-30 13:51 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "Japanese yen slides to 40-year low against the US dollar",
+        "sentiment": -0.9739,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/japanese-yen-slides-to-40-year-low-against-the-us-dollar-11782795566132.html",
+        "publishedAt": "2026-06-30T05:01:48Z",
+        "publishedIST": "2026-06-30 10:31 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "Waaree Energies: US Customs\u2019 ruling may be a temporary blip amid robust domestic outlook",
+        "sentiment": -0.9737,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/mark-to-market/waaree-energies-us-customs-tariff-ruling-stock-impact-11782798074822.html",
+        "publishedAt": "2026-06-30T08:38:07Z",
+        "publishedIST": "2026-06-30 14:08 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:Livemint"
+      }
+    ],
+    "category_breakdown": {
+      "rss:The Economic Times": {
+        "count": 88,
+        "avg_sentiment": 0.174,
+        "label": "bullish"
+      },
+      "rss:Livemint": {
+        "count": 74,
+        "avg_sentiment": 0.049,
+        "label": "neutral"
+      },
+      "rss:The Hindu Business Line": {
+        "count": 62,
+        "avg_sentiment": 0.103,
+        "label": "bullish"
+      },
+      "google_news": {
+        "count": 47,
+        "avg_sentiment": -0.202,
+        "label": "bearish"
+      },
+      "rss:CNBC TV18": {
+        "count": 46,
+        "avg_sentiment": 0.303,
+        "label": "bullish"
+      },
+      "rss:The Times of India": {
+        "count": 26,
+        "avg_sentiment": -0.296,
+        "label": "bearish"
+      },
+      "rss:Business Today": {
+        "count": 25,
+        "avg_sentiment": 0.16,
+        "label": "bullish"
+      },
+      "rss:News18": {
+        "count": 21,
+        "avg_sentiment": 0.111,
+        "label": "bullish"
+      },
+      "rss:NDTV Profit": {
+        "count": 20,
+        "avg_sentiment": -0.12,
+        "label": "bearish"
+      },
+      "rss:ThePrint": {
+        "count": 9,
+        "avg_sentiment": -0.029,
+        "label": "neutral"
+      },
+      "rss:The Indian Express": {
+        "count": 7,
+        "avg_sentiment": -0.316,
+        "label": "bearish"
+      }
+    },
+    "fetched_at": "2026-06-30T09:59:37.188128"
+  },
+  "2026-07-03": {
+    "score": 0.137,
+    "label": "slightly bullish",
+    "n_articles": 437,
+    "n_positive": 182,
+    "n_negative": 118,
+    "n_neutral": 137,
+    "n_macro": 75,
+    "macro_sentiment": 0.258,
+    "backend": "finbert",
+    "top_headlines": [
+      {
+        "title": "India\u2019s services sector growth hits 17-month low in June on softer domestic demand: PMI",
+        "sentiment": -0.9764,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/economy/indias-services-sector-growth-hits-17-month-low-in-june-on-softer-domestic-demand-pmi/article71177585.ece",
+        "publishedAt": "2026-07-03T06:26:07Z",
+        "publishedIST": "2026-07-03 11:56 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "HCLTech shares surge over 4% on $1.14-billion deal win",
+        "sentiment": -0.9758,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/stock-markets/hcltech-shares-surge-over-4-on-114-billion-deal-win/article71177371.ece",
+        "publishedAt": "2026-07-03T04:53:07Z",
+        "publishedIST": "2026-07-03 10:23 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "Henley Passport Index: India slips to 80th in July, down from 78th in May; 56 nations still visa free",
+        "sentiment": -0.9753,
+        "source": "Business Today",
+        "url": "https://www.businesstoday.in/nri/visa/story/henley-passport-index-india-slips-to-80th-in-july-down-from-78th-in-may-56-nations-still-visa-free-540771-2026-07-03?utm_source=rssfeed",
+        "publishedAt": "2026-07-03T07:10:02Z",
+        "publishedIST": "2026-07-03 12:40 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:Business Today"
+      },
+      {
+        "title": "India's June services growth slips to 17-month low as demand, hiring cool, PMI shows",
+        "sentiment": -0.9752,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/news/economy/indicators/indias-june-services-growth-slips-to-17-month-low-as-demand-hiring-cool-pmi-shows/articleshow/132153055.cms",
+        "publishedAt": "2026-07-03T05:12:40Z",
+        "publishedIST": "2026-07-03 10:42 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "Housing sales fall 6% in Q2 across top 7 cities as prices rise; Pune drops 15%, Mumbai Metropolitan Region 8%",
+        "sentiment": -0.9749,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/industry/housing-sales-fall-6-in-q2-across-top-7-cities-as-prices-rise-pune-drops-15-mumbai-metropolitan-region-8-11782812638845.html",
+        "publishedAt": "2026-06-30T10:57:40Z",
+        "publishedIST": "2026-06-30 16:27 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:Livemint"
+      }
+    ],
+    "macro_headlines": [
+      {
+        "title": "HCLTech shares surge over 4% on $1.14-billion deal win",
+        "sentiment": -0.9758,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/stock-markets/hcltech-shares-surge-over-4-on-114-billion-deal-win/article71177371.ece",
+        "publishedAt": "2026-07-03T04:53:07Z",
+        "publishedIST": "2026-07-03 10:23 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "India's June palm oil imports fall to 14-month low as demand softens, dealers say",
+        "sentiment": -0.9744,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/news/economy/foreign-trade/indias-june-palm-oil-imports-fall-to-14-month-low-as-demand-softens-dealers-say/articleshow/132134871.cms",
+        "publishedAt": "2026-07-02T09:29:19Z",
+        "publishedIST": "2026-07-02 14:59 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "India's services sector growth falls to 17-month low as hiring stalls, demand weakens",
+        "sentiment": -0.9736,
+        "source": "The Times of India",
+        "url": "https://timesofindia.indiatimes.com/business/india-business/indias-services-sector-growth-falls-to-17-month-low-as-hiring-stalls-demand-weakens-report/articleshow/132155519.cms",
+        "publishedAt": "2026-07-03T08:46:19Z",
+        "publishedIST": "2026-07-03 14:16 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Times of India"
+      },
+      {
+        "title": "Why did CG Power, Hitachi Energy, Apar Industries and other capital goods stocks crash up to 10% today? Explained",
+        "sentiment": -0.9725,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/why-did-cg-power-hitachi-energy-apar-industries-and-other-capital-goods-stocks-crash-up-to-10-today-explained-11783070141221.html",
+        "publishedAt": "2026-07-03T09:24:35Z",
+        "publishedIST": "2026-07-03 14:54 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "US job growth slows sharply in June, easing pressure on Federal Reserve",
+        "sentiment": -0.9724,
+        "source": "CNBC TV18",
+        "url": "https://www.cnbctv18.com/world/us-job-growth-slows-sharply-in-june-easing-pressure-on-federal-reserve-19937559.htm",
+        "publishedAt": "2026-07-02T14:32:35Z",
+        "publishedIST": "2026-07-02 20:02 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:CNBC TV18"
+      }
+    ],
+    "category_breakdown": {
+      "rss:The Economic Times": {
+        "count": 86,
+        "avg_sentiment": 0.131,
+        "label": "bullish"
+      },
+      "rss:Livemint": {
+        "count": 84,
+        "avg_sentiment": 0.08,
+        "label": "neutral"
+      },
+      "rss:The Hindu Business Line": {
+        "count": 58,
+        "avg_sentiment": 0.233,
+        "label": "bullish"
+      },
+      "rss:CNBC TV18": {
+        "count": 50,
+        "avg_sentiment": 0.288,
+        "label": "bullish"
+      },
+      "google_news": {
+        "count": 46,
+        "avg_sentiment": 0.082,
+        "label": "neutral"
+      },
+      "rss:The Times of India": {
+        "count": 26,
+        "avg_sentiment": 0.194,
+        "label": "bullish"
+      },
+      "rss:Business Today": {
+        "count": 25,
+        "avg_sentiment": -0.113,
+        "label": "bearish"
+      },
+      "rss:NDTV Profit": {
+        "count": 20,
+        "avg_sentiment": -0.111,
+        "label": "bearish"
+      },
+      "rss:News18": {
+        "count": 19,
+        "avg_sentiment": 0.199,
+        "label": "bullish"
+      },
+      "rss:ThePrint": {
+        "count": 12,
+        "avg_sentiment": 0.003,
+        "label": "neutral"
+      },
+      "rss:The Indian Express": {
+        "count": 11,
+        "avg_sentiment": 0.061,
+        "label": "neutral"
+      }
+    },
+    "fetched_at": "2026-07-03T09:55:39.420033"
+  },
+  "2026-07-06": {
+    "score": 0.1305,
+    "label": "slightly bullish",
+    "n_articles": 420,
+    "n_positive": 173,
+    "n_negative": 109,
+    "n_neutral": 138,
+    "n_macro": 69,
+    "macro_sentiment": -0.03,
+    "backend": "finbert",
+    "top_headlines": [
+      {
+        "title": "Ola Electric Shares Slip 5% Amid Reports Of Two Suppliers Moving NCLT Over Dues",
+        "sentiment": -0.9753,
+        "source": "NDTV Profit",
+        "url": "https://www.ndtvprofit.com/markets/ola-electric-shares-slip-5-percent-amid-reports-of-two-suppliers-moving-nclt-over-dues-11732765#publisher=newsstand",
+        "publishedAt": "2026-07-06T08:02:47Z",
+        "publishedIST": "2026-07-06 13:32 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:NDTV Profit"
+      },
+      {
+        "title": "PM Modi In Indonesia: Here's How India-Indonesia Trade Has Changed In Recent Years",
+        "sentiment": -0.9751,
+        "source": "News18",
+        "url": "https://www.news18.com/business/economy/pm-modi-in-indonesia-heres-how-india-indonesia-trade-has-changed-in-recent-years-ws-l-10192845.html",
+        "publishedAt": "2026-07-06T09:37:00Z",
+        "publishedIST": "2026-07-06 15:07 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:News18"
+      },
+      {
+        "title": "RIL, ITC, TCS, L&T, Infosys among top 10 under-owned stocks amid 2-decade low FII positioning",
+        "sentiment": -0.9749,
+        "source": "Business Today",
+        "url": "https://www.businesstoday.in/markets/stocks/story/ril-itc-tcs-lt-infosys-among-top-10-under-owned-stocks-amid-2-decade-low-fii-positioning-541155-2026-07-06?utm_source=rssfeed",
+        "publishedAt": "2026-07-06T07:46:03Z",
+        "publishedIST": "2026-07-06 13:16 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:Business Today"
+      },
+      {
+        "title": "India's forex kitty drops $5.65 billion to $666.93 billion",
+        "sentiment": -0.974,
+        "source": "CNBC TV18",
+        "url": "https://www.cnbctv18.com/economy/india-forex-kitty-drops-5-billion-dollar-to-nearly-667-billion-dollar-19938295.htm",
+        "publishedAt": "2026-07-03T13:50:01Z",
+        "publishedIST": "2026-07-03 19:20 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:CNBC TV18"
+      },
+      {
+        "title": "Nifty Q1 earnings to grow 10%, highest in 4 quarters, says Motilal Oswal. Which sectors will take charge this quarter?",
+        "sentiment": -0.9733,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/nifty-q1-earnings-to-grow-10-highest-in-4-quarters-says-motilal-oswal-which-sectors-will-take-charge-this-quarter/articleshow/132210378.cms",
+        "publishedAt": "2026-07-06T07:12:24Z",
+        "publishedIST": "2026-07-06 12:42 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:The Economic Times"
+      }
+    ],
+    "macro_headlines": [
+      {
+        "title": "RIL, ITC, TCS, L&T, Infosys among top 10 under-owned stocks amid 2-decade low FII positioning",
+        "sentiment": -0.9749,
+        "source": "Business Today",
+        "url": "https://www.businesstoday.in/markets/stocks/story/ril-itc-tcs-lt-infosys-among-top-10-under-owned-stocks-amid-2-decade-low-fii-positioning-541155-2026-07-06?utm_source=rssfeed",
+        "publishedAt": "2026-07-06T07:46:03Z",
+        "publishedIST": "2026-07-06 13:16 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:Business Today"
+      },
+      {
+        "title": "Kotak Mahindra Bank shares fall over 3% after Q1 update; advances jump 15% to Rs 5.12 lakh crore",
+        "sentiment": -0.9725,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/kotak-mahindra-bank-shares-in-focus-after-q1-advances-jump-15-to-rs-5-12-lakh-crore-deposits-up-12/articleshow/132206667.cms",
+        "publishedAt": "2026-07-06T03:35:17Z",
+        "publishedIST": "2026-07-06 09:05 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "FII stake in India's 10 biggest stocks hits 20-year low. Time to go against the crowd?",
+        "sentiment": -0.9723,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/fii-stake-in-indias-10-biggest-stocks-hits-20-year-low-time-to-go-against-the-crowd/articleshow/132206822.cms",
+        "publishedAt": "2026-07-06T03:50:35Z",
+        "publishedIST": "2026-07-06 09:20 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "The Q1 verdict: Can TCS, Infosys, other IT results stop a Rs 17 lakh crore AI-led rout?",
+        "sentiment": -0.9712,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/the-q1-verdict-can-tcs-infosys-other-it-results-stop-a-rs-17-lakh-crore-ai-led-rout/articleshow/132207116.cms",
+        "publishedAt": "2026-07-06T04:14:44Z",
+        "publishedIST": "2026-07-06 09:44 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "Gold drops 30%, silver plunges 54% \u2014 but history shows 2026 correction isn\u2019t the deepest yet",
+        "sentiment": -0.9678,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/money/personal-finance/gold-drops-30-silver-plunges-54-but-history-shows-2026-correction-isn-t-the-deepest-yet-11783323785872.html",
+        "publishedAt": "2026-07-06T09:51:36Z",
+        "publishedIST": "2026-07-06 15:21 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:Livemint"
+      }
+    ],
+    "category_breakdown": {
+      "rss:The Economic Times": {
+        "count": 88,
+        "avg_sentiment": 0.123,
+        "label": "bullish"
+      },
+      "rss:Livemint": {
+        "count": 72,
+        "avg_sentiment": 0.163,
+        "label": "bullish"
+      },
+      "rss:The Hindu Business Line": {
+        "count": 67,
+        "avg_sentiment": 0.222,
+        "label": "bullish"
+      },
+      "google_news": {
+        "count": 48,
+        "avg_sentiment": 0.159,
+        "label": "bullish"
+      },
+      "rss:CNBC TV18": {
+        "count": 34,
+        "avg_sentiment": 0.22,
+        "label": "bullish"
+      },
+      "rss:Business Today": {
+        "count": 25,
+        "avg_sentiment": -0.009,
+        "label": "neutral"
+      },
+      "rss:The Times of India": {
+        "count": 25,
+        "avg_sentiment": -0.001,
+        "label": "neutral"
+      },
+      "rss:News18": {
+        "count": 23,
+        "avg_sentiment": 0.078,
+        "label": "neutral"
+      },
+      "rss:NDTV Profit": {
+        "count": 20,
+        "avg_sentiment": 0.033,
+        "label": "neutral"
+      },
+      "rss:ThePrint": {
+        "count": 12,
+        "avg_sentiment": 0.12,
+        "label": "bullish"
+      },
+      "rss:The Indian Express": {
+        "count": 6,
+        "avg_sentiment": -0.07,
+        "label": "neutral"
+      }
+    },
+    "fetched_at": "2026-07-06T09:58:52.569195"
+  },
+  "2026-07-07": {
+    "score": 0.0132,
+    "label": "neutral",
+    "n_articles": 403,
+    "n_positive": 145,
+    "n_negative": 128,
+    "n_neutral": 130,
+    "n_macro": 65,
+    "macro_sentiment": 0.037,
+    "backend": "finbert",
+    "top_headlines": [
+      {
+        "title": "Ola Electric shares drop 9% in 3 days. What's spooking investors?",
+        "sentiment": -0.9756,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/ola-electric-shares-drop-9-in-3-days-whats-spooking-investors/articleshow/132233748.cms",
+        "publishedAt": "2026-07-07T07:38:38Z",
+        "publishedIST": "2026-07-07 13:08 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "Kalyan Jewellers stock tumbles 9% despite strong Q1FY27 business update",
+        "sentiment": -0.9754,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/kalyan-jewellers-stock-tumbles-9-despite-strong-q1fy27-business-update/article71192209.ece",
+        "publishedAt": "2026-07-07T04:46:41Z",
+        "publishedIST": "2026-07-07 10:16 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "PM Modi In Indonesia: Here's How India-Indonesia Trade Has Changed In Recent Years",
+        "sentiment": -0.9751,
+        "source": "News18",
+        "url": "https://www.news18.com/business/economy/pm-modi-in-indonesia-heres-how-india-indonesia-trade-has-changed-in-recent-years-ws-l-10192845.html",
+        "publishedAt": "2026-07-06T09:37:00Z",
+        "publishedIST": "2026-07-06 15:07 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:News18"
+      },
+      {
+        "title": "Power Grid Corporation secures 80 billion yen loan from JBIC for Khavda-Nagpur HVDC project",
+        "sentiment": -0.9745,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/power-grid-corporation-secures-80-billion-yen-loan-from-jbic-for-khavda-nagpur-hvdc-project-11783399581399.html",
+        "publishedAt": "2026-07-07T04:51:25Z",
+        "publishedIST": "2026-07-07 10:21 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "Vedanta Iron and Steel, Vedanta Aluminium, 2 other stocks drop up to 5%. What\u2019s spooking investors?",
+        "sentiment": -0.9742,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/vedanta-iron-and-steel-vedanta-aluminium-2-other-stocks-drop-up-to-5-whats-spooking-investors/articleshow/132230470.cms",
+        "publishedAt": "2026-07-07T04:41:45Z",
+        "publishedIST": "2026-07-07 10:11 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      }
+    ],
+    "macro_headlines": [
+      {
+        "title": "Vedanta Iron and Steel, Vedanta Aluminium, 2 other stocks drop up to 5%. What\u2019s spooking investors?",
+        "sentiment": -0.9742,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/vedanta-iron-and-steel-vedanta-aluminium-2-other-stocks-drop-up-to-5-whats-spooking-investors/articleshow/132230470.cms",
+        "publishedAt": "2026-07-07T04:41:45Z",
+        "publishedIST": "2026-07-07 10:11 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "Sensex today | Stock Markets Live Updates: Sensex, Nifty at day's low amid lower oil prices and sustained FII buying",
+        "sentiment": -0.9736,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/sensex-nifty50-today-stock-market-live-updates-7th-july-2026/article71189443.ece",
+        "publishedAt": "2026-07-07T09:51:36Z",
+        "publishedIST": "2026-07-07 15:21 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "Stock Market Crash News Today Live Updates: Nifty, Sensex Erase Gains Amid Weekly F&O Expiry; Coal India OFS Fully Subscribed",
+        "sentiment": -0.9733,
+        "source": "NDTV Profit",
+        "url": "https://www.ndtvprofit.com/markets/stock-market-crash-news-today-live-updates-share-market-sensex-nifty-gift-nifty-iran-war-us-attack-oil-market-impact-fno-expiry-futures-11736388#publisher=newsstand",
+        "publishedAt": "2026-07-07T09:51:08Z",
+        "publishedIST": "2026-07-07 15:21 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:NDTV Profit"
+      },
+      {
+        "title": "Swiggy Inches Toward Indian-Owned Status \u2014 Here's The Math Explained",
+        "sentiment": -0.972,
+        "source": "NDTV Profit",
+        "url": "https://www.ndtvprofit.com/business/swiggy-share-price-rallies-as-company-inches-toward-indian-owned-status-heres-the-math-explained-11737975#publisher=newsstand",
+        "publishedAt": "2026-07-07T08:57:37Z",
+        "publishedIST": "2026-07-07 14:27 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:NDTV Profit"
+      },
+      {
+        "title": "Trent shares plunge 11% as Q1 revenue growth disappoints street",
+        "sentiment": -0.9717,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/stock-markets/trent-shares-plunge-11-as-q1-revenue-growth-disappoints-street/article71192396.ece",
+        "publishedAt": "2026-07-07T07:46:41Z",
+        "publishedIST": "2026-07-07 13:16 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Hindu Business Line"
+      }
+    ],
+    "category_breakdown": {
+      "rss:The Economic Times": {
+        "count": 84,
+        "avg_sentiment": -0.033,
+        "label": "neutral"
+      },
+      "rss:Livemint": {
+        "count": 71,
+        "avg_sentiment": -0.039,
+        "label": "neutral"
+      },
+      "rss:The Hindu Business Line": {
+        "count": 63,
+        "avg_sentiment": 0.066,
+        "label": "neutral"
+      },
+      "google_news": {
+        "count": 50,
+        "avg_sentiment": 0.016,
+        "label": "neutral"
+      },
+      "rss:CNBC TV18": {
+        "count": 31,
+        "avg_sentiment": 0.261,
+        "label": "bullish"
+      },
+      "rss:The Times of India": {
+        "count": 26,
+        "avg_sentiment": 0.266,
+        "label": "bullish"
+      },
+      "rss:Business Today": {
+        "count": 25,
+        "avg_sentiment": -0.092,
+        "label": "neutral"
+      },
+      "rss:News18": {
+        "count": 22,
+        "avg_sentiment": 0.094,
+        "label": "neutral"
+      },
+      "rss:NDTV Profit": {
+        "count": 20,
+        "avg_sentiment": -0.347,
+        "label": "bearish"
+      },
+      "rss:ThePrint": {
+        "count": 6,
+        "avg_sentiment": 0.091,
+        "label": "neutral"
+      },
+      "rss:The Indian Express": {
+        "count": 5,
+        "avg_sentiment": 0.259,
+        "label": "bullish"
+      }
+    },
+    "fetched_at": "2026-07-07T09:55:47.041675"
+  },
+  "2026-07-08": {
+    "score": -0.0745,
+    "label": "slightly bearish",
+    "n_articles": 411,
+    "n_positive": 131,
+    "n_negative": 150,
+    "n_neutral": 130,
+    "n_macro": 69,
+    "macro_sentiment": -0.104,
+    "backend": "finbert",
+    "top_headlines": [
+      {
+        "title": "BPCL, HPCL to IOC: OMC stocks fall up to 5.5% on sharp rebound in crude oil prices",
+        "sentiment": -0.9754,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/bpcl-hpcl-to-ioc-omc-stocks-fall-up-to-5-5-on-sharp-rebound-in-crude-oil-prices-11783501548775.html",
+        "publishedAt": "2026-07-08T09:18:29Z",
+        "publishedIST": "2026-07-08 14:48 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "El Ni\u00f1o dry spell hits hydroelectricity generation, burdening power grid",
+        "sentiment": -0.9754,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/economy/agri-business/el-nino-dry-spell-hits-hydroelectricity-generation-burdening-power-grid/article71197090.ece",
+        "publishedAt": "2026-07-08T07:38:42Z",
+        "publishedIST": "2026-07-08 13:08 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "Gold Falls By Rs 2,000, Silver Slumps Rs 7,000 On MCX After Trump Says Iran Ceasefire Is Over",
+        "sentiment": -0.9745,
+        "source": "NDTV Profit",
+        "url": "https://www.ndtvprofit.com/markets/gold-price-fall-by-rs-2-000-silver-rate-slumps-rs-7-000-on-mcx-after-trump-says-iran-ceasefire-is-over-11743338#publisher=newsstand",
+        "publishedAt": "2026-07-08T09:17:06Z",
+        "publishedIST": "2026-07-08 14:47 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:NDTV Profit"
+      },
+      {
+        "title": "Stock Market Crash News Live Updates: Nifty Slumps Below 23,900, Sensex Slides Over 1,700 Points After Trump Says Ceasefire With Iran Is Ove",
+        "sentiment": -0.9745,
+        "source": "NDTV Profit",
+        "url": "https://www.ndtvprofit.com/markets/stock-market-crash-news-today-live-updates-share-market-sensex-nifty-gift-nifty-q1-results-iran-war-us-attack-oil-market-impact-fno-futures-options-11741655#publisher=newsstand",
+        "publishedAt": "2026-07-08T09:06:21Z",
+        "publishedIST": "2026-07-08 14:36 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:NDTV Profit"
+      },
+      {
+        "title": "Global Market: European shares decline as Middle East tensions weigh; airlines, autos lead losses",
+        "sentiment": -0.9744,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/us-stocks/news/global-market-european-shares-decline-as-middle-east-tensions-weigh-airlines-autos-lead-losses/articleshow/132258888.cms",
+        "publishedAt": "2026-07-08T09:09:32Z",
+        "publishedIST": "2026-07-08 14:39 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      }
+    ],
+    "macro_headlines": [
+      {
+        "title": "BPCL, HPCL to IOC: OMC stocks fall up to 5.5% on sharp rebound in crude oil prices",
+        "sentiment": -0.9754,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/bpcl-hpcl-to-ioc-omc-stocks-fall-up-to-5-5-on-sharp-rebound-in-crude-oil-prices-11783501548775.html",
+        "publishedAt": "2026-07-08T09:18:29Z",
+        "publishedIST": "2026-07-08 14:48 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "Stock Market Crash News Live Updates: Nifty Slumps Below 23,900, Sensex Slides Over 1,700 Points After Trump Says Ceasefire With Iran Is Ove",
+        "sentiment": -0.9745,
+        "source": "NDTV Profit",
+        "url": "https://www.ndtvprofit.com/markets/stock-market-crash-news-today-live-updates-share-market-sensex-nifty-gift-nifty-q1-results-iran-war-us-attack-oil-market-impact-fno-futures-options-11741655#publisher=newsstand",
+        "publishedAt": "2026-07-08T09:06:21Z",
+        "publishedIST": "2026-07-08 14:36 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:NDTV Profit"
+      },
+      {
+        "title": "Global Market: European shares decline as Middle East tensions weigh; airlines, autos lead losses",
+        "sentiment": -0.9744,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/us-stocks/news/global-market-european-shares-decline-as-middle-east-tensions-weigh-airlines-autos-lead-losses/articleshow/132258888.cms",
+        "publishedAt": "2026-07-08T09:09:32Z",
+        "publishedIST": "2026-07-08 14:39 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "Sensex falls over 680 pts, Nifty slips below 24,200 mark as crude oil spike weighs; FMCGs, oil & gas stocks drag",
+        "sentiment": -0.9744,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/sensex-falls-over-680-pts-nifty-slips-below-24200-mark-as-crude-oil-spike-weighs-fmcgs-oil-amp-gas-stocks-drag/article71197003.ece",
+        "publishedAt": "2026-07-08T07:06:56Z",
+        "publishedIST": "2026-07-08 12:36 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "Global oil output to return to pre-Iran war level by year's end, US EIA says",
+        "sentiment": -0.9739,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/commodities/global-oil-output-to-return-to-pre-iran-war-level-by-years-end-us-eia-says/article71196454.ece",
+        "publishedAt": "2026-07-08T03:24:05Z",
+        "publishedIST": "2026-07-08 08:54 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Hindu Business Line"
+      }
+    ],
+    "category_breakdown": {
+      "rss:The Economic Times": {
+        "count": 85,
+        "avg_sentiment": 0.001,
+        "label": "neutral"
+      },
+      "rss:Livemint": {
+        "count": 74,
+        "avg_sentiment": -0.002,
+        "label": "neutral"
+      },
+      "rss:The Hindu Business Line": {
+        "count": 67,
+        "avg_sentiment": -0.093,
+        "label": "neutral"
+      },
+      "google_news": {
+        "count": 47,
+        "avg_sentiment": -0.251,
+        "label": "bearish"
+      },
+      "rss:CNBC TV18": {
+        "count": 33,
+        "avg_sentiment": 0.246,
+        "label": "bullish"
+      },
+      "rss:The Times of India": {
+        "count": 31,
+        "avg_sentiment": -0.133,
+        "label": "bearish"
+      },
+      "rss:Business Today": {
+        "count": 25,
+        "avg_sentiment": -0.163,
+        "label": "bearish"
+      },
+      "rss:NDTV Profit": {
+        "count": 20,
+        "avg_sentiment": -0.027,
+        "label": "neutral"
+      },
+      "rss:News18": {
+        "count": 20,
+        "avg_sentiment": -0.244,
+        "label": "bearish"
+      },
+      "rss:The Indian Express": {
+        "count": 5,
+        "avg_sentiment": -0.057,
+        "label": "neutral"
+      },
+      "rss:ThePrint": {
+        "count": 4,
+        "avg_sentiment": 0.152,
+        "label": "bullish"
+      }
+    },
+    "fetched_at": "2026-07-08T09:56:46.737124"
+  },
+  "2026-07-09": {
+    "score": 0.1297,
+    "label": "slightly bullish",
+    "n_articles": 434,
+    "n_positive": 184,
+    "n_negative": 122,
+    "n_neutral": 128,
+    "n_macro": 64,
+    "macro_sentiment": 0.035,
+    "backend": "finbert",
+    "top_headlines": [
+      {
+        "title": "Gold falls as West Asia hostilities revive inflation woes",
+        "sentiment": -0.9757,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/gold/gold-falls-as-west-asia-hostilities-revive-inflation-woes/article71200918.ece",
+        "publishedAt": "2026-07-09T05:23:43Z",
+        "publishedIST": "2026-07-09 10:53 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "Small-cap stock under \u20b950 Elitecon International retraces after jumping 9% following stock market rebound. Do you own?",
+        "sentiment": -0.9747,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/smallcap-stock-under-50-elitecon-international-retraces-after-jumping-9-following-stock-market-rebound-do-you-own-11783574770726.html",
+        "publishedAt": "2026-07-09T06:07:44Z",
+        "publishedIST": "2026-07-09 11:37 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "India\u2019s top 3 fuel retailers may report Rs 47,700 crore loss in Q1. What\u2019s behind this?",
+        "sentiment": -0.9743,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/indias-top-3-fuel-retailers-may-report-rs-47700-crore-loss-in-q1-whats-behind-this/articleshow/132277434.cms",
+        "publishedAt": "2026-07-09T04:56:50Z",
+        "publishedIST": "2026-07-09 10:26 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "Asia's hydro power slump puts pressure on coal as El Ni\u00f1o weakens rainfall, says S&P",
+        "sentiment": -0.9739,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/industry/energy/asias-hydro-power-slump-puts-pressure-on-coal-as-el-ni-o-weakens-rainfall-says-sp-11783422926210.html",
+        "publishedAt": "2026-07-07T14:16:36Z",
+        "publishedIST": "2026-07-07 19:46 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "TCS share price, Q1 results: How IT stock reacted after its last 8 earnings announcements",
+        "sentiment": -0.9739,
+        "source": "Business Today",
+        "url": "https://www.businesstoday.in/markets/stocks/story/tcs-share-price-q1-results-how-it-stock-reacted-after-its-last-8-earnings-announcements-541947-2026-07-09?utm_source=rssfeed",
+        "publishedAt": "2026-07-09T07:01:26Z",
+        "publishedIST": "2026-07-09 12:31 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:Business Today"
+      }
+    ],
+    "macro_headlines": [
+      {
+        "title": "Gold falls as West Asia hostilities revive inflation woes",
+        "sentiment": -0.9757,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/gold/gold-falls-as-west-asia-hostilities-revive-inflation-woes/article71200918.ece",
+        "publishedAt": "2026-07-09T05:23:43Z",
+        "publishedIST": "2026-07-09 10:53 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "India\u2019s top 3 fuel retailers may report Rs 47,700 crore loss in Q1. What\u2019s behind this?",
+        "sentiment": -0.9743,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/indias-top-3-fuel-retailers-may-report-rs-47700-crore-loss-in-q1-whats-behind-this/articleshow/132277434.cms",
+        "publishedAt": "2026-07-09T04:56:50Z",
+        "publishedIST": "2026-07-09 10:26 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "10 Nifty 500 stocks plunge over 50% from 52-week highs. Do you own any?",
+        "sentiment": -0.9734,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/10-nifty-500-stocks-plunge-over-50-from-52-week-highs-do-you-own-any/slideshow/132281110.cms",
+        "publishedAt": "2026-07-09T08:00:03Z",
+        "publishedIST": "2026-07-09 13:30 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "Gold prices fall to Rs 1.43 lakh/10 grams, silver dips Rs 15,000 in 4 days as Iran war raises inflation worries. Time to exit?",
+        "sentiment": -0.9732,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/gold-prices-fall-to-rs-1-43-lakh/10-grams-silver-dips-rs-15000-in-4-days-as-iran-war-raises-inflation-worries-time-to-exit/articleshow/132276853.cms",
+        "publishedAt": "2026-07-09T04:13:46Z",
+        "publishedIST": "2026-07-09 09:43 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "Gold, silver prices decline in India: What's next for bullion",
+        "sentiment": -0.971,
+        "source": "CNBC TV18",
+        "url": "https://www.cnbctv18.com/market/commodities/gold-silver-prices-decline-in-india-what-lies-ahead-outlook-19941780.htm",
+        "publishedAt": "2026-07-09T08:16:50Z",
+        "publishedIST": "2026-07-09 13:46 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:CNBC TV18"
+      }
+    ],
+    "category_breakdown": {
+      "rss:The Economic Times": {
+        "count": 88,
+        "avg_sentiment": 0.28,
+        "label": "bullish"
+      },
+      "rss:Livemint": {
+        "count": 79,
+        "avg_sentiment": 0.089,
+        "label": "neutral"
+      },
+      "rss:The Hindu Business Line": {
+        "count": 64,
+        "avg_sentiment": 0.185,
+        "label": "bullish"
+      },
+      "google_news": {
+        "count": 49,
+        "avg_sentiment": 0.161,
+        "label": "bullish"
+      },
+      "rss:CNBC TV18": {
+        "count": 44,
+        "avg_sentiment": 0.125,
+        "label": "bullish"
+      },
+      "rss:The Times of India": {
+        "count": 29,
+        "avg_sentiment": -0.17,
+        "label": "bearish"
+      },
+      "rss:Business Today": {
+        "count": 25,
+        "avg_sentiment": -0.057,
+        "label": "neutral"
+      },
+      "rss:News18": {
+        "count": 22,
+        "avg_sentiment": 0.176,
+        "label": "bullish"
+      },
+      "rss:NDTV Profit": {
+        "count": 20,
+        "avg_sentiment": -0.309,
+        "label": "bearish"
+      },
+      "rss:ThePrint": {
+        "count": 8,
+        "avg_sentiment": 0.259,
+        "label": "bullish"
+      },
+      "rss:The Indian Express": {
+        "count": 6,
+        "avg_sentiment": -0.17,
+        "label": "bearish"
+      }
+    },
+    "fetched_at": "2026-07-09T12:10:37.883389"
+  },
+  "2026-07-13": {
+    "score": 0.1308,
+    "label": "slightly bullish",
+    "n_articles": 410,
+    "n_positive": 161,
+    "n_negative": 92,
+    "n_neutral": 157,
+    "n_macro": 63,
+    "macro_sentiment": 0.259,
+    "backend": "finbert",
+    "top_headlines": [
+      {
+        "title": "Gurugram Leads NCR Housing Market In January-June 2026; Noida-Greater Noida Account For 35% Of Home Sales: Report",
+        "sentiment": -0.9764,
+        "source": "News18",
+        "url": "https://www.news18.com/business/real-estate/gurugram-leads-ncr-housing-market-in-january-june-2026-noida-greater-noida-account-for-35-of-home-sales-report-ws-l-10204927.html",
+        "publishedAt": "2026-07-11T03:44:42Z",
+        "publishedIST": "2026-07-11 09:14 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:News18"
+      },
+      {
+        "title": "Global Market: European stocks edge lower as Middle East escalation dampens investor sentiment",
+        "sentiment": -0.9749,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/us-stocks/news/global-market-european-stocks-edge-lower-as-middle-east-escalation-dampens-investor-sentiment/articleshow/132361444.cms",
+        "publishedAt": "2026-07-13T08:31:48Z",
+        "publishedIST": "2026-07-13 14:01 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "LME copper prices fall as escalating US-Iran war renews inflation risks, interest rate hike fears",
+        "sentiment": -0.9744,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/commodities/lme-copper-prices-fall-as-escalating-us-iran-war-renews-inflation-risks-interest-rate-hike-fears-11783933023277.html",
+        "publishedAt": "2026-07-13T09:07:46Z",
+        "publishedIST": "2026-07-13 14:37 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "Why is market falling today? Sensex plunges 700 points, Nifty tests 24,000. 6 key factors behind the selloff",
+        "sentiment": -0.9743,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/why-is-market-falling-today-sensex-plunges-700-points-nifty-tests-24000-key-factors-behind-the-selloff/articleshow/132355904.cms",
+        "publishedAt": "2026-07-13T03:56:46Z",
+        "publishedIST": "2026-07-13 09:26 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "Stocks to buy or sell: Dharmesh Shah of ICICI Sec suggests buying Shriram Finance, Brigade Enterprise on 13 July",
+        "sentiment": -0.9737,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/stocks-to-buy-or-sell-dharmesh-shah-of-icici-sec-suggests-buying-shriram-finance-brigade-enterprise-on-13-july-11783915650685.html",
+        "publishedAt": "2026-07-13T04:22:55Z",
+        "publishedIST": "2026-07-13 09:52 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:Livemint"
+      }
+    ],
+    "macro_headlines": [
+      {
+        "title": "LME copper prices fall as escalating US-Iran war renews inflation risks, interest rate hike fears",
+        "sentiment": -0.9744,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/commodities/lme-copper-prices-fall-as-escalating-us-iran-war-renews-inflation-risks-interest-rate-hike-fears-11783933023277.html",
+        "publishedAt": "2026-07-13T09:07:46Z",
+        "publishedIST": "2026-07-13 14:37 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "Why is market falling today? Sensex plunges 700 points, Nifty tests 24,000. 6 key factors behind the selloff",
+        "sentiment": -0.9743,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/why-is-market-falling-today-sensex-plunges-700-points-nifty-tests-24000-key-factors-behind-the-selloff/articleshow/132355904.cms",
+        "publishedAt": "2026-07-13T03:56:46Z",
+        "publishedIST": "2026-07-13 09:26 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "Stocks to buy or sell: Dharmesh Shah of ICICI Sec suggests buying Shriram Finance, Brigade Enterprise on 13 July",
+        "sentiment": -0.9737,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/stocks-to-buy-or-sell-dharmesh-shah-of-icici-sec-suggests-buying-shriram-finance-brigade-enterprise-on-13-july-11783915650685.html",
+        "publishedAt": "2026-07-13T04:22:55Z",
+        "publishedIST": "2026-07-13 09:52 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "Swiggy shares slide over 2% after FSSAI issues 9 notices over consumer complaints",
+        "sentiment": -0.9725,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/swiggy-shares-slide-over-2-after-fssai-issues-9-notices-over-consumer-complaints/articleshow/132360998.cms",
+        "publishedAt": "2026-07-13T08:20:12Z",
+        "publishedIST": "2026-07-13 13:50 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "Gold slides over 1% as oil surges on Strait of Hormuz closure fears",
+        "sentiment": -0.9716,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/gold/gold-slides-over-1-as-oil-surges-on-strait-of-hormuz-closure-fears/article71215946.ece",
+        "publishedAt": "2026-07-13T04:34:50Z",
+        "publishedIST": "2026-07-13 10:04 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Hindu Business Line"
+      }
+    ],
+    "category_breakdown": {
+      "rss:The Economic Times": {
+        "count": 88,
+        "avg_sentiment": 0.26,
+        "label": "bullish"
+      },
+      "rss:Livemint": {
+        "count": 71,
+        "avg_sentiment": 0.045,
+        "label": "neutral"
+      },
+      "rss:The Hindu Business Line": {
+        "count": 61,
+        "avg_sentiment": 0.132,
+        "label": "bullish"
+      },
+      "google_news": {
+        "count": 47,
+        "avg_sentiment": -0.099,
+        "label": "neutral"
+      },
+      "rss:CNBC TV18": {
+        "count": 32,
+        "avg_sentiment": 0.37,
+        "label": "bullish"
+      },
+      "rss:The Times of India": {
+        "count": 31,
+        "avg_sentiment": 0.026,
+        "label": "neutral"
+      },
+      "rss:Business Today": {
+        "count": 25,
+        "avg_sentiment": -0.009,
+        "label": "neutral"
+      },
+      "rss:NDTV Profit": {
+        "count": 20,
+        "avg_sentiment": 0.142,
+        "label": "bullish"
+      },
+      "rss:News18": {
+        "count": 15,
+        "avg_sentiment": 0.223,
+        "label": "bullish"
+      },
+      "rss:ThePrint": {
+        "count": 13,
+        "avg_sentiment": 0.727,
+        "label": "bullish"
+      },
+      "rss:The Indian Express": {
+        "count": 7,
+        "avg_sentiment": 0.105,
+        "label": "bullish"
+      }
+    },
+    "fetched_at": "2026-07-13T09:56:04.602144"
+  },
+  "2026-07-14": {
+    "score": 0.0797,
+    "label": "slightly bullish",
+    "n_articles": 424,
+    "n_positive": 162,
+    "n_negative": 115,
+    "n_neutral": 147,
+    "n_macro": 95,
+    "macro_sentiment": 0.15,
+    "backend": "finbert",
+    "top_headlines": [
+      {
+        "title": "Indian kharif sowing deficit narrows, as 48% of normal area complete; paddy acreage dips 9%",
+        "sentiment": -0.9757,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/economy/agri-business/indian-kharif-sowing-deficit-narrows-as-48-of-normal-area-complete-paddy-acreage-dips-9/article71217938.ece",
+        "publishedAt": "2026-07-13T16:32:02Z",
+        "publishedIST": "2026-07-13 22:02 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "Bajaj Consumer shares slip 12% despite robust Q1 earnings as valuation concerns weigh",
+        "sentiment": -0.9752,
+        "source": "CNBC TV18",
+        "url": "https://www.cnbctv18.com/market/bajaj-consumer-share-price-slips-despite-robust-q1-earnings-as-valuation-concerns-weigh-19944927.htm",
+        "publishedAt": "2026-07-14T07:40:05Z",
+        "publishedIST": "2026-07-14 13:10 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:CNBC TV18"
+      },
+      {
+        "title": "India auto M&A and PE deals fall to $1.46 billion in H1 2026; Q2 transactions drop 43 per cent",
+        "sentiment": -0.9751,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/economy/india-auto-ma-and-pe-deals-fall-to-146-billion-in-h1-2026-q2-transactions-drop-43-per-cent/article71216454.ece",
+        "publishedAt": "2026-07-13T16:43:47Z",
+        "publishedIST": "2026-07-13 22:13 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "Indian edible oil imports decline 30% in June as palm and soybean oil shipments fall",
+        "sentiment": -0.975,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/economy/agri-business/indian-edible-oil-imports-decline-30-in-june-as-palm-and-soybean-oil-shipments-fall/article71220483.ece",
+        "publishedAt": "2026-07-14T08:50:36Z",
+        "publishedIST": "2026-07-14 14:20 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "Iran jitters, Rupee slide keep Sensex, Nifty under pressure; HCL Tech, HDFC Life lead losses",
+        "sentiment": -0.9749,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/stock-markets/iran-jitters-rupee-slide-keep-sensex-nifty-under-pressure-hcl-tech-hdfc-life-lead-losses/article71220380.ece",
+        "publishedAt": "2026-07-14T08:07:36Z",
+        "publishedIST": "2026-07-14 13:37 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Hindu Business Line"
+      }
+    ],
+    "macro_headlines": [
+      {
+        "title": "Indian edible oil imports decline 30% in June as palm and soybean oil shipments fall",
+        "sentiment": -0.975,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/economy/agri-business/indian-edible-oil-imports-decline-30-in-june-as-palm-and-soybean-oil-shipments-fall/article71220483.ece",
+        "publishedAt": "2026-07-14T08:50:36Z",
+        "publishedIST": "2026-07-14 14:20 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "Iran jitters, Rupee slide keep Sensex, Nifty under pressure; HCL Tech, HDFC Life lead losses",
+        "sentiment": -0.9749,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/stock-markets/iran-jitters-rupee-slide-keep-sensex-nifty-under-pressure-hcl-tech-hdfc-life-lead-losses/article71220380.ece",
+        "publishedAt": "2026-07-14T08:07:36Z",
+        "publishedIST": "2026-07-14 13:37 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "Rupee drops past 96 as oil prices climb on renewed US-Iran tensions",
+        "sentiment": -0.9745,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/forex/rupee-drops-past-96-per-dollar-as-oil-prices-climb-on-renewed-us-iran-tensions/article71219838.ece",
+        "publishedAt": "2026-07-14T04:14:54Z",
+        "publishedIST": "2026-07-14 09:44 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "Stocks to buy: Sagar Doshi suggests Anant Raj, Sobha, PNB Housing Finance shares to buy",
+        "sentiment": -0.9742,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/stocks-to-buy-sagar-doshi-suggests-anant-raj-sobha-pnb-housing-finance-shares-to-buy-11784002408057.html",
+        "publishedAt": "2026-07-14T04:45:55Z",
+        "publishedIST": "2026-07-14 10:15 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "Stock Market Crash News Live Updates: Nifty Falls Near 24,050, Sensex Slides Over 500 Points; Nuvoco Vistas Surges After Q1 Results",
+        "sentiment": -0.9728,
+        "source": "NDTV Profit",
+        "url": "https://www.ndtvprofit.com/markets/stock-market-crash-news-today-live-updates-share-market-sensex-nifty-gift-nifty-iran-war-us-attack-oil-market-impact-q1-results-fno-expiry-futures-11767665#publisher=newsstand",
+        "publishedAt": "2026-07-14T08:18:32Z",
+        "publishedIST": "2026-07-14 13:48 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:NDTV Profit"
+      }
+    ],
+    "category_breakdown": {
+      "rss:The Economic Times": {
+        "count": 85,
+        "avg_sentiment": 0.245,
+        "label": "bullish"
+      },
+      "rss:Livemint": {
+        "count": 78,
+        "avg_sentiment": 0.109,
+        "label": "bullish"
+      },
+      "rss:The Hindu Business Line": {
+        "count": 56,
+        "avg_sentiment": -0.033,
+        "label": "neutral"
+      },
+      "google_news": {
+        "count": 48,
+        "avg_sentiment": -0.182,
+        "label": "bearish"
+      },
+      "rss:CNBC TV18": {
+        "count": 40,
+        "avg_sentiment": 0.42,
+        "label": "bullish"
+      },
+      "rss:The Times of India": {
+        "count": 29,
+        "avg_sentiment": 0.026,
+        "label": "neutral"
+      },
+      "rss:Business Today": {
+        "count": 25,
+        "avg_sentiment": -0.205,
+        "label": "bearish"
+      },
+      "rss:NDTV Profit": {
+        "count": 20,
+        "avg_sentiment": 0.023,
+        "label": "neutral"
+      },
+      "rss:News18": {
+        "count": 20,
+        "avg_sentiment": 0.194,
+        "label": "bullish"
+      },
+      "rss:ThePrint": {
+        "count": 15,
+        "avg_sentiment": 0.115,
+        "label": "bullish"
+      },
+      "rss:The Indian Express": {
+        "count": 8,
+        "avg_sentiment": -0.123,
+        "label": "bearish"
+      }
+    },
+    "fetched_at": "2026-07-14T09:57:09.209194"
+  },
+  "2026-07-15": {
+    "score": 0.1636,
+    "label": "slightly bullish",
+    "n_articles": 466,
+    "n_positive": 194,
+    "n_negative": 112,
+    "n_neutral": 160,
+    "n_macro": 98,
+    "macro_sentiment": 0.294,
+    "backend": "finbert",
+    "top_headlines": [
+      {
+        "title": "India's vegetable oil imports fall 29% in June to lowest level of current oil year",
+        "sentiment": -0.9762,
+        "source": "CNBC TV18",
+        "url": "https://www.cnbctv18.com/economy/india-vegetable-oil-imports-fall-29-pc-in-june-to-lowest-level-of-current-oil-year-19945177.htm",
+        "publishedAt": "2026-07-14T10:47:01Z",
+        "publishedIST": "2026-07-14 16:17 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:CNBC TV18"
+      },
+      {
+        "title": "Tata Group stock falls 5% after Q1 results; Here's what is pressuring the share price",
+        "sentiment": -0.9756,
+        "source": "CNBC TV18",
+        "url": "https://www.cnbctv18.com/market/tata-elxsi-share-price-tata-group-stock-falls-q1-results-here-is-what-is-pressuring-the-share-price-19945763.htm",
+        "publishedAt": "2026-07-15T04:51:45Z",
+        "publishedIST": "2026-07-15 10:21 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:CNBC TV18"
+      },
+      {
+        "title": "Patanjali Foods share price crashes 20%, extending losses for third straight session; what should investors do?",
+        "sentiment": -0.9748,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/patanjali-foods-share-price-crashes-20-extends-its-losses-for-third-session-what-should-investors-do-11784098857317.html",
+        "publishedAt": "2026-07-15T07:08:00Z",
+        "publishedIST": "2026-07-15 12:38 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "TCS, Infosys to Wipro: IBM's worst crash since 1968 rattles Indian IT stocks. Here's what spooked investors",
+        "sentiment": -0.9746,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/tcs-infosys-to-wipro-ibms-worst-crash-since-1968-rattles-indian-it-stocks-heres-what-spooked-investors-11784087428278.html",
+        "publishedAt": "2026-07-15T04:04:11Z",
+        "publishedIST": "2026-07-15 09:34 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "IBM shares tank 26% after initial results disappoint",
+        "sentiment": -0.9745,
+        "source": "The Times of India",
+        "url": "https://timesofindia.indiatimes.com/business/international-business/ibm-shares-tank-26-after-initial-results-disappoint/articleshow/132404126.cms",
+        "publishedAt": "2026-07-15T02:13:33Z",
+        "publishedIST": "2026-07-15 07:43 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Times of India"
+      }
+    ],
+    "macro_headlines": [
+      {
+        "title": "Patanjali Foods share price crashes 20%, extending losses for third straight session; what should investors do?",
+        "sentiment": -0.9748,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/patanjali-foods-share-price-crashes-20-extends-its-losses-for-third-session-what-should-investors-do-11784098857317.html",
+        "publishedAt": "2026-07-15T07:08:00Z",
+        "publishedIST": "2026-07-15 12:38 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "TCS, Infosys to Wipro: IBM's worst crash since 1968 rattles Indian IT stocks. Here's what spooked investors",
+        "sentiment": -0.9746,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/tcs-infosys-to-wipro-ibms-worst-crash-since-1968-rattles-indian-it-stocks-heres-what-spooked-investors-11784087428278.html",
+        "publishedAt": "2026-07-15T04:04:11Z",
+        "publishedIST": "2026-07-15 09:34 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "IBM shares tank 26% after initial results disappoint",
+        "sentiment": -0.9745,
+        "source": "The Times of India",
+        "url": "https://timesofindia.indiatimes.com/business/international-business/ibm-shares-tank-26-after-initial-results-disappoint/articleshow/132404126.cms",
+        "publishedAt": "2026-07-15T02:13:33Z",
+        "publishedIST": "2026-07-15 07:43 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Times of India"
+      },
+      {
+        "title": "IBM's Stock Crashes 25%, Worst Fall Since 1967: 3 Reasons Behind Historic Selloff",
+        "sentiment": -0.9743,
+        "source": "News18",
+        "url": "https://www.news18.com/world/ibms-stock-crashes-25-worst-fall-since-1967-3-reasons-behind-historic-selloff-ws-l-10212206.html",
+        "publishedAt": "2026-07-15T04:42:37Z",
+        "publishedIST": "2026-07-15 10:12 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:News18"
+      },
+      {
+        "title": "Patanjali Foods shares fall nearly 20%, the most in six years; CEO clarifies on sell-off",
+        "sentiment": -0.9729,
+        "source": "CNBC TV18",
+        "url": "https://www.cnbctv18.com/market/patanjali-foods-shares-fall-nearly-20-the-most-in-six-years-check-latest-shareholding-19945946.htm",
+        "publishedAt": "2026-07-15T07:09:47Z",
+        "publishedIST": "2026-07-15 12:39 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:CNBC TV18"
+      }
+    ],
+    "category_breakdown": {
+      "rss:The Economic Times": {
+        "count": 87,
+        "avg_sentiment": 0.209,
+        "label": "bullish"
+      },
+      "rss:Livemint": {
+        "count": 86,
+        "avg_sentiment": 0.127,
+        "label": "bullish"
+      },
+      "rss:The Hindu Business Line": {
+        "count": 62,
+        "avg_sentiment": 0.262,
+        "label": "bullish"
+      },
+      "google_news": {
+        "count": 52,
+        "avg_sentiment": -0.054,
+        "label": "neutral"
+      },
+      "rss:CNBC TV18": {
+        "count": 49,
+        "avg_sentiment": 0.443,
+        "label": "bullish"
+      },
+      "rss:The Times of India": {
+        "count": 35,
+        "avg_sentiment": 0.01,
+        "label": "neutral"
+      },
+      "rss:Business Today": {
+        "count": 25,
+        "avg_sentiment": -0.155,
+        "label": "bearish"
+      },
+      "rss:News18": {
+        "count": 21,
+        "avg_sentiment": -0.026,
+        "label": "neutral"
+      },
+      "rss:NDTV Profit": {
+        "count": 20,
+        "avg_sentiment": 0.325,
+        "label": "bullish"
+      },
+      "rss:ThePrint": {
+        "count": 18,
+        "avg_sentiment": 0.099,
+        "label": "neutral"
+      },
+      "rss:The Indian Express": {
+        "count": 11,
+        "avg_sentiment": 0.153,
+        "label": "bullish"
+      }
+    },
+    "fetched_at": "2026-07-15T09:54:27.973929"
+  },
+  "2026-07-16": {
+    "score": 0.1093,
+    "label": "slightly bullish",
+    "n_articles": 467,
+    "n_positive": 187,
+    "n_negative": 118,
+    "n_neutral": 162,
+    "n_macro": 93,
+    "macro_sentiment": 0.02,
+    "backend": "finbert",
+    "top_headlines": [
+      {
+        "title": "India's vegetable oil imports fall 29% in June to lowest level of current oil year",
+        "sentiment": -0.9762,
+        "source": "CNBC TV18",
+        "url": "https://www.cnbctv18.com/economy/india-vegetable-oil-imports-fall-29-pc-in-june-to-lowest-level-of-current-oil-year-19945177.htm",
+        "publishedAt": "2026-07-14T10:47:01Z",
+        "publishedIST": "2026-07-14 16:17 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:CNBC TV18"
+      },
+      {
+        "title": "Newgen Software Q1 Results: Stock falls 8% from highs after sequential dip in revenue, margins",
+        "sentiment": -0.9752,
+        "source": "CNBC TV18",
+        "url": "https://www.cnbctv18.com/market/newgen-software-q1-results-stock-falls-8-from-highs-after-sequential-contraction-in-revenue-margins-19947053.htm",
+        "publishedAt": "2026-07-16T09:06:24Z",
+        "publishedIST": "2026-07-16 14:36 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:CNBC TV18"
+      },
+      {
+        "title": "Prestige Estates shares fall after Q1 pre-sales decline 15% from the March quarter",
+        "sentiment": -0.9751,
+        "source": "CNBC TV18",
+        "url": "https://www.cnbctv18.com/market/prestige-estates-share-price-falls-q1-pre-sales-decline-from-last-year-volumes-collections-19946931.htm",
+        "publishedAt": "2026-07-16T08:57:13Z",
+        "publishedIST": "2026-07-16 14:27 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:CNBC TV18"
+      },
+      {
+        "title": "Explained: Why ICICI Lombard shares tumbled 15% in their biggest fall since the COVID crash",
+        "sentiment": -0.9745,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/explained-why-icici-lombard-shares-tumbled-15-in-their-biggest-fall-since-the-covid-crash/articleshow/132430960.cms",
+        "publishedAt": "2026-07-16T05:57:37Z",
+        "publishedIST": "2026-07-16 11:27 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "Gold falls as Mideast escalation dims hopes of easing inflation",
+        "sentiment": -0.9743,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/gold/gold-falls-as-mideast-escalation-dims-hopes-of-easing-inflation/article71228525.ece",
+        "publishedAt": "2026-07-16T04:54:03Z",
+        "publishedIST": "2026-07-16 10:24 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Hindu Business Line"
+      }
+    ],
+    "macro_headlines": [
+      {
+        "title": "Newgen Software Q1 Results: Stock falls 8% from highs after sequential dip in revenue, margins",
+        "sentiment": -0.9752,
+        "source": "CNBC TV18",
+        "url": "https://www.cnbctv18.com/market/newgen-software-q1-results-stock-falls-8-from-highs-after-sequential-contraction-in-revenue-margins-19947053.htm",
+        "publishedAt": "2026-07-16T09:06:24Z",
+        "publishedIST": "2026-07-16 14:36 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:CNBC TV18"
+      },
+      {
+        "title": "Explained: Why ICICI Lombard shares tumbled 15% in their biggest fall since the COVID crash",
+        "sentiment": -0.9745,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/explained-why-icici-lombard-shares-tumbled-15-in-their-biggest-fall-since-the-covid-crash/articleshow/132430960.cms",
+        "publishedAt": "2026-07-16T05:57:37Z",
+        "publishedIST": "2026-07-16 11:27 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "Gold falls as Mideast escalation dims hopes of easing inflation",
+        "sentiment": -0.9743,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/gold/gold-falls-as-mideast-escalation-dims-hopes-of-easing-inflation/article71228525.ece",
+        "publishedAt": "2026-07-16T04:54:03Z",
+        "publishedIST": "2026-07-16 10:24 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "ICICI Lombard share price crashes 15% to 52-week low after Q1 profit tanks 46%; Should you buy the dip?",
+        "sentiment": -0.9741,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/icici-lombard-share-price-crashes-15-to-52-week-low-after-q1-profit-tanks-46-should-you-buy-the-dip-11784177808627.html",
+        "publishedAt": "2026-07-16T05:05:08Z",
+        "publishedIST": "2026-07-16 10:35 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "Citigroup\u2019s Indian clients shift focus to Rupee volatility",
+        "sentiment": -0.9719,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/money-and-banking/citigroups-indian-clients-shift-focus-to-rupee-volatility/article71229058.ece",
+        "publishedAt": "2026-07-16T09:21:34Z",
+        "publishedIST": "2026-07-16 14:51 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Hindu Business Line"
+      }
+    ],
+    "category_breakdown": {
+      "rss:The Economic Times": {
+        "count": 87,
+        "avg_sentiment": 0.17,
+        "label": "bullish"
+      },
+      "rss:Livemint": {
+        "count": 87,
+        "avg_sentiment": 0.115,
+        "label": "bullish"
+      },
+      "rss:The Hindu Business Line": {
+        "count": 63,
+        "avg_sentiment": 0.071,
+        "label": "neutral"
+      },
+      "google_news": {
+        "count": 51,
+        "avg_sentiment": 0.07,
+        "label": "neutral"
+      },
+      "rss:CNBC TV18": {
+        "count": 50,
+        "avg_sentiment": 0.179,
+        "label": "bullish"
+      },
+      "rss:The Times of India": {
+        "count": 33,
+        "avg_sentiment": 0.062,
+        "label": "neutral"
+      },
+      "rss:Business Today": {
+        "count": 25,
+        "avg_sentiment": 0.036,
+        "label": "neutral"
+      },
+      "rss:NDTV Profit": {
+        "count": 20,
+        "avg_sentiment": 0.157,
+        "label": "bullish"
+      },
+      "rss:News18": {
+        "count": 19,
+        "avg_sentiment": 0.072,
+        "label": "neutral"
+      },
+      "rss:ThePrint": {
+        "count": 17,
+        "avg_sentiment": 0.237,
+        "label": "bullish"
+      },
+      "rss:The Indian Express": {
+        "count": 15,
+        "avg_sentiment": 0.28,
+        "label": "bullish"
+      }
+    },
+    "fetched_at": "2026-07-16T09:56:59.168707"
+  },
+  "2026-07-22": {
+    "score": -0.043,
+    "label": "neutral",
+    "n_articles": 424,
+    "n_positive": 136,
+    "n_negative": 141,
+    "n_neutral": 147,
+    "n_macro": 84,
+    "macro_sentiment": -0.135,
+    "backend": "finbert",
+    "top_headlines": [
+      {
+        "title": "India\u2019s April-June LPG imports lowest in 8 years",
+        "sentiment": -0.9769,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/economy/indias-april-june-lpg-imports-lowest-in-8-years/article71252461.ece",
+        "publishedAt": "2026-07-22T07:09:48Z",
+        "publishedIST": "2026-07-22 12:39 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "India's coking coal import bill down 39% in three years helped by Russian discounts, low-price global cycle",
+        "sentiment": -0.9758,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/economy/imports-russia-united-states-reduce-india-coking-coal-import-bill-39-australia-steelmaking-coke-11784605013324.html",
+        "publishedAt": "2026-07-22T00:30:06Z",
+        "publishedIST": "2026-07-22 06:00 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "Bandhan Bank shares crash 15% after Q1 results; lender cuts RoA guidance. Should you buy, sell or hold?",
+        "sentiment": -0.9749,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/bandhan-bank-shares-crash-10-after-q1-results-lender-cuts-roa-guidance-should-you-buy-sell-or-hold/articleshow/132550886.cms",
+        "publishedAt": "2026-07-22T04:15:14Z",
+        "publishedIST": "2026-07-22 09:45 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "GIFT Nifty Signals Muted Start For D-Street Despite Global Rally, Trades 58 Points Lower On July 22",
+        "sentiment": -0.9747,
+        "source": "News18",
+        "url": "https://www.news18.com/business/markets/gift-nifty-signals-muted-start-for-d-street-despite-global-rally-trades-58-points-lower-on-july-22-ws-l-10226309.html",
+        "publishedAt": "2026-07-22T02:20:37Z",
+        "publishedIST": "2026-07-22 07:50 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:News18"
+      },
+      {
+        "title": "SpaceX stock price rebounds after seven-session losing streak. Opportunity to buy?",
+        "sentiment": -0.9746,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/spacex-stock-price-rebounds-after-seven-session-losing-streak-opportunity-to-buy-11784708168324.html",
+        "publishedAt": "2026-07-22T08:34:19Z",
+        "publishedIST": "2026-07-22 14:04 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:Livemint"
+      }
+    ],
+    "macro_headlines": [
+      {
+        "title": "Bandhan Bank shares crash 15% after Q1 results; lender cuts RoA guidance. Should you buy, sell or hold?",
+        "sentiment": -0.9749,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/bandhan-bank-shares-crash-10-after-q1-results-lender-cuts-roa-guidance-should-you-buy-sell-or-hold/articleshow/132550886.cms",
+        "publishedAt": "2026-07-22T04:15:14Z",
+        "publishedIST": "2026-07-22 09:45 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "GIFT Nifty Signals Muted Start For D-Street Despite Global Rally, Trades 58 Points Lower On July 22",
+        "sentiment": -0.9747,
+        "source": "News18",
+        "url": "https://www.news18.com/business/markets/gift-nifty-signals-muted-start-for-d-street-despite-global-rally-trades-58-points-lower-on-july-22-ws-l-10226309.html",
+        "publishedAt": "2026-07-22T02:20:37Z",
+        "publishedIST": "2026-07-22 07:50 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:News18"
+      },
+      {
+        "title": "SpaceX stock price rebounds after seven-session losing streak. Opportunity to buy?",
+        "sentiment": -0.9746,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/spacex-stock-price-rebounds-after-seven-session-losing-streak-opportunity-to-buy-11784708168324.html",
+        "publishedAt": "2026-07-22T08:34:19Z",
+        "publishedIST": "2026-07-22 14:04 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "CSB Bank Shares Tumble 8% Despite 26% Surge In Q1 Profit",
+        "sentiment": -0.9743,
+        "source": "NDTV Profit",
+        "url": "https://www.ndtvprofit.com/markets/csb-bank-shares-tumble-8-percent-despite-26-percent-surge-in-q1-profit-11805040#publisher=newsstand",
+        "publishedAt": "2026-07-22T07:51:25Z",
+        "publishedIST": "2026-07-22 13:21 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:NDTV Profit"
+      },
+      {
+        "title": "Pharma stocks decline; Aurobindo Pharma down over 4%",
+        "sentiment": -0.9738,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/pharma-stocks-decline-aurobindo-pharma-down-over-4/article71252323.ece",
+        "publishedAt": "2026-07-22T06:23:40Z",
+        "publishedIST": "2026-07-22 11:53 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Hindu Business Line"
+      }
+    ],
+    "category_breakdown": {
+      "rss:The Economic Times": {
+        "count": 83,
+        "avg_sentiment": -0.089,
+        "label": "neutral"
+      },
+      "rss:Livemint": {
+        "count": 82,
+        "avg_sentiment": -0.004,
+        "label": "neutral"
+      },
+      "rss:The Hindu Business Line": {
+        "count": 60,
+        "avg_sentiment": 0.099,
+        "label": "neutral"
+      },
+      "google_news": {
+        "count": 49,
+        "avg_sentiment": -0.204,
+        "label": "bearish"
+      },
+      "rss:CNBC TV18": {
+        "count": 47,
+        "avg_sentiment": 0.208,
+        "label": "bullish"
+      },
+      "rss:Business Today": {
+        "count": 25,
+        "avg_sentiment": -0.184,
+        "label": "bearish"
+      },
+      "rss:The Times of India": {
+        "count": 25,
+        "avg_sentiment": -0.153,
+        "label": "bearish"
+      },
+      "rss:NDTV Profit": {
+        "count": 20,
+        "avg_sentiment": 0.092,
+        "label": "neutral"
+      },
+      "rss:News18": {
+        "count": 18,
+        "avg_sentiment": 0.027,
+        "label": "neutral"
+      },
+      "rss:ThePrint": {
+        "count": 8,
+        "avg_sentiment": 0.103,
+        "label": "bullish"
+      },
+      "rss:The Indian Express": {
+        "count": 7,
+        "avg_sentiment": -0.402,
+        "label": "bearish"
+      }
+    },
+    "fetched_at": "2026-07-22T10:00:30.715428"
+  },
+  "2026-07-24": {
+    "score": -0.0094,
+    "label": "neutral",
+    "n_articles": 458,
+    "n_positive": 149,
+    "n_negative": 145,
+    "n_neutral": 164,
+    "n_macro": 86,
+    "macro_sentiment": -0.037,
+    "backend": "finbert",
+    "top_headlines": [
+      {
+        "title": "India's coking coal import bill down 39% in three years helped by Russian discounts, low-price global cycle",
+        "sentiment": -0.9758,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/economy/imports-russia-united-states-reduce-india-coking-coal-import-bill-39-australia-steelmaking-coke-11784605013324.html",
+        "publishedAt": "2026-07-22T00:30:06Z",
+        "publishedIST": "2026-07-22 06:00 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "Swiggy share price tumbles over 7%, nears record low. Here's why",
+        "sentiment": -0.9755,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/swiggy-share-price-tumbles-over-7-nears-record-low-heres-why-11784877311516.html",
+        "publishedAt": "2026-07-24T07:24:26Z",
+        "publishedIST": "2026-07-24 12:54 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "India's private sector growth slumped to over four-year low in July, PMI shows",
+        "sentiment": -0.9753,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/news/economy/indicators/indias-private-sector-growth-slumped-to-over-four-year-low-in-july-pmi-shows/articleshow/132596779.cms",
+        "publishedAt": "2026-07-24T05:19:27Z",
+        "publishedIST": "2026-07-24 10:49 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "Why stock market opened lower for fourth session; decoding the equity crash in numbers",
+        "sentiment": -0.9749,
+        "source": "Business Today",
+        "url": "https://www.businesstoday.in/markets/stocks/story/why-stock-market-is-down-for-fourth-session-decoding-the-equity-crash-in-numbers-544951-2026-07-24?utm_source=rssfeed",
+        "publishedAt": "2026-07-24T04:13:26Z",
+        "publishedIST": "2026-07-24 09:43 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:Business Today"
+      },
+      {
+        "title": "Motilal Oswal shares fall 9%, most in over two years after mixed core biz trends in Q1",
+        "sentiment": -0.9748,
+        "source": "CNBC TV18",
+        "url": "https://www.cnbctv18.com/market/motilal-oswal-shares-fall-most-in-over-two-years-after-mixed-core-biz-trends-in-q1-19953077.htm",
+        "publishedAt": "2026-07-24T06:01:04Z",
+        "publishedIST": "2026-07-24 11:31 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:CNBC TV18"
+      }
+    ],
+    "macro_headlines": [
+      {
+        "title": "Swiggy share price tumbles over 7%, nears record low. Here's why",
+        "sentiment": -0.9755,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/swiggy-share-price-tumbles-over-7-nears-record-low-heres-why-11784877311516.html",
+        "publishedAt": "2026-07-24T07:24:26Z",
+        "publishedIST": "2026-07-24 12:54 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "India's private sector growth slumped to over four-year low in July, PMI shows",
+        "sentiment": -0.9753,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/news/economy/indicators/indias-private-sector-growth-slumped-to-over-four-year-low-in-july-pmi-shows/articleshow/132596779.cms",
+        "publishedAt": "2026-07-24T05:19:27Z",
+        "publishedIST": "2026-07-24 10:49 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "Why stock market opened lower for fourth session; decoding the equity crash in numbers",
+        "sentiment": -0.9749,
+        "source": "Business Today",
+        "url": "https://www.businesstoday.in/markets/stocks/story/why-stock-market-is-down-for-fourth-session-decoding-the-equity-crash-in-numbers-544951-2026-07-24?utm_source=rssfeed",
+        "publishedAt": "2026-07-24T04:13:26Z",
+        "publishedIST": "2026-07-24 09:43 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:Business Today"
+      },
+      {
+        "title": "Gift Nifty Signals Weak Start Today, Falls 200 Points Amid Costlier Crude Oil, US-Iran War",
+        "sentiment": -0.9747,
+        "source": "News18",
+        "url": "https://www.news18.com/business/markets/gift-nifty-signals-weak-start-falls-200-points-amid-costlier-crude-oil-us-iran-war-ws-l-10230678.html",
+        "publishedAt": "2026-07-24T02:50:19Z",
+        "publishedIST": "2026-07-24 08:20 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:News18"
+      },
+      {
+        "title": "Caliber Mining shares drop 8% after listing with 19% premium over IPO price. Should you buy, sell or hold?",
+        "sentiment": -0.9743,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/caliber-mining-shares-drop-8-after-listing-with-19-premium-over-ipo-price-should-you-buy-sell-or-hold/articleshow/132598938.cms",
+        "publishedAt": "2026-07-24T07:14:36Z",
+        "publishedIST": "2026-07-24 12:44 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      }
+    ],
+    "category_breakdown": {
+      "rss:The Economic Times": {
+        "count": 89,
+        "avg_sentiment": 0.058,
+        "label": "neutral"
+      },
+      "rss:Livemint": {
+        "count": 75,
+        "avg_sentiment": -0.076,
+        "label": "neutral"
+      },
+      "rss:The Hindu Business Line": {
+        "count": 62,
+        "avg_sentiment": 0.184,
+        "label": "bullish"
+      },
+      "google_news": {
+        "count": 51,
+        "avg_sentiment": -0.344,
+        "label": "bearish"
+      },
+      "rss:CNBC TV18": {
+        "count": 48,
+        "avg_sentiment": 0.191,
+        "label": "bullish"
+      },
+      "rss:The Times of India": {
+        "count": 31,
+        "avg_sentiment": -0.103,
+        "label": "bearish"
+      },
+      "rss:Business Today": {
+        "count": 25,
+        "avg_sentiment": -0.165,
+        "label": "bearish"
+      },
+      "rss:News18": {
+        "count": 22,
+        "avg_sentiment": 0.17,
+        "label": "bullish"
+      },
+      "rss:NDTV Profit": {
+        "count": 20,
+        "avg_sentiment": 0.171,
+        "label": "bullish"
+      },
+      "rss:ThePrint": {
+        "count": 19,
+        "avg_sentiment": 0.022,
+        "label": "neutral"
+      },
+      "rss:The Indian Express": {
+        "count": 16,
+        "avg_sentiment": -0.307,
+        "label": "bearish"
+      }
+    },
+    "fetched_at": "2026-07-24T09:57:31.442274"
+  },
+  "2026-07-30": {
+    "score": 0.0295,
+    "label": "neutral",
+    "n_articles": 459,
+    "n_positive": 160,
+    "n_negative": 147,
+    "n_neutral": 152,
+    "n_macro": 92,
+    "macro_sentiment": 0.005,
+    "backend": "finbert",
+    "top_headlines": [
+      {
+        "title": "KPIT Technologies shares crash 7% after profit falls 32% to Rs 117 crore in Q1",
+        "sentiment": -0.9771,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/kpit-technologies-shares-crash-7-after-profit-falls-32-to-rs-117-crore-in-q1/articleshow/132728118.cms",
+        "publishedAt": "2026-07-30T05:36:05Z",
+        "publishedIST": "2026-07-30 11:06 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "Thangamayil Jewellery shares crash 19% in 2 days on weak Q2 outlook. What did the company say?",
+        "sentiment": -0.9761,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/thangamayil-jewellery-shares-crash-19-in-2-days-on-weak-q2-outlook-what-did-the-company-say/articleshow/132728014.cms",
+        "publishedAt": "2026-07-30T05:29:58Z",
+        "publishedIST": "2026-07-30 10:59 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "HPCL, BPCL to IOCL \u2014 oil PSU stocks dip as crude price jumps above $90/bbl",
+        "sentiment": -0.9756,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/hpcl-bpcl-to-iocl-oil-psu-stocks-dip-as-crude-price-jumps-above-90bbl-11785396163811.html",
+        "publishedAt": "2026-07-30T07:55:11Z",
+        "publishedIST": "2026-07-30 13:25 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "Gold futures slip to \u20b91.41 lakh/10g on firm US dollar",
+        "sentiment": -0.9754,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/gold/gold-futures-slip-to-141-lakh10g-on-firm-us-dollar/article71284840.ece",
+        "publishedAt": "2026-07-30T07:15:50Z",
+        "publishedIST": "2026-07-30 12:45 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "Hexaware Tech shares fall 8% on cutting full year revenue growth guidance after Q1 results",
+        "sentiment": -0.9752,
+        "source": "CNBC TV18",
+        "url": "https://www.cnbctv18.com/market/hexaware-tech-shares-fall-on-cutting-full-year-revenue-growth-guidance-after-q1-results-19957589.htm",
+        "publishedAt": "2026-07-30T06:17:35Z",
+        "publishedIST": "2026-07-30 11:47 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:CNBC TV18"
+      }
+    ],
+    "macro_headlines": [
+      {
+        "title": "KPIT Technologies shares crash 7% after profit falls 32% to Rs 117 crore in Q1",
+        "sentiment": -0.9771,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/kpit-technologies-shares-crash-7-after-profit-falls-32-to-rs-117-crore-in-q1/articleshow/132728118.cms",
+        "publishedAt": "2026-07-30T05:36:05Z",
+        "publishedIST": "2026-07-30 11:06 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "Thangamayil Jewellery shares crash 19% in 2 days on weak Q2 outlook. What did the company say?",
+        "sentiment": -0.9761,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/thangamayil-jewellery-shares-crash-19-in-2-days-on-weak-q2-outlook-what-did-the-company-say/articleshow/132728014.cms",
+        "publishedAt": "2026-07-30T05:29:58Z",
+        "publishedIST": "2026-07-30 10:59 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "Gold futures slip to \u20b91.41 lakh/10g on firm US dollar",
+        "sentiment": -0.9754,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/gold/gold-futures-slip-to-141-lakh10g-on-firm-us-dollar/article71284840.ece",
+        "publishedAt": "2026-07-30T07:15:50Z",
+        "publishedIST": "2026-07-30 12:45 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "Hexaware Tech shares fall 8% on cutting full year revenue growth guidance after Q1 results",
+        "sentiment": -0.9752,
+        "source": "CNBC TV18",
+        "url": "https://www.cnbctv18.com/market/hexaware-tech-shares-fall-on-cutting-full-year-revenue-growth-guidance-after-q1-results-19957589.htm",
+        "publishedAt": "2026-07-30T06:17:35Z",
+        "publishedIST": "2026-07-30 11:47 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:CNBC TV18"
+      },
+      {
+        "title": "US Stock Market: Arm Holdings tops Q2 forecasts on AI demand, shares fall on royalty growth concerns",
+        "sentiment": -0.9749,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/us-stocks/news/us-stock-market-arm-holdings-tops-q2-forecasts-on-ai-demand-shares-fall-on-royalty-growth-concerns/articleshow/132729978.cms",
+        "publishedAt": "2026-07-30T06:41:30Z",
+        "publishedIST": "2026-07-30 12:11 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      }
+    ],
+    "category_breakdown": {
+      "rss:The Economic Times": {
+        "count": 86,
+        "avg_sentiment": -0.008,
+        "label": "neutral"
+      },
+      "rss:Livemint": {
+        "count": 82,
+        "avg_sentiment": 0.048,
+        "label": "neutral"
+      },
+      "rss:The Hindu Business Line": {
+        "count": 65,
+        "avg_sentiment": -0.051,
+        "label": "neutral"
+      },
+      "google_news": {
+        "count": 52,
+        "avg_sentiment": -0.097,
+        "label": "neutral"
+      },
+      "rss:CNBC TV18": {
+        "count": 47,
+        "avg_sentiment": 0.222,
+        "label": "bullish"
+      },
+      "rss:The Times of India": {
+        "count": 33,
+        "avg_sentiment": 0.204,
+        "label": "bullish"
+      },
+      "rss:Business Today": {
+        "count": 25,
+        "avg_sentiment": -0.063,
+        "label": "neutral"
+      },
+      "rss:NDTV Profit": {
+        "count": 20,
+        "avg_sentiment": -0.002,
+        "label": "neutral"
+      },
+      "rss:News18": {
+        "count": 19,
+        "avg_sentiment": -0.034,
+        "label": "neutral"
+      },
+      "rss:ThePrint": {
+        "count": 16,
+        "avg_sentiment": -0.029,
+        "label": "neutral"
+      },
+      "rss:The Indian Express": {
+        "count": 14,
+        "avg_sentiment": 0.013,
+        "label": "neutral"
+      }
+    },
+    "fetched_at": "2026-07-30T10:16:13.345287"
+  },
+  "2026-07-31": {
+    "score": 0.1819,
+    "label": "slightly bullish",
+    "n_articles": 438,
+    "n_positive": 188,
+    "n_negative": 108,
+    "n_neutral": 142,
+    "n_macro": 71,
+    "macro_sentiment": 0.195,
+    "backend": "finbert",
+    "top_headlines": [
+      {
+        "title": "Nucleus Software shares fall 8% after Q1 margins fall to four-year low, India biz drags",
+        "sentiment": -0.9767,
+        "source": "CNBC TV18",
+        "url": "https://www.cnbctv18.com/market/nucleus-software-share-price-factors-that-hurt-q1-performance-fy27-outlook-2026-returns-19958561.htm",
+        "publishedAt": "2026-07-31T05:19:07Z",
+        "publishedIST": "2026-07-31 10:49 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:CNBC TV18"
+      },
+      {
+        "title": "Thermax shares crashes 16% after Q1 profit fall 85% YoY",
+        "sentiment": -0.9765,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/thermax-shares-tumble-16-after-q1-profit-slumps-85/article71289044.ece",
+        "publishedAt": "2026-07-31T06:49:25Z",
+        "publishedIST": "2026-07-31 12:19 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "Data Patterns shares fall nearly 7% after Q1 profit declines 14% YoY to Rs 22 crore",
+        "sentiment": -0.9751,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/data-patterns-shares-fall-nearly-7-after-q1-profit-declines-14-yoy-to-rs-22-crore/articleshow/132757660.cms",
+        "publishedAt": "2026-07-31T05:55:47Z",
+        "publishedIST": "2026-07-31 11:25 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "Gold and silver prices fall on MCX amid a stronger dollar, escalating US-Iran conflict",
+        "sentiment": -0.9747,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/commodities/gold-and-silver-prices-fall-on-mcx-amid-a-stronger-dollar-escalating-us-iran-conflict-11785468795874.html",
+        "publishedAt": "2026-07-31T03:39:39Z",
+        "publishedIST": "2026-07-31 09:09 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "Why did Apple shares drop despite a stellar earnings beat",
+        "sentiment": -0.9746,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/us-stocks/news/why-did-apple-shares-drop-despite-a-stellar-earnings-beat/slideshow/132757992.cms",
+        "publishedAt": "2026-07-31T06:07:28Z",
+        "publishedIST": "2026-07-31 11:37 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:The Economic Times"
+      }
+    ],
+    "macro_headlines": [
+      {
+        "title": "Nucleus Software shares fall 8% after Q1 margins fall to four-year low, India biz drags",
+        "sentiment": -0.9767,
+        "source": "CNBC TV18",
+        "url": "https://www.cnbctv18.com/market/nucleus-software-share-price-factors-that-hurt-q1-performance-fy27-outlook-2026-returns-19958561.htm",
+        "publishedAt": "2026-07-31T05:19:07Z",
+        "publishedIST": "2026-07-31 10:49 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:CNBC TV18"
+      },
+      {
+        "title": "Thermax shares crashes 16% after Q1 profit fall 85% YoY",
+        "sentiment": -0.9765,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/thermax-shares-tumble-16-after-q1-profit-slumps-85/article71289044.ece",
+        "publishedAt": "2026-07-31T06:49:25Z",
+        "publishedIST": "2026-07-31 12:19 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "Gold and silver prices fall on MCX amid a stronger dollar, escalating US-Iran conflict",
+        "sentiment": -0.9747,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/commodities/gold-and-silver-prices-fall-on-mcx-amid-a-stronger-dollar-escalating-us-iran-conflict-11785468795874.html",
+        "publishedAt": "2026-07-31T03:39:39Z",
+        "publishedIST": "2026-07-31 09:09 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "Gold drops Rs 2,640 per 10 g, silver slides Rs 5,200 on firm rupee, weak global cues",
+        "sentiment": -0.9717,
+        "source": "ThePrint",
+        "url": "https://theprint.in/economy/gold-drops-rs-2640-per-10-g-silver-slides-rs-5200-on-firm-rupee-weak-global-cues/2999115/",
+        "publishedAt": "2026-07-28T12:16:10Z",
+        "publishedIST": "2026-07-28 17:46 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:ThePrint"
+      },
+      {
+        "title": "Crude oil futures fall 3% to \u20b97,811/barrel amid easing supply concerns",
+        "sentiment": -0.97,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/commodities/crude-oil-futures-fall-3-to-7811barrel-amid-easing-supply-concerns/article71289334.ece",
+        "publishedAt": "2026-07-31T06:55:04Z",
+        "publishedIST": "2026-07-31 12:25 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Hindu Business Line"
+      }
+    ],
+    "category_breakdown": {
+      "rss:The Economic Times": {
+        "count": 86,
+        "avg_sentiment": 0.213,
+        "label": "bullish"
+      },
+      "rss:Livemint": {
+        "count": 76,
+        "avg_sentiment": 0.119,
+        "label": "bullish"
+      },
+      "rss:The Hindu Business Line": {
+        "count": 61,
+        "avg_sentiment": 0.219,
+        "label": "bullish"
+      },
+      "google_news": {
+        "count": 53,
+        "avg_sentiment": 0.266,
+        "label": "bullish"
+      },
+      "rss:CNBC TV18": {
+        "count": 50,
+        "avg_sentiment": 0.281,
+        "label": "bullish"
+      },
+      "rss:Business Today": {
+        "count": 25,
+        "avg_sentiment": -0.021,
+        "label": "neutral"
+      },
+      "rss:The Times of India": {
+        "count": 24,
+        "avg_sentiment": -0.078,
+        "label": "neutral"
+      },
+      "rss:NDTV Profit": {
+        "count": 20,
+        "avg_sentiment": 0.044,
+        "label": "neutral"
+      },
+      "rss:ThePrint": {
+        "count": 18,
+        "avg_sentiment": 0.158,
+        "label": "bullish"
+      },
+      "rss:News18": {
+        "count": 17,
+        "avg_sentiment": -0.019,
+        "label": "neutral"
+      },
+      "rss:The Indian Express": {
+        "count": 8,
+        "avg_sentiment": -0.071,
+        "label": "neutral"
+      }
+    },
+    "fetched_at": "2026-07-31T08:47:50.466960"
+  },
+  "2026-08-02": {
+    "score": 0.1614,
+    "label": "slightly bullish",
+    "n_articles": 409,
+    "n_positive": 178,
+    "n_negative": 92,
+    "n_neutral": 139,
+    "n_macro": 62,
+    "macro_sentiment": 0.3,
+    "backend": "finbert",
+    "top_headlines": [
+      {
+        "title": "Maruti Suzuki Q1 net profit falls 9.11 pc to Rs 3,446.9 cr; volume hits record",
+        "sentiment": -0.9781,
+        "source": "ThePrint",
+        "url": "https://theprint.in/economy/maruti-suzuki-q1-net-profit-falls-9-11-pc-to-rs-3446-9-cr-volume-hits-record/3002206/",
+        "publishedAt": "2026-07-31T12:18:10Z",
+        "publishedIST": "2026-07-31 17:48 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:ThePrint"
+      },
+      {
+        "title": "Gold, silver seen range-bound as focus shifts to US job numbers, Fed cues: Analysts",
+        "sentiment": -0.9752,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/gold/gold-silver-seen-range-bound-as-focus-shifts-to-us-job-numbers-fed-cues-analysts/article71297626.ece",
+        "publishedAt": "2026-08-02T11:35:21Z",
+        "publishedIST": "2026-08-02 17:05 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "ITC Q1 profit declines 15.6 pc to Rs 4,508.79 cr; non-cigarette FMCG posts robust growth",
+        "sentiment": -0.9752,
+        "source": "ThePrint",
+        "url": "https://theprint.in/economy/itc-q1-profit-declines-15-6-pc-to-rs-4508-79-cr-non-cigarette-fmcg-posts-robust-growth/3002370/",
+        "publishedAt": "2026-07-31T14:18:12Z",
+        "publishedIST": "2026-07-31 19:48 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:ThePrint"
+      },
+      {
+        "title": "Zee share price to be in focus on Monday after Sebi bars Subhash Chandra, Punit Goenka for one year",
+        "sentiment": -0.9727,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/zee-share-price-to-be-in-focus-on-monday-after-sebi-bars-subhash-chandra-punit-goenka-for-one-year-11785564737513.html",
+        "publishedAt": "2026-08-01T06:32:11Z",
+        "publishedIST": "2026-08-01 12:02 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "Utkarsh Small Finance Bank posts Rs 34 crore Q1 loss; asset quality stress persists",
+        "sentiment": -0.9717,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/earnings/utkarsh-small-finance-bank-posts-rs-34-crore-q1-loss-asset-quality-stress-persists/articleshow/132803463.cms",
+        "publishedAt": "2026-08-02T08:19:38Z",
+        "publishedIST": "2026-08-02 13:49 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "rss:The Economic Times"
+      }
+    ],
+    "macro_headlines": [
+      {
+        "title": "Gold, silver seen range-bound as focus shifts to US job numbers, Fed cues: Analysts",
+        "sentiment": -0.9752,
+        "source": "The Hindu Business Line",
+        "url": "https://www.thehindubusinessline.com/markets/gold/gold-silver-seen-range-bound-as-focus-shifts-to-us-job-numbers-fed-cues-analysts/article71297626.ece",
+        "publishedAt": "2026-08-02T11:35:21Z",
+        "publishedIST": "2026-08-02 17:05 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:The Hindu Business Line"
+      },
+      {
+        "title": "Viksit Bharat 2047 under threat? World Bank says extreme heat costs South Asia 31 million jobs every year",
+        "sentiment": -0.9698,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/economy/viksit-bharat-2047-under-threat-world-bank-says-extreme-heat-costs-south-asia-31-million-jobs-every-year-11785577550033.html",
+        "publishedAt": "2026-08-01T10:40:39Z",
+        "publishedIST": "2026-08-01 16:10 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "rss:Livemint"
+      },
+      {
+        "title": "TCS, Infosys, HCLTech, Wipro Decline Up To 3.5%: Why Are Indian IT Stocks Falling Today?",
+        "sentiment": -0.9681,
+        "source": "News18",
+        "url": "https://www.news18.com/business/markets/tcs-infosys-hcltech-wipro-decline-up-to-3-54-why-are-indian-it-stocks-falling-today-ws-l-10244101.html",
+        "publishedAt": "2026-07-31T04:22:57Z",
+        "publishedIST": "2026-07-31 09:52 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:News18"
+      },
+      {
+        "title": "Elon Musk loses nearly half of his wealth as SpaceX shares crash 46%. More downside ahead?",
+        "sentiment": -0.965,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/us-stocks/wall-street-guide/elon-musk-loses-nearly-half-of-his-wealth-as-spacex-shares-crash-46-more-downside-ahead/articleshow/132785517.cms",
+        "publishedAt": "2026-08-01T09:40:54Z",
+        "publishedIST": "2026-08-01 15:10 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:The Economic Times"
+      },
+      {
+        "title": "Short selling, margin calls and\u2026: How Leopold Aschenbrenner\u2019s AI hedge fund Situational Awareness lost $35 bn in a month",
+        "sentiment": -0.96,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/short-selling-margin-calls-and-how-leopold-aschenbrenner-s-ai-hedge-fund-situational-awareness-lost-35-bn-in-a-month-11785579886997.html",
+        "publishedAt": "2026-08-01T11:48:10Z",
+        "publishedIST": "2026-08-01 17:18 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "rss:Livemint"
+      }
+    ],
+    "category_breakdown": {
+      "rss:The Economic Times": {
+        "count": 83,
+        "avg_sentiment": 0.236,
+        "label": "bullish"
+      },
+      "rss:Livemint": {
+        "count": 72,
+        "avg_sentiment": 0.116,
+        "label": "bullish"
+      },
+      "rss:The Hindu Business Line": {
+        "count": 70,
+        "avg_sentiment": 0.204,
+        "label": "bullish"
+      },
+      "google_news": {
+        "count": 41,
+        "avg_sentiment": 0.211,
+        "label": "bullish"
+      },
+      "rss:CNBC TV18": {
+        "count": 38,
+        "avg_sentiment": 0.421,
+        "label": "bullish"
+      },
+      "rss:The Times of India": {
+        "count": 28,
+        "avg_sentiment": 0.086,
+        "label": "neutral"
+      },
+      "rss:Business Today": {
+        "count": 25,
+        "avg_sentiment": -0.078,
+        "label": "neutral"
+      },
+      "rss:NDTV Profit": {
+        "count": 20,
+        "avg_sentiment": -0.028,
+        "label": "neutral"
+      },
+      "rss:ThePrint": {
+        "count": 13,
+        "avg_sentiment": 0.225,
+        "label": "bullish"
+      },
+      "rss:News18": {
+        "count": 11,
+        "avg_sentiment": 0.249,
+        "label": "bullish"
+      },
+      "rss:The Indian Express": {
+        "count": 8,
+        "avg_sentiment": 0.038,
+        "label": "neutral"
+      }
+    },
+    "fetched_at": "2026-08-02T17:17:07.850113"
+  }
+}

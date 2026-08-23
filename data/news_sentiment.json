@@ -1,0 +1,413 @@
+{
+  "score": 0.1614,
+  "label": "slightly bullish",
+  "n_articles": 409,
+  "n_positive": 178,
+  "n_negative": 92,
+  "n_neutral": 139,
+  "pct_positive": 43.5,
+  "pct_negative": 22.5,
+  "n_macro": 62,
+  "n_market_events": 71,
+  "n_general": 276,
+  "macro_sentiment": 0.3,
+  "market_sentiment": 0.305,
+  "general_sentiment": 0.118,
+  "backend": "finbert",
+  "top_headlines": [
+    {
+      "title": "Maruti Suzuki Q1 net profit falls 9.11 pc to Rs 3,446.9 cr; volume hits record",
+      "sentiment": -0.9781,
+      "source": "ThePrint",
+      "url": "https://theprint.in/economy/maruti-suzuki-q1-net-profit-falls-9-11-pc-to-rs-3446-9-cr-volume-hits-record/3002206/",
+      "publishedAt": "2026-07-31T12:18:10Z",
+      "publishedIST": "2026-07-31 17:48 IST",
+      "impact_type": "general",
+      "weight_mult": 1.0,
+      "query": "rss:ThePrint"
+    },
+    {
+      "title": "Gold, silver seen range-bound as focus shifts to US job numbers, Fed cues: Analysts",
+      "sentiment": -0.9752,
+      "source": "The Hindu Business Line",
+      "url": "https://www.thehindubusinessline.com/markets/gold/gold-silver-seen-range-bound-as-focus-shifts-to-us-job-numbers-fed-cues-analysts/article71297626.ece",
+      "publishedAt": "2026-08-02T11:35:21Z",
+      "publishedIST": "2026-08-02 17:05 IST",
+      "impact_type": "macro",
+      "weight_mult": 1.5,
+      "query": "rss:The Hindu Business Line"
+    },
+    {
+      "title": "ITC Q1 profit declines 15.6 pc to Rs 4,508.79 cr; non-cigarette FMCG posts robust growth",
+      "sentiment": -0.9752,
+      "source": "ThePrint",
+      "url": "https://theprint.in/economy/itc-q1-profit-declines-15-6-pc-to-rs-4508-79-cr-non-cigarette-fmcg-posts-robust-growth/3002370/",
+      "publishedAt": "2026-07-31T14:18:12Z",
+      "publishedIST": "2026-07-31 19:48 IST",
+      "impact_type": "general",
+      "weight_mult": 1.0,
+      "query": "rss:ThePrint"
+    },
+    {
+      "title": "Zee share price to be in focus on Monday after Sebi bars Subhash Chandra, Punit Goenka for one year",
+      "sentiment": -0.9727,
+      "source": "Livemint",
+      "url": "https://www.livemint.com/market/stock-market-news/zee-share-price-to-be-in-focus-on-monday-after-sebi-bars-subhash-chandra-punit-goenka-for-one-year-11785564737513.html",
+      "publishedAt": "2026-08-01T06:32:11Z",
+      "publishedIST": "2026-08-01 12:02 IST",
+      "impact_type": "general",
+      "weight_mult": 1.0,
+      "query": "rss:Livemint"
+    },
+    {
+      "title": "Utkarsh Small Finance Bank posts Rs 34 crore Q1 loss; asset quality stress persists",
+      "sentiment": -0.9717,
+      "source": "The Economic Times",
+      "url": "https://economictimes.indiatimes.com/markets/stocks/earnings/utkarsh-small-finance-bank-posts-rs-34-crore-q1-loss-asset-quality-stress-persists/articleshow/132803463.cms",
+      "publishedAt": "2026-08-02T08:19:38Z",
+      "publishedIST": "2026-08-02 13:49 IST",
+      "impact_type": "general",
+      "weight_mult": 1.0,
+      "query": "rss:The Economic Times"
+    },
+    {
+      "title": "Telcos flag concerns as critical banking SMS traffic dips",
+      "sentiment": -0.9702,
+      "source": "Livemint",
+      "url": "https://www.livemint.com/industry/telecom/telcos-flag-banking-sms-rerouting-regulators-telemarketers-security-risks-11785402028177.html",
+      "publishedAt": "2026-07-31T00:30:22Z",
+      "publishedIST": "2026-07-31 06:00 IST",
+      "impact_type": "general",
+      "weight_mult": 1.0,
+      "query": "rss:Livemint"
+    },
+    {
+      "title": "Viksit Bharat 2047 under threat? World Bank says extreme heat costs South Asia 31 million jobs every year",
+      "sentiment": -0.9698,
+      "source": "Livemint",
+      "url": "https://www.livemint.com/economy/viksit-bharat-2047-under-threat-world-bank-says-extreme-heat-costs-south-asia-31-million-jobs-every-year-11785577550033.html",
+      "publishedAt": "2026-08-01T10:40:39Z",
+      "publishedIST": "2026-08-01 16:10 IST",
+      "impact_type": "macro",
+      "weight_mult": 1.5,
+      "query": "rss:Livemint"
+    },
+    {
+      "title": "Bloomberg puts off adding Indian bonds to its global index",
+      "sentiment": -0.9689,
+      "source": "The Hindu Business Line",
+      "url": "https://www.thehindubusinessline.com/markets/bloomberg-puts-off-adding-indian-bonds-to-its-global-index/article71293659.ece",
+      "publishedAt": "2026-08-01T06:15:14Z",
+      "publishedIST": "2026-08-01 11:45 IST",
+      "impact_type": "general",
+      "weight_mult": 1.0,
+      "query": "rss:The Hindu Business Line"
+    },
+    {
+      "title": "Raw jute prices down nearly 50% in Bengal since July, industry questions market quotations",
+      "sentiment": -0.9688,
+      "source": "The Hindu Business Line",
+      "url": "https://www.thehindubusinessline.com/economy/agri-business/raw-jute-prices-down-nearly-50-in-bengal-since-july-industry-questions-market-quotations/article71297750.ece",
+      "publishedAt": "2026-08-02T13:06:33Z",
+      "publishedIST": "2026-08-02 18:36 IST",
+      "impact_type": "general",
+      "weight_mult": 1.0,
+      "query": "rss:The Hindu Business Line"
+    },
+    {
+      "title": "TCS, Infosys, HCLTech, Wipro Decline Up To 3.5%: Why Are Indian IT Stocks Falling Today?",
+      "sentiment": -0.9681,
+      "source": "News18",
+      "url": "https://www.news18.com/business/markets/tcs-infosys-hcltech-wipro-decline-up-to-3-54-why-are-indian-it-stocks-falling-today-ws-l-10244101.html",
+      "publishedAt": "2026-07-31T04:22:57Z",
+      "publishedIST": "2026-07-31 09:52 IST",
+      "impact_type": "market_event",
+      "weight_mult": 1.3,
+      "query": "rss:News18"
+    }
+  ],
+  "latest_headlines": [
+    {
+      "title": "Sebi order against Zee likely to delay planned \u20b93,143-crore fundraise",
+      "sentiment": -0.6521,
+      "source": "Livemint",
+      "url": "https://www.livemint.com/market/sebi-order-against-zee-to-delay-planned-rs-3-143-crore-fundraise-11785686792911.html",
+      "publishedAt": "2026-08-02T17:09:20Z",
+      "publishedIST": "2026-08-02 22:39 IST",
+      "impact_type": "general",
+      "weight_mult": 1.0,
+      "query": "rss:Livemint"
+    },
+    {
+      "title": "Large caps could be set for a stronger run after years of small and mid-caps outperformance: New report lists 6 reasons",
+      "sentiment": 0.8882,
+      "source": "Livemint",
+      "url": "https://www.livemint.com/money/personal-finance/large-caps-could-be-set-for-a-stronger-run-after-years-of-small-and-mid-caps-outperformance-new-report-lists-6-reasons-11785686007160.html",
+      "publishedAt": "2026-08-02T17:01:01Z",
+      "publishedIST": "2026-08-02 22:31 IST",
+      "impact_type": "market_event",
+      "weight_mult": 1.3,
+      "query": "rss:Livemint"
+    },
+    {
+      "title": "SEBI\u2019s ban on Zee from securities market puts warrants issuance in limbo: inGovern",
+      "sentiment": 0.0,
+      "source": "The Hindu Business Line",
+      "url": "https://www.thehindubusinessline.com/markets/sebis-ban-on-zee-from-securities-market-puts-warrants-issuance-in-limbo-ingovern/article71297483.ece",
+      "publishedAt": "2026-08-02T16:23:16Z",
+      "publishedIST": "2026-08-02 21:53 IST",
+      "impact_type": "market_event",
+      "weight_mult": 1.3,
+      "query": "rss:The Hindu Business Line"
+    },
+    {
+      "title": "\u201cMuthoot is to gold loan what SBI is to banking,\u201d George Alexandar Muthoot",
+      "sentiment": 0.0,
+      "source": "The Hindu Business Line",
+      "url": "https://www.thehindubusinessline.com/money-and-banking/muthoot-is-to-gold-loan-what-sbi-is-to-banking-george-alexandar-muthoot/article71297582.ece",
+      "publishedAt": "2026-08-02T16:21:54Z",
+      "publishedIST": "2026-08-02 21:51 IST",
+      "impact_type": "general",
+      "weight_mult": 1.0,
+      "query": "rss:The Hindu Business Line"
+    },
+    {
+      "title": "Street signs: Key support for Nifty in July, Tepid GMP for Juniper Green - Business Standard",
+      "sentiment": 0.9157,
+      "source": "Business Standard",
+      "url": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxNVWd6N25FSDNzNmltcFQxNHdzc0N5NU1OVHBYMEUyQzZvaVJUelRvOXcwUXlkNjJHdGNPdTkyS3R4X000cGhqQ0RtNElicFNSVWxXbnZxZEdiTjlLM1R4YlI1LU44TjM3RVY2RElHTFhhbm9LTXZuVjV5TmxqaVlrWjl0VTJsUjZLVVpqN05VRklzUnhfZ2FxaFNmWVpNeDlxR0p4czFwdjgya0d5RzdjaGRHU0tGek1CZ0JUYXBYVkUxOEZfV3JvbUphd1NSS0kxdDRB0gHYAUFVX3lxTE1Gc213UW9oenc2Yk9uZGVnTnkxck9PSUxKb241MnRQbHRZY21GSXVwMmlsblpqR2VuVERDM09OUkRyWXBISlh5LVhROFBsbmQyLXlpVWIzaHhEZEVMaUJXOG90UHVMN09saGx1OWRfMTRCTllKaDN4T2cyN0ttSTVCczNMb3Ric0pYMV9wMTVzaHNseGhBdk5GX1dQaXFhTGtGMmtTV08wNG82elFSZTYwRzdJV1RnTlBWVFFsN1M5YnVNQ3lScnlRQ2o1Vk93SWZ1U1NzV3hiTw?oc=5",
+      "publishedAt": "2026-08-02T16:18:41Z",
+      "publishedIST": "2026-08-02 21:48 IST",
+      "impact_type": "general",
+      "weight_mult": 1.0,
+      "query": "google_news"
+    },
+    {
+      "title": "FSSAI says some alcobev firms add flavours to mask natural chemical composition, mislead consumers",
+      "sentiment": -0.9399,
+      "source": "The Hindu Business Line",
+      "url": "https://www.thehindubusinessline.com/companies/fssai-says-some-alcobev-firms-add-flavours-to-mask-natural-chemical-composition-mislead-consumers/article71298556.ece",
+      "publishedAt": "2026-08-02T16:18:28Z",
+      "publishedIST": "2026-08-02 21:48 IST",
+      "impact_type": "general",
+      "weight_mult": 1.0,
+      "query": "rss:The Hindu Business Line"
+    },
+    {
+      "title": "LEAP India IPO Gets August 7 Launch Date With Rs 480-Crore Fresh Issue, Rs 2,000-Crore OFS",
+      "sentiment": 0.0,
+      "source": "NDTV Profit",
+      "url": "https://www.ndtvprofit.com/markets/leap-india-ipo-gets-august-7-launch-date-with-rs-480-crore-fresh-issue-and-rs-2-000-crore-ofs-11856419#publisher=newsstand",
+      "publishedAt": "2026-08-02T16:17:45Z",
+      "publishedIST": "2026-08-02 21:47 IST",
+      "impact_type": "general",
+      "weight_mult": 1.0,
+      "query": "rss:NDTV Profit"
+    },
+    {
+      "title": "Warren Buffett ETF recommendation: $10K to $40K+",
+      "sentiment": 0.0,
+      "source": "The Economic Times",
+      "url": "https://economictimes.indiatimes.com/news/international/global-trends/warren-buffett-etf-recommendation-the-one-fund-he-keeps-pointing-investors-toward-turned-10000-into-more-than-40000-in-10-years/articleshow/132809837.cms",
+      "publishedAt": "2026-08-02T16:12:59Z",
+      "publishedIST": "2026-08-02 21:42 IST",
+      "impact_type": "market_event",
+      "weight_mult": 1.3,
+      "query": "rss:The Economic Times"
+    },
+    {
+      "title": "'Disaster With No Alternative': Sunil Chhetri Urges Tata Group To Reconsider Jamshedpur FC's ISL Pullout",
+      "sentiment": 0.0,
+      "source": "NDTV Profit",
+      "url": "https://www.ndtvprofit.com/sports/football-indian-super-league-sunil-chhetri-urges-tata-group-to-reconsider-jamshedpur-fc-isl-pullout-11856579#publisher=newsstand",
+      "publishedAt": "2026-08-02T16:08:35Z",
+      "publishedIST": "2026-08-02 21:38 IST",
+      "impact_type": "general",
+      "weight_mult": 1.0,
+      "query": "rss:NDTV Profit"
+    },
+    {
+      "title": "'Got scholarship, took loan': CJP's Abhijeet Dipke on education expenses row",
+      "sentiment": -0.5981,
+      "source": "The Times of India",
+      "url": "https://timesofindia.indiatimes.com/city/delhi/got-scholarship-from-boston-university-took-loan-cjps-abhijeet-dipke-on-education-expenses-row/articleshow/132809858.cms",
+      "publishedAt": "2026-08-02T16:07:43Z",
+      "publishedIST": "2026-08-02 21:37 IST",
+      "impact_type": "market_event",
+      "weight_mult": 1.3,
+      "query": "rss:The Times of India"
+    }
+  ],
+  "macro_headlines": [
+    {
+      "title": "Gold, silver seen range-bound as focus shifts to US job numbers, Fed cues: Analysts",
+      "sentiment": -0.9752,
+      "source": "The Hindu Business Line",
+      "url": "https://www.thehindubusinessline.com/markets/gold/gold-silver-seen-range-bound-as-focus-shifts-to-us-job-numbers-fed-cues-analysts/article71297626.ece",
+      "publishedAt": "2026-08-02T11:35:21Z",
+      "publishedIST": "2026-08-02 17:05 IST",
+      "impact_type": "macro",
+      "weight_mult": 1.5,
+      "query": "rss:The Hindu Business Line"
+    },
+    {
+      "title": "Viksit Bharat 2047 under threat? World Bank says extreme heat costs South Asia 31 million jobs every year",
+      "sentiment": -0.9698,
+      "source": "Livemint",
+      "url": "https://www.livemint.com/economy/viksit-bharat-2047-under-threat-world-bank-says-extreme-heat-costs-south-asia-31-million-jobs-every-year-11785577550033.html",
+      "publishedAt": "2026-08-01T10:40:39Z",
+      "publishedIST": "2026-08-01 16:10 IST",
+      "impact_type": "macro",
+      "weight_mult": 1.5,
+      "query": "rss:Livemint"
+    },
+    {
+      "title": "TCS, Infosys, HCLTech, Wipro Decline Up To 3.5%: Why Are Indian IT Stocks Falling Today?",
+      "sentiment": -0.9681,
+      "source": "News18",
+      "url": "https://www.news18.com/business/markets/tcs-infosys-hcltech-wipro-decline-up-to-3-54-why-are-indian-it-stocks-falling-today-ws-l-10244101.html",
+      "publishedAt": "2026-07-31T04:22:57Z",
+      "publishedIST": "2026-07-31 09:52 IST",
+      "impact_type": "market_event",
+      "weight_mult": 1.3,
+      "query": "rss:News18"
+    },
+    {
+      "title": "Elon Musk loses nearly half of his wealth as SpaceX shares crash 46%. More downside ahead?",
+      "sentiment": -0.965,
+      "source": "The Economic Times",
+      "url": "https://economictimes.indiatimes.com/markets/us-stocks/wall-street-guide/elon-musk-loses-nearly-half-of-his-wealth-as-spacex-shares-crash-46-more-downside-ahead/articleshow/132785517.cms",
+      "publishedAt": "2026-08-01T09:40:54Z",
+      "publishedIST": "2026-08-01 15:10 IST",
+      "impact_type": "market_event",
+      "weight_mult": 1.3,
+      "query": "rss:The Economic Times"
+    },
+    {
+      "title": "Short selling, margin calls and\u2026: How Leopold Aschenbrenner\u2019s AI hedge fund Situational Awareness lost $35 bn in a month",
+      "sentiment": -0.96,
+      "source": "Livemint",
+      "url": "https://www.livemint.com/market/short-selling-margin-calls-and-how-leopold-aschenbrenner-s-ai-hedge-fund-situational-awareness-lost-35-bn-in-a-month-11785579886997.html",
+      "publishedAt": "2026-08-01T11:48:10Z",
+      "publishedIST": "2026-08-01 17:18 IST",
+      "impact_type": "market_event",
+      "weight_mult": 1.3,
+      "query": "rss:Livemint"
+    },
+    {
+      "title": "Commercial LPG prices drop: 19-kg cylinder rate cut by \u20b9202 in Delhi, \u20b9209 in Kolkata",
+      "sentiment": -0.9576,
+      "source": "The Hindu Business Line",
+      "url": "https://www.thehindubusinessline.com/news/commercial-lpg-prices-drop-19-kg-cylinder-rate-cut-by-202-in-delhi-209-in-kolkata/article71293432.ece",
+      "publishedAt": "2026-08-01T03:51:30Z",
+      "publishedIST": "2026-08-01 09:21 IST",
+      "impact_type": "market_event",
+      "weight_mult": 1.3,
+      "query": "rss:The Hindu Business Line"
+    },
+    {
+      "title": "Gold and silver lacked lustre in July",
+      "sentiment": -0.9567,
+      "source": "The Hindu Business Line",
+      "url": "https://www.thehindubusinessline.com/portfolio/personal-finance/gold-and-silver-lacked-lustre-in-july/article71297997.ece",
+      "publishedAt": "2026-08-02T13:22:43Z",
+      "publishedIST": "2026-08-02 18:52 IST",
+      "impact_type": "macro",
+      "weight_mult": 1.5,
+      "query": "rss:The Hindu Business Line"
+    },
+    {
+      "title": "Space stocks could offer long-term growth beyond launch providers: Report",
+      "sentiment": 0.9567,
+      "source": "The Hindu Business Line",
+      "url": "https://www.thehindubusinessline.com/markets/stock-markets/space-stocks-could-offer-long-term-growth-beyond-launch-providers-report/article71297138.ece",
+      "publishedAt": "2026-08-02T04:35:20Z",
+      "publishedIST": "2026-08-02 10:05 IST",
+      "impact_type": "market_event",
+      "weight_mult": 1.3,
+      "query": "rss:The Hindu Business Line"
+    },
+    {
+      "title": "Unfazed by West Asia crisis, fiscal deficit within range at 18.2% in Q1",
+      "sentiment": 0.9557,
+      "source": "The Economic Times",
+      "url": "https://economictimes.indiatimes.com/news/economy/indicators/unfazed-by-west-asia-crisis-fiscal-deficit-within-range-at-18-2-in-q1/articleshow/132776645.cms",
+      "publishedAt": "2026-07-31T20:07:46Z",
+      "publishedIST": "2026-08-01 01:37 IST",
+      "impact_type": "macro",
+      "weight_mult": 1.5,
+      "query": "rss:The Economic Times"
+    },
+    {
+      "title": "Tata Motors expands EV lead over Mahindra, captures 43% market share",
+      "sentiment": 0.9555,
+      "source": "The Hindu Business Line",
+      "url": "https://www.thehindubusinessline.com/companies/tata-motors-expands-ev-lead-over-mahindra-captures-43-market-share/article71297557.ece",
+      "publishedAt": "2026-08-02T15:02:13Z",
+      "publishedIST": "2026-08-02 20:32 IST",
+      "impact_type": "market_event",
+      "weight_mult": 1.3,
+      "query": "rss:The Hindu Business Line"
+    }
+  ],
+  "category_breakdown": {
+    "rss:The Economic Times": {
+      "count": 83,
+      "avg_sentiment": 0.236,
+      "label": "bullish"
+    },
+    "rss:Livemint": {
+      "count": 72,
+      "avg_sentiment": 0.116,
+      "label": "bullish"
+    },
+    "rss:The Hindu Business Line": {
+      "count": 70,
+      "avg_sentiment": 0.204,
+      "label": "bullish"
+    },
+    "google_news": {
+      "count": 41,
+      "avg_sentiment": 0.211,
+      "label": "bullish"
+    },
+    "rss:CNBC TV18": {
+      "count": 38,
+      "avg_sentiment": 0.421,
+      "label": "bullish"
+    },
+    "rss:The Times of India": {
+      "count": 28,
+      "avg_sentiment": 0.086,
+      "label": "neutral"
+    },
+    "rss:Business Today": {
+      "count": 25,
+      "avg_sentiment": -0.078,
+      "label": "neutral"
+    },
+    "rss:NDTV Profit": {
+      "count": 20,
+      "avg_sentiment": -0.028,
+      "label": "neutral"
+    },
+    "rss:ThePrint": {
+      "count": 13,
+      "avg_sentiment": 0.225,
+      "label": "bullish"
+    },
+    "rss:News18": {
+      "count": 11,
+      "avg_sentiment": 0.249,
+      "label": "bullish"
+    },
+    "rss:The Indian Express": {
+      "count": 8,
+      "avg_sentiment": 0.038,
+      "label": "neutral"
+    }
+  },
+  "fetched_at": "2026-08-02T17:17:07.850113",
+  "from_cache": false,
+  "source": "scraper"
+}

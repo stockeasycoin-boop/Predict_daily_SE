@@ -1,0 +1,8 @@
+ts_ist,minute_key,source,available,spot,ofi,bias,pcr,max_pain,max_ce_strike,max_pe_strike,signal
+2026-07-15 10:04:58,2026-07-15 10:04,groww,1,24191.6,0.1304,mild_bullish,,,,,Mild buy pressure
+2026-07-16 09:51:53,2026-07-16 09:51,groww,1,24119.35,-0.6316,bearish,,,,,Strong sell pressure — supports downward moves
+2026-07-22 09:20:39,2026-07-22 09:20,groww,1,24094.65,-0.2778,mild_bearish,,,,,Mild sell pressure
+2026-07-24 09:31:39,2026-07-24 09:31,groww,1,23708.85,-0.4286,bearish,,,,,Strong sell pressure — supports downward moves
+2026-07-30 10:36:15,2026-07-30 10:36,groww,0,23869.6,0.0,,,,,,
+2026-07-31 08:50:37,2026-07-31 08:50,groww,1,24317.15,0.0942,neutral,,,,,Balanced order flow — neutral
+2026-08-02 22:45:19,2026-08-02 22:45,groww,0,24317.15,0.0,,,,,,

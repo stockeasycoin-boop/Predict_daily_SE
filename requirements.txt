@@ -17,12 +17,16 @@ pytz>=2023.3
 requests>=2.31.0
 feedparser>=6.0.0
 
-# News sentiment — FinBERT (primary) requires transformers + torch
-# Comment out if too heavy; VADER will be used as fallback
-transformers>=4.40.0
-torch>=2.0.0
+# News sentiment — FinBERT (primary) requires transformers + torch.
+# Commented out on the `deployment` branch: Streamlit Community Cloud's free
+# tier (1 CPU / 1GB RAM) can't reliably hold torch+transformers alongside
+# xgboost/lightgbm/optuna. news_sentiment.py falls back to VADER automatically
+# when these aren't importable — no code change needed. Uncomment if you
+# upgrade to a bigger Cloud plan or self-host.
+# transformers>=4.40.0
+# torch>=2.0.0
 
-# VADER (lightweight fallback)
+# VADER (lightweight fallback — used as primary sentiment backend on Cloud)
 vaderSentiment>=3.3.2
 
 # Optional: hands-free auto-refresh for Live Monitor

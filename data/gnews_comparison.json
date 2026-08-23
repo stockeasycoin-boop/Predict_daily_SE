@@ -1,0 +1,406 @@
+{
+  "result": {
+    "score": 0.1467,
+    "label": "slightly bullish",
+    "n_articles": 29,
+    "n_positive": 17,
+    "n_negative": 9,
+    "n_neutral": 3,
+    "pct_positive": 58.6,
+    "pct_negative": 31.0,
+    "n_macro": 4,
+    "n_market_events": 9,
+    "n_general": 16,
+    "macro_sentiment": 0.473,
+    "market_sentiment": 0.223,
+    "general_sentiment": -0.005,
+    "backend": "vader",
+    "top_headlines": [
+      {
+        "title": "Will face hell: Iran's stark warning to US, Gulf nations amid escalating attacks",
+        "sentiment": -0.9601,
+        "source": "India Today",
+        "url": "https://www.indiatoday.in/world/story/irgc-launches-missile-drone-attacks-targeting-kuwait-and-bahrain-hours-after-us-conducted-strikes-2935836-2026-06-28",
+        "publishedAt": "2026-06-28T03:44:26Z",
+        "publishedIST": "2026-06-28 09:14 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "top:world"
+      },
+      {
+        "title": "6 terrorists killed after attack on Pak Army base in Karachi, 4 soldiers dead",
+        "sentiment": -0.9584,
+        "source": "Moneycontrol.com",
+        "url": "https://www.moneycontrol.com/europe/?url=https://www.moneycontrol.com/world/6-terrorists-killed-after-attack-on-pak-army-base-in-karachi-4-soldiers-dead-article-13960240.html",
+        "publishedAt": "2026-06-28T02:47:10Z",
+        "publishedIST": "2026-06-28 08:17 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "top:world"
+      },
+      {
+        "title": "US-Iran war LIVE: Tehran vows to defend sovereignty; Bahrain, Kuwait condemn Iranian strikes",
+        "sentiment": -0.9571,
+        "source": "Hindustan Times",
+        "url": "https://www.hindustantimes.com/world-news/us-iran-war-news-live-updates-strikes-air-raid-sirens-kuwait-bharain-strait-of-hormuz-donald-trump-araghchi-ceasefire-101782607555553.html",
+        "publishedAt": "2026-06-28T07:23:35Z",
+        "publishedIST": "2026-06-28 12:53 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "top:world"
+      },
+      {
+        "title": "Mcap of 6 of top-10 most valued firms climbs Rs 88,678 cr; ICICI Bank biggest winner",
+        "sentiment": 0.9561,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/mcap-of-6-of-top-10-most-valued-firms-climbs-rs-88678-cr-icici-bank-biggest-winner/articleshow/132046789.cms",
+        "publishedAt": "2026-06-28T06:59:00Z",
+        "publishedIST": "2026-06-28 12:29 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "Reliance Industries"
+      },
+      {
+        "title": "'They came to take selfies, not to help': Venezuela quake victims rage as death toll hits 1,430",
+        "sentiment": -0.9503,
+        "source": "The Times of India",
+        "url": "https://timesofindia.indiatimes.com/world/rest-of-world/they-came-to-take-selfies-not-to-help-venezuela-quake-victims-rage-as-death-toll-hits-1430/articleshow/132044658.cms",
+        "publishedAt": "2026-06-28T02:49:00Z",
+        "publishedIST": "2026-06-28 08:19 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "top:world"
+      },
+      {
+        "title": "India's higher nominal GDP growth may help contain fiscal pressures despite global risks: EY",
+        "sentiment": 0.9373,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/news/economy/indicators/indias-higher-nominal-gdp-growth-may-help-contain-fiscal-pressures-despite-global-risks-ey/articleshow/132033702.cms",
+        "publishedAt": "2026-06-27T11:26:00Z",
+        "publishedIST": "2026-06-27 16:56 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "India GDP growth"
+      },
+      {
+        "title": "Six of top 10 valued firms add Rs 88,678 crore; ICICI Bank emerges biggest gainer",
+        "sentiment": 0.9246,
+        "source": "Moneycontrol",
+        "url": "https://www.moneycontrol.com/news/business/six-of-top-10-valued-firms-add-rs-88-678-crore-icici-bank-emerges-biggest-gainer-13960352.html",
+        "publishedAt": "2026-06-28T07:20:25Z",
+        "publishedIST": "2026-06-28 12:50 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "Sensex BSE"
+      },
+      {
+        "title": "Gold vs Nifty 50: Which investment created more wealth over the past 10 years?",
+        "sentiment": 0.9117,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/money/personal-finance/gold-vs-nifty-50-which-investment-created-more-wealth-over-the-past-10-years-11782551212476.html",
+        "publishedAt": "2026-06-27T11:42:30Z",
+        "publishedIST": "2026-06-27 17:12 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "Nifty 50"
+      },
+      {
+        "title": "Six of top-10 firms add \u20b988,678 crore in mcap, ICICI Bank biggest winner",
+        "sentiment": 0.802,
+        "source": "Business Standard",
+        "url": "https://www.business-standard.com/markets/news/6-of-top-10-firms-add-88-678-cr-in-market-value-icici-bank-leads-gains-126062800213_1.html",
+        "publishedAt": "2026-06-28T06:57:45Z",
+        "publishedIST": "2026-06-28 12:27 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "Reliance Industries"
+      },
+      {
+        "title": "Kiran Mazumdar-Shaw calls Bengaluru \u2018garbage city\u2019, shares vision of what it could have looked like",
+        "sentiment": 0.7964,
+        "source": "Hindustan Times",
+        "url": "https://www.hindustantimes.com/trending/kiran-mazumdar-shaw-calls-bengaluru-garbage-city-shares-vision-of-what-it-could-have-looked-like-101782628301444.html",
+        "publishedAt": "2026-06-28T06:55:45Z",
+        "publishedIST": "2026-06-28 12:25 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "top:business"
+      }
+    ],
+    "latest_headlines": [
+      {
+        "title": "Europe heatwave turns deadly as France records 1,000 excess deaths",
+        "sentiment": 0.0,
+        "source": "The Times of India",
+        "url": "https://timesofindia.indiatimes.com/world/europe/europe-heatwave-turns-deadly-as-france-records-1000-excess-deaths/articleshow/132047444.cms",
+        "publishedAt": "2026-06-28T08:13:00Z",
+        "publishedIST": "2026-06-28 13:43 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "top:world"
+      },
+      {
+        "title": "TVS Sales Breakup May 2026 - Jupiter, Apache, XL, iQube, Raider, Ntorq, Radeon, Sport",
+        "sentiment": 0.5106,
+        "source": "RushLane",
+        "url": "https://www.rushlane.com/tvs-sales-breakup-may-2026-jupiter-apache-xl-iqube-12550038.html",
+        "publishedAt": "2026-06-28T07:52:30Z",
+        "publishedIST": "2026-06-28 13:22 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "top:business"
+      },
+      {
+        "title": "DGS withdraws restriction on the movement of Indian ships in the Strait of Hormuz",
+        "sentiment": 0.1779,
+        "source": "The Hindu",
+        "url": "https://www.thehindu.com/news/national/dgs-withdraws-restriction-on-the-movement-of-indian-ships-in-the-strait-of-hormuz/article71157312.ece",
+        "publishedAt": "2026-06-28T07:46:29Z",
+        "publishedIST": "2026-06-28 13:16 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "top:world"
+      },
+      {
+        "title": "Mcap of 6 of top-10 most valued firms surges by \u20b988,678 crore; ICICI Bank biggest gainer",
+        "sentiment": 0.7841,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/mcap-of-6-of-top-10-most-valued-firms-surges-by-88-678-crore-icici-bank-biggest-gainer-11782630290683.html",
+        "publishedAt": "2026-06-28T07:27:46Z",
+        "publishedIST": "2026-06-28 12:57 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "Sensex BSE"
+      },
+      {
+        "title": "US-Iran war LIVE: Tehran vows to defend sovereignty; Bahrain, Kuwait condemn Iranian strikes",
+        "sentiment": -0.9571,
+        "source": "Hindustan Times",
+        "url": "https://www.hindustantimes.com/world-news/us-iran-war-news-live-updates-strikes-air-raid-sirens-kuwait-bharain-strait-of-hormuz-donald-trump-araghchi-ceasefire-101782607555553.html",
+        "publishedAt": "2026-06-28T07:23:35Z",
+        "publishedIST": "2026-06-28 12:53 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "top:world"
+      },
+      {
+        "title": "Six of top 10 valued firms add Rs 88,678 crore; ICICI Bank emerges biggest gainer",
+        "sentiment": 0.9246,
+        "source": "Moneycontrol",
+        "url": "https://www.moneycontrol.com/news/business/six-of-top-10-valued-firms-add-rs-88-678-crore-icici-bank-emerges-biggest-gainer-13960352.html",
+        "publishedAt": "2026-06-28T07:20:25Z",
+        "publishedIST": "2026-06-28 12:50 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "Sensex BSE"
+      },
+      {
+        "title": "2027 Renault Duster 7-Seater Spied In Chennai Ahead Of India Launch",
+        "sentiment": 0.0,
+        "source": "RushLane",
+        "url": "https://www.rushlane.com/2027-renault-duster-7-seater-spied-in-chennai-ahead-of-india-launch-12550034.html",
+        "publishedAt": "2026-06-28T07:16:06Z",
+        "publishedIST": "2026-06-28 12:46 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "top:business"
+      },
+      {
+        "title": "Mcap of 6 of top-10 most valued firms climbs Rs 88,678 cr; ICICI Bank biggest winner",
+        "sentiment": 0.9561,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/mcap-of-6-of-top-10-most-valued-firms-climbs-rs-88678-cr-icici-bank-biggest-winner/articleshow/132046789.cms",
+        "publishedAt": "2026-06-28T06:59:00Z",
+        "publishedIST": "2026-06-28 12:29 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "Reliance Industries"
+      },
+      {
+        "title": "Six of top-10 firms add \u20b988,678 crore in mcap, ICICI Bank biggest winner",
+        "sentiment": 0.802,
+        "source": "Business Standard",
+        "url": "https://www.business-standard.com/markets/news/6-of-top-10-firms-add-88-678-cr-in-market-value-icici-bank-leads-gains-126062800213_1.html",
+        "publishedAt": "2026-06-28T06:57:45Z",
+        "publishedIST": "2026-06-28 12:27 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "Reliance Industries"
+      },
+      {
+        "title": "Kiran Mazumdar-Shaw calls Bengaluru \u2018garbage city\u2019, shares vision of what it could have looked like",
+        "sentiment": 0.7964,
+        "source": "Hindustan Times",
+        "url": "https://www.hindustantimes.com/trending/kiran-mazumdar-shaw-calls-bengaluru-garbage-city-shares-vision-of-what-it-could-have-looked-like-101782628301444.html",
+        "publishedAt": "2026-06-28T06:55:45Z",
+        "publishedIST": "2026-06-28 12:25 IST",
+        "impact_type": "general",
+        "weight_mult": 1.0,
+        "query": "top:business"
+      }
+    ],
+    "macro_headlines": [
+      {
+        "title": "Will face hell: Iran's stark warning to US, Gulf nations amid escalating attacks",
+        "sentiment": -0.9601,
+        "source": "India Today",
+        "url": "https://www.indiatoday.in/world/story/irgc-launches-missile-drone-attacks-targeting-kuwait-and-bahrain-hours-after-us-conducted-strikes-2935836-2026-06-28",
+        "publishedAt": "2026-06-28T03:44:26Z",
+        "publishedIST": "2026-06-28 09:14 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "top:world"
+      },
+      {
+        "title": "US-Iran war LIVE: Tehran vows to defend sovereignty; Bahrain, Kuwait condemn Iranian strikes",
+        "sentiment": -0.9571,
+        "source": "Hindustan Times",
+        "url": "https://www.hindustantimes.com/world-news/us-iran-war-news-live-updates-strikes-air-raid-sirens-kuwait-bharain-strait-of-hormuz-donald-trump-araghchi-ceasefire-101782607555553.html",
+        "publishedAt": "2026-06-28T07:23:35Z",
+        "publishedIST": "2026-06-28 12:53 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "top:world"
+      },
+      {
+        "title": "Mcap of 6 of top-10 most valued firms climbs Rs 88,678 cr; ICICI Bank biggest winner",
+        "sentiment": 0.9561,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/mcap-of-6-of-top-10-most-valued-firms-climbs-rs-88678-cr-icici-bank-biggest-winner/articleshow/132046789.cms",
+        "publishedAt": "2026-06-28T06:59:00Z",
+        "publishedIST": "2026-06-28 12:29 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "Reliance Industries"
+      },
+      {
+        "title": "India's higher nominal GDP growth may help contain fiscal pressures despite global risks: EY",
+        "sentiment": 0.9373,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/news/economy/indicators/indias-higher-nominal-gdp-growth-may-help-contain-fiscal-pressures-despite-global-risks-ey/articleshow/132033702.cms",
+        "publishedAt": "2026-06-27T11:26:00Z",
+        "publishedIST": "2026-06-27 16:56 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "India GDP growth"
+      },
+      {
+        "title": "Gold vs Nifty 50: Which investment created more wealth over the past 10 years?",
+        "sentiment": 0.9117,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/money/personal-finance/gold-vs-nifty-50-which-investment-created-more-wealth-over-the-past-10-years-11782551212476.html",
+        "publishedAt": "2026-06-27T11:42:30Z",
+        "publishedIST": "2026-06-27 17:12 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "Nifty 50"
+      },
+      {
+        "title": "Mcap of 6 of top-10 most valued firms surges by \u20b988,678 crore; ICICI Bank biggest gainer",
+        "sentiment": 0.7841,
+        "source": "Livemint",
+        "url": "https://www.livemint.com/market/stock-market-news/mcap-of-6-of-top-10-most-valued-firms-surges-by-88-678-crore-icici-bank-biggest-gainer-11782630290683.html",
+        "publishedAt": "2026-06-28T07:27:46Z",
+        "publishedIST": "2026-06-28 12:57 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "Sensex BSE"
+      },
+      {
+        "title": "Chartist Talk: Will Nifty 50 target 24,728 soon? Ashish Kyal suggests avoiding this logistics stock amid overstretched valuations",
+        "sentiment": 0.7506,
+        "source": "Moneycontrol",
+        "url": "https://www.moneycontrol.com/news/business/markets/chartist-talk-will-nifty-50-target-24-728-soon-ashish-kyal-suggests-avoiding-this-logistics-stock-amid-overstretched-valuations-13960201.html",
+        "publishedAt": "2026-06-28T01:38:55Z",
+        "publishedIST": "2026-06-28 07:08 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "Nifty 50"
+      },
+      {
+        "title": "Funding the 'mother of all cycles': Chris Wood cuts Indian stocks to double down on South Korean chip giants",
+        "sentiment": 0.6705,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/funding-the-mother-of-all-cycles-chris-wood-cuts-indian-stocks-to-double-down-on-south-korean-chip-giants/articleshow/132045664.cms?from=mdr",
+        "publishedAt": "2026-06-28T04:58:29Z",
+        "publishedIST": "2026-06-28 10:28 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "top:business"
+      },
+      {
+        "title": "11 penny stocks plunge up to 55% in a month. Should investors worry?",
+        "sentiment": 0.4564,
+        "source": "The Economic Times",
+        "url": "https://economictimes.indiatimes.com/markets/stocks/news/11-penny-stocks-plunge-up-to-55-in-a-month-should-investors-worry/rough-ride/slideshow/132046234.cms?from=mdr",
+        "publishedAt": "2026-06-28T05:59:27Z",
+        "publishedIST": "2026-06-28 11:29 IST",
+        "impact_type": "market_event",
+        "weight_mult": 1.3,
+        "query": "top:business"
+      },
+      {
+        "title": "India's MSME sector contributes 31.1pc to GDP, formal registrations cross 8.7 Cr",
+        "sentiment": 0.3818,
+        "source": "Daily Excelsior",
+        "url": "https://www.dailyexcelsior.com/indias-msme-sector-contributes-31-1pc-to-gdp-formal-registrations-cross-8-7-cr/",
+        "publishedAt": "2026-06-27T22:30:42Z",
+        "publishedIST": "2026-06-28 04:00 IST",
+        "impact_type": "macro",
+        "weight_mult": 1.5,
+        "query": "India GDP growth"
+      }
+    ],
+    "category_breakdown": {
+      "top:world": {
+        "count": 10,
+        "avg_sentiment": -0.506,
+        "label": "bearish"
+      },
+      "top:business": {
+        "count": 9,
+        "avg_sentiment": 0.231,
+        "label": "bullish"
+      },
+      "Nifty 50": {
+        "count": 3,
+        "avg_sentiment": 0.597,
+        "label": "bullish"
+      },
+      "Reliance Industries": {
+        "count": 3,
+        "avg_sentiment": 0.661,
+        "label": "bullish"
+      },
+      "Sensex BSE": {
+        "count": 2,
+        "avg_sentiment": 0.854,
+        "label": "bullish"
+      },
+      "India GDP growth": {
+        "count": 2,
+        "avg_sentiment": 0.66,
+        "label": "bullish"
+      }
+    }
+  },
+  "n_sources": 16,
+  "sources": {
+    "The Economic Times": 5,
+    "Livemint": 3,
+    "The Times of India": 3,
+    "Moneycontrol": 2,
+    "RushLane": 2,
+    "Hindustan Times": 2,
+    "Mint": 2,
+    "India Today": 2,
+    "Daily Excelsior": 1,
+    "Business Standard": 1,
+    "India TV News": 1,
+    "Upstox": 1,
+    "The Hindu": 1,
+    "PressTV": 1,
+    "NDTV Profit": 1,
+    "Moneycontrol.com": 1
+  }
+}

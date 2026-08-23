@@ -1,0 +1,40 @@
+{
+  "_comment": "Confidence-gate operating points from walk-forward backtest on 3yr of 5-min data. conf_gate = min confidence (prob on predicted side) for a high-conviction signal; exp_acc/coverage measured OOS. Fallback for when the meta gate is unavailable.",
+  "horizons": {
+    "5min": {
+      "conf_gate": 0.585,
+      "exp_acc": 64,
+      "coverage": 0.05
+    },
+    "15min": {
+      "conf_gate": 0.605,
+      "exp_acc": 68,
+      "coverage": 0.2
+    },
+    "30min": {
+      "conf_gate": 0.641,
+      "exp_acc": 74,
+      "coverage": 0.2
+    },
+    "60min": {
+      "conf_gate": 0.685,
+      "exp_acc": 83,
+      "coverage": 0.2
+    },
+    "120min": {
+      "conf_gate": 0.68,
+      "exp_acc": 83,
+      "coverage": 0.3
+    },
+    "180min": {
+      "conf_gate": 0.672,
+      "exp_acc": 78,
+      "coverage": 0.3
+    },
+    "close": {
+      "conf_gate": 0.693,
+      "exp_acc": 77,
+      "coverage": 0.2
+    }
+  }
+}
